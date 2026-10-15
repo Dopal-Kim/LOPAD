@@ -89,168 +89,168 @@
   "down": [
    {
     "handR": [
-     81.8,
-     89.9
+     83.8,
+     80.9
     ],
     "handL": [
-     102.8,
-     115.3
+     104.8,
+     106.3
     ]
    },
    {
     "handR": [
-     79.5,
-     102.0
+     81.5,
+     93.0
     ],
     "handL": [
-     102.8,
-     115.3
+     104.8,
+     106.3
     ]
    },
    {
     "handR": [
-     94.9,
-     112.1
+     95.9,
+     102.1
     ],
     "handL": [
-     102.8,
-     115.3
+     103.8,
+     105.3
     ]
    },
    {
     "handR": [
-     95.2,
-     113.1
+     96.2,
+     103.1
     ],
     "handL": [
-     102.8,
-     115.3
+     103.8,
+     105.3
     ]
    }
   ],
   "up": [
    {
     "handR": [
-     110.2,
-     97.3
+     109.2,
+     89.3
     ],
     "handL": [
-     89.2,
-     86.9
+     88.2,
+     78.9
     ]
    },
    {
     "handR": [
-     112.5,
-     106.2
+     111.5,
+     98.2
     ],
     "handL": [
-     89.2,
-     86.9
+     88.2,
+     78.9
     ]
    },
    {
     "handR": [
      97.1,
-     92.3
+     83.3
     ],
     "handL": [
      89.2,
-     86.9
+     77.9
     ]
    },
    {
     "handR": [
      96.8,
-     92.1
+     83.1
     ],
     "handL": [
      89.2,
-     86.9
+     77.9
     ]
    }
   ],
   "left": [
    {
     "handR": [
-     106.5,
-     88.3
+     105.5,
+     79.3
     ],
     "handL": [
-     55.5,
-     103.2
+     54.5,
+     94.2
     ]
    },
    {
     "handR": [
-     102.0,
-     98.0
+     101.0,
+     89.0
     ],
     "handL": [
-     55.5,
-     103.2
+     54.5,
+     94.2
     ]
    },
    {
     "handR": [
      67.7,
-     101.5
+     92.5
     ],
     "handL": [
      55.5,
-     103.2
+     94.2
     ]
    },
    {
     "handR": [
      66.0,
-     102.0
+     93.0
     ],
     "handL": [
      55.5,
-     103.2
+     94.2
     ]
    }
   ],
   "right": [
    {
     "handR": [
-     85.5,
-     98.3
+     87.5,
+     89.3
     ],
     "handL": [
-     136.5,
-     98.4
+     138.5,
+     89.4
     ]
    },
    {
     "handR": [
-     90.0,
-     109.6
+     92.0,
+     100.6
     ],
     "handL": [
-     136.5,
-     98.4
+     138.5,
+     89.4
     ]
    },
    {
     "handR": [
-     124.3,
-     102.3
+     125.3,
+     93.3
     ],
     "handL": [
-     136.5,
-     98.4
+     137.5,
+     89.4
     ]
    },
    {
     "handR": [
-     126.0,
-     102.6
+     127.0,
+     93.6
     ],
     "handL": [
-     136.5,
-     98.4
+     137.5,
+     89.4
     ]
    }
   ]
@@ -258,74 +258,74 @@
  "gripAnchors": {
   "down": [
    [
-    102.8,
-    115.3
+    104.8,
+    106.3
    ],
    [
-    102.8,
-    115.3
+    104.8,
+    106.3
    ],
    [
-    102.8,
-    115.3
+    103.8,
+    105.3
    ],
    [
-    102.8,
-    115.3
+    103.8,
+    105.3
    ]
   ],
   "up": [
    [
-    89.2,
-    86.9
+    88.2,
+    78.9
+   ],
+   [
+    88.2,
+    78.9
    ],
    [
     89.2,
-    86.9
+    77.9
    ],
    [
     89.2,
-    86.9
-   ],
-   [
-    89.2,
-    86.9
+    77.9
    ]
   ],
   "left": [
    [
-    55.5,
-    103.2
+    54.5,
+    94.2
+   ],
+   [
+    54.5,
+    94.2
    ],
    [
     55.5,
-    103.2
+    94.2
    ],
    [
     55.5,
-    103.2
-   ],
-   [
-    55.5,
-    103.2
+    94.2
    ]
   ],
   "right": [
    [
-    136.5,
-    98.4
+    138.5,
+    89.4
    ],
    [
-    136.5,
-    98.4
+    138.5,
+    89.4
    ],
    [
-    136.5,
-    98.4
+    137.5,
+    89.4
    ],
    [
-    136.5,
-    98.4
+    137.5,
+    89.4
    ]
   ]
  },
@@ -342,12 +342,12 @@
    null,
    null,
    [
-    120.8,
-    122.5
+    121.8,
+    112.5
    ],
    [
-    123.0,
-    121.1
+    124.0,
+    111.1
    ]
   ],
   "up": [
@@ -355,11 +355,11 @@
    null,
    [
     71.2,
-    74.5
+    65.5
    ],
    [
     69.0,
-    73.0
+    64.0
    ]
   ],
   "left": [
@@ -367,23 +367,23 @@
    null,
    [
     27.5,
-    106.9
+    97.9
    ],
    [
     27.2,
-    106.2
+    97.2
    ]
   ],
   "right": [
    null,
    null,
    [
-    164.5,
-    89.5
+    165.5,
+    80.5
    ],
    [
-    164.8,
-    87.3
+    165.8,
+    78.3
    ]
   ]
  },
@@ -395,8 +395,8 @@
  "arrowSpawnAnchors": {
   "down": [
    [
-    102.8,
-    115.3
+    104.8,
+    106.3
    ],
    null,
    null,
@@ -404,8 +404,8 @@
   ],
   "up": [
    [
-    89.2,
-    86.9
+    88.2,
+    78.9
    ],
    null,
    null,
@@ -413,8 +413,8 @@
   ],
   "left": [
    [
-    55.5,
-    103.2
+    54.5,
+    94.2
    ],
    null,
    null,
@@ -422,8 +422,8 @@
   ],
   "right": [
    [
-    136.5,
-    98.4
+    138.5,
+    89.4
    ],
    null,
    null,
@@ -431,6 +431,7 @@
   ]
  },
  "arrowSpawnNote": "화살 생성 점(무기 시트 좌표) — 놓기 f0 의 줌통 앞. bow_perfect_release·bow_muzzle_rapid 의 pivot 을 여기에",
+ "p20": "P20 새 몸: 프레임마다 weaponOffsetDots(몸 JSON) 만큼 옮김(그림 그대로)",
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -451,22 +452,22 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":26,"y":194,"w":7,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":83,"w":7,"h":61},"sourceSize":{"w":192,"h":192}},
-  "1":{"frame":{"x":35,"y":194,"w":7,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":83,"w":7,"h":61},"sourceSize":{"w":192,"h":192}},
-  "2":{"frame":{"x":0,"y":0,"w":29,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":93,"y":83,"w":29,"h":63},"sourceSize":{"w":192,"h":192}},
-  "3":{"frame":{"x":0,"y":65,"w":11,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":83,"w":11,"h":63},"sourceSize":{"w":192,"h":192}},
-  "4":{"frame":{"x":24,"y":321,"w":7,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":59,"w":7,"h":40},"sourceSize":{"w":192,"h":192}},
-  "5":{"frame":{"x":15,"y":321,"w":7,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":59,"w":7,"h":41},"sourceSize":{"w":192,"h":192}},
-  "6":{"frame":{"x":15,"y":364,"w":26,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":60,"w":26,"h":40},"sourceSize":{"w":192,"h":192}},
-  "7":{"frame":{"x":33,"y":321,"w":11,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":60,"w":11,"h":39},"sourceSize":{"w":192,"h":192}},
-  "8":{"frame":{"x":13,"y":65,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":72,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
-  "9":{"frame":{"x":26,"y":65,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":72,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
-  "10":{"frame":{"x":0,"y":130,"w":42,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":72,"w":42,"h":62},"sourceSize":{"w":192,"h":192}},
-  "11":{"frame":{"x":31,"y":0,"w":14,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":72,"w":14,"h":63},"sourceSize":{"w":192,"h":192}},
-  "12":{"frame":{"x":0,"y":194,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":69,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
-  "13":{"frame":{"x":13,"y":194,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":69,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
-  "14":{"frame":{"x":0,"y":258,"w":45,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":70,"w":45,"h":61},"sourceSize":{"w":192,"h":192}},
-  "15":{"frame":{"x":0,"y":321,"w":13,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":127,"y":71,"w":13,"h":60},"sourceSize":{"w":192,"h":192}}
+  "0":{"frame":{"x":26,"y":194,"w":7,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":74,"w":7,"h":61},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":35,"y":194,"w":7,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":74,"w":7,"h":61},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":0,"y":0,"w":29,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":73,"w":29,"h":63},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":0,"y":65,"w":11,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":73,"w":11,"h":63},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":24,"y":321,"w":7,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":51,"w":7,"h":40},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":15,"y":321,"w":7,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":51,"w":7,"h":41},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":15,"y":364,"w":26,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":51,"w":26,"h":40},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":33,"y":321,"w":11,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":51,"w":11,"h":39},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":13,"y":65,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":63,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":26,"y":65,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":63,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":0,"y":130,"w":42,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":63,"w":42,"h":62},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":31,"y":0,"w":14,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":63,"w":14,"h":63},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":0,"y":194,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":130,"y":60,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":13,"y":194,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":130,"y":60,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":0,"y":258,"w":45,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":122,"y":61,"w":45,"h":61},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":0,"y":321,"w":13,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":62,"w":13,"h":60},"sourceSize":{"w":192,"h":192}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",

@@ -1,509 +1,691 @@
 {
+ "image": "greatsword_carry_run.png",
+ "action": "carry_run",
+ "frameWidth": 240,
+ "frameHeight": 272,
+ "framesPerDirection": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 15.38,
+ "frameDurationsMs": [
+  65,
+  65,
+  65,
+  65,
+  65,
+  65,
+  65,
+  65
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 119,
+  "y": 209
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/weapons_v3/build.py (53라운드 Q26~Q32 무기 재디자인 — v3 도트 오버레이)",
+ "weapon": "greatsword",
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 71,
+  "y": 71
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     104.4,
+     173.0
+    ],
+    "handL": [
+     145.2,
+     157.7
+    ]
+   },
+   {
+    "handR": [
+     98.9,
+     159.2
+    ],
+    "handL": [
+     139.7,
+     174.5
+    ]
+   },
+   {
+    "handR": [
+     94.1,
+     151.8
+    ],
+    "handL": [
+     134.9,
+     175.9
+    ]
+   },
+   {
+    "handR": [
+     94.1,
+     148.8
+    ],
+    "handL": [
+     134.9,
+     172.9
+    ]
+   },
+   {
+    "handR": [
+     93.4,
+     159.8
+    ],
+    "handL": [
+     134.2,
+     170.9
+    ]
+   },
+   {
+    "handR": [
+     97.8,
+     172.9
+    ],
+    "handL": [
+     138.6,
+     160.8
+    ]
+   },
+   {
+    "handR": [
+     103.1,
+     175.9
+    ],
+    "handL": [
+     143.9,
+     151.8
+    ]
+   },
+   {
+    "handR": [
+     102.9,
+     171.9
+    ],
+    "handL": [
+     143.7,
+     149.8
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     139.1,
+     148.7
+    ],
+    "handL": [
+     98.3,
+     164.0
+    ]
+   },
+   {
+    "handR": [
+     135.6,
+     165.5
+    ],
+    "handL": [
+     94.8,
+     150.2
+    ]
+   },
+   {
+    "handR": [
+     136.9,
+     166.9
+    ],
+    "handL": [
+     96.1,
+     142.8
+    ]
+   },
+   {
+    "handR": [
+     136.9,
+     163.9
+    ],
+    "handL": [
+     96.1,
+     139.8
+    ]
+   },
+   {
+    "handR": [
+     140.3,
+     161.9
+    ],
+    "handL": [
+     99.5,
+     150.8
+    ]
+   },
+   {
+    "handR": [
+     142.7,
+     151.8
+    ],
+    "handL": [
+     101.9,
+     163.9
+    ]
+   },
+   {
+    "handR": [
+     141.9,
+     142.8
+    ],
+    "handL": [
+     101.1,
+     166.9
+    ]
+   },
+   {
+    "handR": [
+     141.7,
+     140.8
+    ],
+    "handL": [
+     100.9,
+     162.9
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     85.6,
+     156.9
+    ],
+    "handL": [
+     103.9,
+     162.2
+    ]
+   },
+   {
+    "handR": [
+     103.9,
+     163.7
+    ],
+    "handL": [
+     85.6,
+     158.4
+    ]
+   },
+   {
+    "handR": [
+     108.9,
+     160.2
+    ],
+    "handL": [
+     80.4,
+     151.9
+    ]
+   },
+   {
+    "handR": [
+     108.9,
+     157.2
+    ],
+    "handL": [
+     80.4,
+     148.9
+    ]
+   },
+   {
+    "handR": [
+     101.3,
+     163.0
+    ],
+    "handL": [
+     88.2,
+     159.2
+    ]
+   },
+   {
+    "handR": [
+     87.6,
+     160.2
+    ],
+    "handL": [
+     101.9,
+     164.4
+    ]
+   },
+   {
+    "handR": [
+     80.4,
+     151.9
+    ],
+    "handL": [
+     108.9,
+     160.2
+    ]
+   },
+   {
+    "handR": [
+     81.5,
+     149.9
+    ],
+    "handL": [
+     107.8,
+     157.5
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     134.1,
+     162.2
+    ],
+    "handL": [
+     152.4,
+     156.9
+    ]
+   },
+   {
+    "handR": [
+     152.4,
+     158.4
+    ],
+    "handL": [
+     134.1,
+     163.7
+    ]
+   },
+   {
+    "handR": [
+     157.6,
+     151.9
+    ],
+    "handL": [
+     129.1,
+     160.2
+    ]
+   },
+   {
+    "handR": [
+     157.6,
+     148.9
+    ],
+    "handL": [
+     129.1,
+     157.2
+    ]
+   },
+   {
+    "handR": [
+     149.8,
+     159.2
+    ],
+    "handL": [
+     136.7,
+     163.0
+    ]
+   },
+   {
+    "handR": [
+     136.1,
+     164.4
+    ],
+    "handL": [
+     150.4,
+     160.2
+    ]
+   },
+   {
+    "handR": [
+     129.1,
+     160.2
+    ],
+    "handL": [
+     157.6,
+     151.9
+    ]
+   },
+   {
+    "handR": [
+     130.2,
+     157.5
+    ],
+    "handL": [
+     156.5,
+     149.9
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "up": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "left": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "right": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ]
+ },
+ "gripHand": null,
+ "design": "A 녹슨 양손검 (53라운드 Q27) — 갈고리 달린 녹슨 츠바이헨더 · 박힌 화살촉 · 이 빠진 홈에서 새는 혼불 · 가죽 리카소",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_greatsword_A2.jpg (참고만, 도트는 직접)",
+ "glowRule": "53라운드 Q30: 평소 가장 깊은 홈 혼불 1px(A21) 은은, 판정(glow) 프레임만 날 가장자리 A25/A23 + 홈·끝 A26",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(강철 G · 녹 A18/A19 · 혼불 A · 가죽 WD, Q32)",
+ "twoHanded": true,
+ "bladeLengthDots": 90,
+ "hiltLengthDots": 21,
+ "sizeNote": "53라운드 Q44 '몸만한 칼'(날 90 + 손잡이 21 도트, 폭 9) · Q45 대검 시트만 틀 확대 — frameWidth/frameHeight·pivot·playerFrameOffset 을 JSON 에서 읽을 것",
+ "carry": "back, leather strap (등에 비스듬히 — 손잡이 오른어깨 위, 날 왼허리 뒤)",
+ "state": "sheathed",
+ "bladeLocal": {
+  "thetaDeg": -100.0,
+  "elevDeg": -56.0
+ },
+ "bodySheet": "player_run_free",
+ "bodySheetByWeapon": {
+  "katana": "player_run",
+  "greatsword": "player_run_free",
+  "dagger": "player_run_free",
+  "bow": "player_run_free"
+ },
+ "bodySheetRuleNote": "무기별 이동 몸 시트 선택 규칙(아트 제안): bodySheetByWeapon[무기][동작]. 칼만 칼집을 쥔 player_<동작>, 나머지는 왼손이 빈 player_<동작>_free. 대쉬는 모든 무기가 player_dash. 오버레이는 <무기>_carry_<동작>(대검·칼은 뽑아 든 상태면 <무기>_carry_drawn_<동작>).",
+ "overlay": "player_run_free 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset.",
+ "bladeTipAnchors": {
+  "down": [
+   [
+    163.5,
+    191.9
+   ],
+   [
+    165.1,
+    193.4
+   ],
+   [
+    161.2,
+    190.4
+   ],
+   [
+    161.2,
+    187.4
+   ],
+   [
+    156.4,
+    191.9
+   ],
+   [
+    155.5,
+    193.4
+   ],
+   [
+    159.2,
+    190.4
+   ],
+   [
+    159.3,
+    187.4
+   ]
+  ],
+  "up": [
+   [
+    72.9,
+    193.7
+   ],
+   [
+    76.5,
+    195.2
+   ],
+   [
+    80.8,
+    192.2
+   ],
+   [
+    80.8,
+    189.2
+   ],
+   [
+    82.4,
+    193.7
+   ],
+   [
+    79.5,
+    195.2
+   ],
+   [
+    74.8,
+    192.2
+   ],
+   [
+    75.0,
+    189.2
+   ]
+  ],
+  "left": [
+   [
+    143.3,
+    200.4
+   ],
+   [
+    143.3,
+    201.9
+   ],
+   [
+    141.9,
+    201.1
+   ],
+   [
+    141.9,
+    198.1
+   ],
+   [
+    143.3,
+    200.4
+   ],
+   [
+    143.3,
+    201.9
+   ],
+   [
+    141.9,
+    201.1
+   ],
+   [
+    141.9,
+    198.1
+   ]
+  ],
+  "right": [
+   [
+    94.7,
+    171.6
+   ],
+   [
+    94.7,
+    173.1
+   ],
+   [
+    96.1,
+    172.2
+   ],
+   [
+    96.1,
+    169.2
+   ],
+   [
+    94.7,
+    171.6
+   ],
+   [
+    94.7,
+    173.1
+   ],
+   [
+    96.1,
+    172.2
+   ],
+   [
+    96.1,
+    169.2
+   ]
+  ]
+ },
+ "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고",
+ "p19": "P19 주인공 역동성: 몸 새 자세에 맞춰 프레임마다 weaponOffsetBackDots(가슴 이동 — 등에 멘 대검) 만큼 옮김(그림은 그대로)",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 greatsword_carry_run.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 4,
+   "frameWidth": 240,
+   "frameHeight": 272,
+   "frameCount": 32
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 2,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":419,"w":66,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":101,"w":66,"h":92},"sourceSize":{"w":240,"h":272}},
+  "1":{"frame":{"x":134,"y":418,"w":65,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":102,"w":65,"h":93},"sourceSize":{"w":240,"h":272}},
+  "2":{"frame":{"x":68,"y":513,"w":65,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":97,"y":99,"w":65,"h":92},"sourceSize":{"w":240,"h":272}},
+  "3":{"frame":{"x":135,"y":513,"w":65,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":97,"y":96,"w":65,"h":92},"sourceSize":{"w":240,"h":272}},
+  "4":{"frame":{"x":0,"y":513,"w":66,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":92,"y":101,"w":66,"h":92},"sourceSize":{"w":240,"h":272}},
+  "5":{"frame":{"x":0,"y":607,"w":65,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":91,"y":102,"w":65,"h":92},"sourceSize":{"w":240,"h":272}},
+  "6":{"frame":{"x":67,"y":607,"w":65,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":99,"w":65,"h":92},"sourceSize":{"w":240,"h":272}},
+  "7":{"frame":{"x":134,"y":607,"w":65,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":96,"w":65,"h":92},"sourceSize":{"w":240,"h":272}},
+  "8":{"frame":{"x":68,"y":215,"w":65,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":73,"y":95,"w":65,"h":100},"sourceSize":{"w":240,"h":272}},
+  "9":{"frame":{"x":135,"y":215,"w":65,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":77,"y":96,"w":65,"h":100},"sourceSize":{"w":240,"h":272}},
+  "10":{"frame":{"x":134,"y":317,"w":65,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":81,"y":94,"w":65,"h":99},"sourceSize":{"w":240,"h":272}},
+  "11":{"frame":{"x":134,"y":317,"w":65,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":81,"y":91,"w":65,"h":99},"sourceSize":{"w":240,"h":272}},
+  "12":{"frame":{"x":0,"y":215,"w":66,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":82,"y":95,"w":66,"h":100},"sourceSize":{"w":240,"h":272}},
+  "13":{"frame":{"x":0,"y":317,"w":65,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":80,"y":96,"w":65,"h":100},"sourceSize":{"w":240,"h":272}},
+  "14":{"frame":{"x":134,"y":317,"w":65,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":94,"w":65,"h":99},"sourceSize":{"w":240,"h":272}},
+  "15":{"frame":{"x":67,"y":317,"w":65,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":90,"w":65,"h":100},"sourceSize":{"w":240,"h":272}},
+  "16":{"frame":{"x":0,"y":108,"w":52,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":92,"y":97,"w":52,"h":105},"sourceSize":{"w":240,"h":272}},
+  "17":{"frame":{"x":54,"y":108,"w":52,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":92,"y":98,"w":52,"h":105},"sourceSize":{"w":240,"h":272}},
+  "18":{"frame":{"x":0,"y":0,"w":50,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":93,"y":96,"w":50,"h":106},"sourceSize":{"w":240,"h":272}},
+  "19":{"frame":{"x":52,"y":0,"w":50,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":93,"y":93,"w":50,"h":106},"sourceSize":{"w":240,"h":272}},
+  "20":{"frame":{"x":108,"y":108,"w":52,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":92,"y":97,"w":52,"h":105},"sourceSize":{"w":240,"h":272}},
+  "21":{"frame":{"x":162,"y":108,"w":52,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":92,"y":98,"w":52,"h":105},"sourceSize":{"w":240,"h":272}},
+  "22":{"frame":{"x":104,"y":0,"w":50,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":93,"y":96,"w":50,"h":106},"sourceSize":{"w":240,"h":272}},
+  "23":{"frame":{"x":156,"y":0,"w":50,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":93,"y":93,"w":50,"h":106},"sourceSize":{"w":240,"h":272}},
+  "24":{"frame":{"x":153,"y":701,"w":51,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":111,"w":51,"h":62},"sourceSize":{"w":240,"h":272}},
+  "25":{"frame":{"x":0,"y":766,"w":51,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":113,"w":51,"h":61},"sourceSize":{"w":240,"h":272}},
+  "26":{"frame":{"x":68,"y":419,"w":49,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":110,"w":49,"h":63},"sourceSize":{"w":240,"h":272}},
+  "27":{"frame":{"x":0,"y":701,"w":49,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":107,"w":49,"h":63},"sourceSize":{"w":240,"h":272}},
+  "28":{"frame":{"x":153,"y":765,"w":51,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":111,"w":51,"h":62},"sourceSize":{"w":240,"h":272}},
+  "29":{"frame":{"x":53,"y":766,"w":51,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":113,"w":51,"h":61},"sourceSize":{"w":240,"h":272}},
+  "30":{"frame":{"x":51,"y":701,"w":49,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":110,"w":49,"h":63},"sourceSize":{"w":240,"h":272}},
+  "31":{"frame":{"x":102,"y":701,"w":49,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":107,"w":49,"h":63},"sourceSize":{"w":240,"h":272}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
   "image": "greatsword_carry_run.png",
-  "action": "carry_run",
-  "frameWidth": 240,
-  "frameHeight": 272,
-  "framesPerDirection": 8,
-  "directions": ["down", "up", "left", "right"],
-  "layout": "rows = directions (down, up, left, right), columns = frames",
-  "frameIndex": "row * frames + column",
-  "fps": 15.38,
-  "frameDurationsMs": [65, 65, 65, 65, 65, 65, 65, 65],
-  "loop": true,
-  "pivot": {
-    "x": 119,
-    "y": 209
+  "format": "RGBA8888",
+  "size": {
+   "w": 214,
+   "h": 827
   },
-  "pixelScale": 0.5,
-  "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
-  "source": "parts/art/work/weapons_v3/build.py (53라운드 Q26~Q32 무기 재디자인 — v3 도트 오버레이)",
-  "weapon": "greatsword",
-  "anchor": "player_pivot",
-  "playerFrameOffset": {
-    "x": 71,
-    "y": 71
-  },
-  "depth": {
-    "down": "above",
-    "up": "above",
-    "left": "above",
-    "right": "above"
-  },
-  "depthByFrame": {
-    "down": ["above", "above", "above", "above", "above", "above", "above", "above"],
-    "up": ["above", "above", "above", "above", "above", "above", "above", "above"],
-    "left": ["above", "above", "above", "above", "above", "above", "above", "above"],
-    "right": ["above", "above", "above", "above", "above", "above", "above", "above"]
-  },
-  "occlusionBaked": true,
-  "depthNote": "몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
-  "handAnchors": {
-    "down": [
-      {
-        "handR": [102.4, 178.0],
-        "handL": [143.2, 162.7]
-      },
-      {
-        "handR": [97.9, 164.2],
-        "handL": [138.7, 179.5]
-      },
-      {
-        "handR": [95.1, 156.8],
-        "handL": [135.9, 180.9]
-      },
-      {
-        "handR": [95.1, 153.8],
-        "handL": [135.9, 177.9]
-      },
-      {
-        "handR": [95.4, 164.8],
-        "handL": [136.2, 175.9]
-      },
-      {
-        "handR": [98.8, 177.9],
-        "handL": [139.6, 165.8]
-      },
-      {
-        "handR": [102.1, 180.9],
-        "handL": [142.9, 156.8]
-      },
-      {
-        "handR": [101.9, 176.9],
-        "handL": [142.7, 154.8]
-      }
-    ],
-    "up": [
-      {
-        "handR": [140.1, 162.7],
-        "handL": [99.3, 178.0]
-      },
-      {
-        "handR": [135.6, 179.5],
-        "handL": [94.8, 164.2]
-      },
-      {
-        "handR": [135.9, 180.9],
-        "handL": [95.1, 156.8]
-      },
-      {
-        "handR": [135.9, 177.9],
-        "handL": [95.1, 153.8]
-      },
-      {
-        "handR": [139.3, 175.9],
-        "handL": [98.5, 164.8]
-      },
-      {
-        "handR": [142.7, 165.8],
-        "handL": [101.9, 177.9]
-      },
-      {
-        "handR": [142.9, 156.8],
-        "handL": [102.1, 180.9]
-      },
-      {
-        "handR": [142.7, 154.8],
-        "handL": [101.9, 176.9]
-      }
-    ],
-    "left": [
-      {
-        "handR": [90.6, 163.9],
-        "handL": [108.9, 169.2]
-      },
-      {
-        "handR": [108.9, 170.7],
-        "handL": [90.6, 165.4]
-      },
-      {
-        "handR": [112.9, 167.2],
-        "handL": [84.4, 158.9]
-      },
-      {
-        "handR": [112.9, 164.2],
-        "handL": [84.4, 155.9]
-      },
-      {
-        "handR": [106.3, 170.0],
-        "handL": [93.2, 166.2]
-      },
-      {
-        "handR": [92.6, 167.2],
-        "handL": [106.9, 171.4]
-      },
-      {
-        "handR": [84.4, 158.9],
-        "handL": [112.9, 167.2]
-      },
-      {
-        "handR": [85.5, 156.9],
-        "handL": [111.8, 164.5]
-      }
-    ],
-    "right": [
-      {
-        "handR": [129.1, 169.2],
-        "handL": [147.4, 163.9]
-      },
-      {
-        "handR": [147.4, 165.4],
-        "handL": [129.1, 170.7]
-      },
-      {
-        "handR": [153.6, 158.9],
-        "handL": [125.1, 167.2]
-      },
-      {
-        "handR": [153.6, 155.9],
-        "handL": [125.1, 164.2]
-      },
-      {
-        "handR": [144.8, 166.2],
-        "handL": [131.7, 170.0]
-      },
-      {
-        "handR": [131.1, 171.4],
-        "handL": [145.4, 167.2]
-      },
-      {
-        "handR": [125.1, 167.2],
-        "handL": [153.6, 158.9]
-      },
-      {
-        "handR": [126.2, 164.5],
-        "handL": [152.5, 156.9]
-      }
-    ]
-  },
-  "gripAnchors": {
-    "down": [null, null, null, null, null, null, null, null],
-    "up": [null, null, null, null, null, null, null, null],
-    "left": [null, null, null, null, null, null, null, null],
-    "right": [null, null, null, null, null, null, null, null]
-  },
-  "gripHand": null,
-  "design": "A 녹슨 양손검 (53라운드 Q27) — 갈고리 달린 녹슨 츠바이헨더 · 박힌 화살촉 · 이 빠진 홈에서 새는 혼불 · 가죽 리카소",
-  "designRef": "parts/art/work/gemini/concept_weapons/raw_greatsword_A2.jpg (참고만, 도트는 직접)",
-  "glowRule": "53라운드 Q30: 평소 가장 깊은 홈 혼불 1px(A21) 은은, 판정(glow) 프레임만 날 가장자리 A25/A23 + 홈·끝 A26",
-  "colorBudget": 16,
-  "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(강철 G · 녹 A18/A19 · 혼불 A · 가죽 WD, Q32)",
-  "twoHanded": true,
-  "bladeLengthDots": 90,
-  "hiltLengthDots": 21,
-  "sizeNote": "53라운드 Q44 '몸만한 칼'(날 90 + 손잡이 21 도트, 폭 9) · Q45 대검 시트만 틀 확대 — frameWidth/frameHeight·pivot·playerFrameOffset 을 JSON 에서 읽을 것",
-  "carry": "back, leather strap (등에 비스듬히 — 손잡이 오른어깨 위, 날 왼허리 뒤)",
-  "state": "sheathed",
-  "bladeLocal": {
-    "thetaDeg": -100.0,
-    "elevDeg": -56.0
-  },
-  "bodySheet": "player_run_free",
-  "bodySheetByWeapon": {
-    "katana": "player_run",
-    "greatsword": "player_run_free",
-    "dagger": "player_run_free",
-    "bow": "player_run_free"
-  },
-  "bodySheetRuleNote": "무기별 이동 몸 시트 선택 규칙(아트 제안): bodySheetByWeapon[무기][동작]. 칼만 칼집을 쥔 player_<동작>, 나머지는 왼손이 빈 player_<동작>_free. 대쉬는 모든 무기가 player_dash. 오버레이는 <무기>_carry_<동작>(대검·칼은 뽑아 든 상태면 <무기>_carry_drawn_<동작>).",
-  "overlay": "player_run_free 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset.",
-  "bladeTipAnchors": {
-    "down": [
-      [161.5, 196.9],
-      [164.1, 198.4],
-      [162.2, 195.4],
-      [162.2, 192.4],
-      [158.4, 196.9],
-      [156.5, 198.4],
-      [158.2, 195.4],
-      [158.3, 192.4]
-    ],
-    "up": [
-      [73.9, 207.7],
-      [76.5, 209.2],
-      [79.8, 206.2],
-      [79.8, 203.2],
-      [81.4, 207.7],
-      [79.5, 209.2],
-      [75.8, 206.2],
-      [76.0, 203.2]
-    ],
-    "left": [
-      [148.3, 207.4],
-      [148.3, 208.9],
-      [145.9, 208.1],
-      [145.9, 205.1],
-      [148.3, 207.4],
-      [148.3, 208.9],
-      [145.9, 208.1],
-      [145.9, 205.1]
-    ],
-    "right": [
-      [89.7, 178.6],
-      [89.7, 180.1],
-      [92.1, 179.2],
-      [92.1, 176.2],
-      [89.7, 178.6],
-      [89.7, 180.1],
-      [92.1, 179.2],
-      [92.1, 176.2]
-    ]
-  },
-  "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고",
-  "p19": "P19 주인공 역동성: 몸 새 자세에 맞춰 프레임마다 weaponOffsetBackDots(가슴 이동 — 등에 멘 대검) 만큼 옮김(그림은 그대로)",
-  "atlas": {
-    "version": "atlas57-1",
-    "format": "phaser-json-hash",
-    "source": "parts/art/work/atlas57/build.py (원 격자 시트 greatsword_carry_run.png)",
-    "grid": {
-      "columns": 8,
-      "rows": 4,
-      "frameWidth": 240,
-      "frameHeight": 272,
-      "frameCount": 32
-    },
-    "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
-    "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
-    "padding": 2,
-    "noTrim": false,
-    "emptyFrames": [],
-    "dedupedFrames": 2,
-    "pages": 1
-  },
-  "frames": {
-    "0": {
-      "frame": { "x": 0, "y": 419, "w": 66, "h": 92 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 97, "y": 106, "w": 66, "h": 92 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "1": {
-      "frame": { "x": 134, "y": 418, "w": 65, "h": 93 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 100, "y": 107, "w": 65, "h": 93 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "2": {
-      "frame": { "x": 68, "y": 513, "w": 65, "h": 92 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 98, "y": 104, "w": 65, "h": 92 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "3": {
-      "frame": { "x": 135, "y": 513, "w": 65, "h": 92 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 98, "y": 101, "w": 65, "h": 92 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "4": {
-      "frame": { "x": 0, "y": 513, "w": 66, "h": 92 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 94, "y": 106, "w": 66, "h": 92 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "5": {
-      "frame": { "x": 0, "y": 607, "w": 65, "h": 92 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 92, "y": 107, "w": 65, "h": 92 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "6": {
-      "frame": { "x": 67, "y": 607, "w": 65, "h": 92 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 94, "y": 104, "w": 65, "h": 92 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "7": {
-      "frame": { "x": 134, "y": 607, "w": 65, "h": 92 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 94, "y": 101, "w": 65, "h": 92 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "8": {
-      "frame": { "x": 68, "y": 215, "w": 65, "h": 100 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 74, "y": 109, "w": 65, "h": 100 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "9": {
-      "frame": { "x": 135, "y": 215, "w": 65, "h": 100 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 77, "y": 110, "w": 65, "h": 100 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "10": {
-      "frame": { "x": 134, "y": 317, "w": 65, "h": 99 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 80, "y": 108, "w": 65, "h": 99 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "11": {
-      "frame": { "x": 134, "y": 317, "w": 65, "h": 99 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 80, "y": 105, "w": 65, "h": 99 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "12": {
-      "frame": { "x": 0, "y": 215, "w": 66, "h": 100 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 81, "y": 109, "w": 66, "h": 100 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "13": {
-      "frame": { "x": 0, "y": 317, "w": 65, "h": 100 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 80, "y": 110, "w": 65, "h": 100 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "14": {
-      "frame": { "x": 134, "y": 317, "w": 65, "h": 99 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 76, "y": 108, "w": 65, "h": 99 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "15": {
-      "frame": { "x": 67, "y": 317, "w": 65, "h": 100 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 76, "y": 104, "w": 65, "h": 100 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "16": {
-      "frame": { "x": 0, "y": 108, "w": 52, "h": 105 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 97, "y": 104, "w": 52, "h": 105 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "17": {
-      "frame": { "x": 54, "y": 108, "w": 52, "h": 105 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 97, "y": 105, "w": 52, "h": 105 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "18": {
-      "frame": { "x": 0, "y": 0, "w": 50, "h": 106 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 97, "y": 103, "w": 50, "h": 106 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "19": {
-      "frame": { "x": 52, "y": 0, "w": 50, "h": 106 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 97, "y": 100, "w": 50, "h": 106 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "20": {
-      "frame": { "x": 108, "y": 108, "w": 52, "h": 105 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 97, "y": 104, "w": 52, "h": 105 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "21": {
-      "frame": { "x": 162, "y": 108, "w": 52, "h": 105 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 97, "y": 105, "w": 52, "h": 105 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "22": {
-      "frame": { "x": 104, "y": 0, "w": 50, "h": 106 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 97, "y": 103, "w": 50, "h": 106 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "23": {
-      "frame": { "x": 156, "y": 0, "w": 50, "h": 106 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 97, "y": 100, "w": 50, "h": 106 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "24": {
-      "frame": { "x": 153, "y": 701, "w": 51, "h": 62 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 90, "y": 118, "w": 51, "h": 62 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "25": {
-      "frame": { "x": 0, "y": 766, "w": 51, "h": 61 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 90, "y": 120, "w": 51, "h": 61 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "26": {
-      "frame": { "x": 68, "y": 419, "w": 49, "h": 63 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 92, "y": 117, "w": 49, "h": 63 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "27": {
-      "frame": { "x": 0, "y": 701, "w": 49, "h": 63 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 92, "y": 114, "w": 49, "h": 63 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "28": {
-      "frame": { "x": 153, "y": 765, "w": 51, "h": 62 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 90, "y": 118, "w": 51, "h": 62 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "29": {
-      "frame": { "x": 53, "y": 766, "w": 51, "h": 61 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 90, "y": 120, "w": 51, "h": 61 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "30": {
-      "frame": { "x": 51, "y": 701, "w": 49, "h": 63 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 92, "y": 117, "w": 49, "h": 63 },
-      "sourceSize": { "w": 240, "h": 272 }
-    },
-    "31": {
-      "frame": { "x": 102, "y": 701, "w": 49, "h": 63 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 92, "y": 114, "w": 49, "h": 63 },
-      "sourceSize": { "w": 240, "h": 272 }
-    }
-  },
-  "meta": {
-    "app": "LOPAD atlas57 (Pillow)",
-    "version": "atlas57-1",
-    "image": "greatsword_carry_run.png",
-    "format": "RGBA8888",
-    "size": {
-      "w": 214,
-      "h": 827
-    },
-    "scale": "1"
-  }
+  "scale": "1"
+ }
 }

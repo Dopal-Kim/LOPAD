@@ -1,382 +1,612 @@
 {
+ "image": "katana_fall_wide_smear.png",
+ "action": "katana_fall_wide_smear",
+ "frameWidth": 200,
+ "frameHeight": 192,
+ "framesPerDirection": 7,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  70,
+  50,
+  40,
+  30,
+  60,
+  130,
+  60
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "pivot": {
+  "x": 98,
+  "y": 186
+ },
+ "playerFrameOffset": {
+  "x": 50,
+  "y": 48
+ },
+ "anchor": "player_pivot",
+ "overlayOf": "weapons/v3/katana_fall",
+ "sameFrameAs": "weapons/v3/katana_fall",
+ "overlay": "player_katana_fall · weapons/v3/katana_fall 와 **같은 프레임 번호를 같은 시각에** 겹친다(같은 틀 192×192·피벗·playerFrameOffset·방향 행). 각성 외형(weapons/v4/katana_*_<동작>)도 프레임이 같아 그대로 겹친다.",
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthRule": "무기 오버레이 바로 아래(같은 depth 규칙의 무기 직전). 무기가 몸 뒤로 가는 방향 행이면 스미어도 몸 뒤.",
+ "blendMode": "NORMAL",
+ "drawOver": "lightmap",
+ "dirTransform": "drawn4",
+ "smearFrames": [
+  1,
+  2,
+  3,
+  4,
+  5
+ ],
+ "sweepFrames": [
+  1,
+  2,
+  3
+ ],
+ "decayFrames": [
+  4,
+  5
+ ],
+ "glowFrames": [
+  2
+ ],
+ "impactFrame": 2,
+ "hitFrames": [
+  2
+ ],
+ "timingMs": {
+  "total": 440,
+  "hitAt": 120,
+  "activeEndAt": 160,
+  "cancelAt": 380
+ },
+ "bladeTipAnchors": {
+  "down": [
+   [
+    155.2,
+    56.2
+   ],
+   [
+    153.6,
+    91.1
+   ],
+   [
+    108.5,
+    148.5
+   ],
+   [
+    50.0,
+    168.3
+   ],
+   [
+    37.2,
+    171.4
+   ],
+   [
+    39.6,
+    171.7
+   ],
+   [
+    44.0,
+    168.2
+   ]
+  ],
+  "up": [
+   [
+    41.8,
+    37.6
+   ],
+   [
+    43.4,
+    50.5
+   ],
+   [
+    88.5,
+    84.0
+   ],
+   [
+    147.0,
+    119.7
+   ],
+   [
+    158.8,
+    139.4
+   ],
+   [
+    157.4,
+    140.4
+   ],
+   [
+    150.0,
+    133.0
+   ]
+  ],
+  "left": [
+   [
+    71.1,
+    65.8
+   ],
+   [
+    38.5,
+    90.7
+   ],
+   [
+    1.3,
+    118.2
+   ],
+   [
+    23.1,
+    125.4
+   ],
+   [
+    46.8,
+    132.7
+   ],
+   [
+    47.7,
+    134.8
+   ],
+   [
+    44.2,
+    133.0
+   ]
+  ],
+  "right": [
+   [
+    125.9,
+    26.5
+   ],
+   [
+    158.5,
+    53.2
+   ],
+   [
+    196.7,
+    111.8
+   ],
+   [
+    174.9,
+    160.0
+   ],
+   [
+    151.2,
+    175.5
+   ],
+   [
+    150.3,
+    176.6
+   ],
+   [
+    152.8,
+    168.6
+   ]
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   [
+    114.1,
+    93.2
+   ],
+   [
+    113.5,
+    104.8
+   ],
+   [
+    100.2,
+    123.6
+   ],
+   [
+    83.8,
+    128.7
+   ],
+   [
+    80.3,
+    130.1
+   ],
+   [
+    81.3,
+    128.1
+   ],
+   [
+    82.7,
+    126.0
+   ]
+  ],
+  "up": [
+   [
+    82.9,
+    84.0
+   ],
+   [
+    83.5,
+    89.4
+   ],
+   [
+    96.8,
+    100.6
+   ],
+   [
+    113.2,
+    110.5
+   ],
+   [
+    115.7,
+    117.1
+   ],
+   [
+    115.7,
+    115.1
+   ],
+   [
+    111.3,
+    115.2
+   ]
+  ],
+  "left": [
+   [
+    84.4,
+    93.1
+   ],
+   [
+    74.6,
+    103.0
+   ],
+   [
+    60.6,
+    111.1
+   ],
+   [
+    66.3,
+    112.8
+   ],
+   [
+    73.7,
+    116.0
+   ],
+   [
+    73.7,
+    115.0
+   ],
+   [
+    79.0,
+    116.5
+   ]
+  ],
+  "right": [
+   [
+    112.6,
+    82.5
+   ],
+   [
+    122.4,
+    93.6
+   ],
+   [
+    137.4,
+    110.5
+   ],
+   [
+    131.7,
+    123.8
+   ],
+   [
+    124.3,
+    128.6
+   ],
+   [
+    124.3,
+    127.6
+   ],
+   [
+    118.0,
+    125.1
+   ]
+  ]
+ },
+ "smearHeadAnchors": {
+  "down": [
+   null,
+   [
+    153.6,
+    91.1
+   ],
+   [
+    108.5,
+    148.5
+   ],
+   [
+    50.0,
+    168.3
+   ],
+   [
+    58.0,
+    167.0
+   ],
+   [
+    70.8,
+    162.3
+   ],
+   null
+  ],
+  "up": [
+   null,
+   null,
+   [
+    88.5,
+    84.0
+   ],
+   [
+    147.0,
+    119.7
+   ],
+   [
+    138.0,
+    114.6
+   ],
+   [
+    126.2,
+    105.4
+   ],
+   null
+  ],
+  "left": [
+   null,
+   [
+    38.5,
+    90.7
+   ],
+   [
+    1.3,
+    118.2
+   ],
+   [
+    23.1,
+    125.4
+   ],
+   [
+    17.6,
+    125.3
+   ],
+   [
+    11.3,
+    123.6
+   ],
+   null
+  ],
+  "right": [
+   null,
+   [
+    158.5,
+    53.2
+   ],
+   [
+    196.7,
+    111.8
+   ],
+   [
+    174.9,
+    160.0
+   ],
+   [
+    180.4,
+    153.7
+   ],
+   [
+    186.7,
+    143.6
+   ],
+   null
+  ]
+ },
+ "smearTailAnchors": {
+  "down": [
+   null,
+   [
+    156.2,
+    57.2
+   ],
+   [
+    154.2,
+    61.2
+   ],
+   [
+    151.6,
+    95.1
+   ],
+   [
+    150.6,
+    96.1
+   ],
+   [
+    151.6,
+    94.1
+   ],
+   null
+  ],
+  "up": [
+   null,
+   null,
+   [
+    45.4,
+    52.5
+   ],
+   [
+    45.4,
+    52.5
+   ],
+   [
+    45.4,
+    53.5
+   ],
+   [
+    45.4,
+    51.5
+   ],
+   null
+  ],
+  "left": [
+   null,
+   [
+    70.1,
+    68.8
+   ],
+   [
+    64.1,
+    68.8
+   ],
+   [
+    31.5,
+    90.7
+   ],
+   [
+    31.5,
+    91.7
+   ],
+   [
+    31.5,
+    90.7
+   ],
+   null
+  ],
+  "right": [
+   null,
+   [
+    126.9,
+    29.5
+   ],
+   [
+    133.9,
+    30.5
+   ],
+   [
+    166.5,
+    54.2
+   ],
+   [
+    166.5,
+    55.2
+   ],
+   [
+    166.5,
+    54.2
+   ],
+   null
+  ]
+ },
+ "anchorNote": "§31-1 과 같다 — 좌표는 이 시트(= 무기 시트) 원 프레임 도트. null = 그 칸에 스미어 없음.",
+ "weapon": "katana",
+ "weaponColor": "서리 #8fe3ff(흰 끝 #e6fcff 는 판정 칸만)",
+ "palette": "무기 색 램프(계약 §28 서리) + 판정 칸 X0 날선 — 새 색 없음. paletteSwap none",
+ "paletteSwap": "none",
+ "version": "v3-r62d",
+ "source": "parts/art/work/r62d/build.py (62 루프 4 · P18 §3) · smear_branch.py → r62b smear.py 같은 코드",
+ "design": "선풍 연격 변화(2타 호 180°) 스미어 — 기본 katana_fall_smear 와 같은 칼끝 궤적, 폭 ×1.45·꼬리 덜 가늘게. 사라짐 칸은 칼에서 떨어져 제자리에서 식는다.",
+ "branch": "선풍(旋風) 1단 A — 연격 변화",
+ "replaces": "fx/v3/katana_fall_smear",
+ "replaceRule": "fx/v3/katana_fall_wide 를 쓰는 갈래 런에서 katana_fall_smear 대신 이 시트(같은 틀·프레임·ms — 1:1). 몸·무기 시트는 katana_fall 그대로",
+ "p19FrameGrowTL": {
+  "addLeft": 2,
+  "addTop": 0,
+  "fromPivot": {
+   "x": 96,
+   "y": 186
+  },
+  "note": "P19: 옮긴 칼끝이 틀 왼쪽·위를 넘어 틀을 키움 — pivot·playerFrameOffset·앵커가 그만큼 이동(JSON 값을 읽을 것)"
+ },
+ "p19FrameGrow": {
+  "from": [
+   194,
+   192
+  ],
+  "addRight": 6,
+  "addBottom": 0,
+  "note": "P19: 몸이 낮아져 옮긴 무기 끝이 틀 아래·오른쪽을 넘어 틀만 키움(피벗·playerFrameOffset 불변)"
+ },
+ "fps": 15.91,
+ "p19": "P19: 몸 새 자세에 맞춰 프레임마다 weaponOffsetDots 만큼 옮김(그림 그대로)",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_fall_wide_smear.png)",
+  "grid": {
+   "columns": 7,
+   "rows": 4,
+   "frameWidth": 200,
+   "frameHeight": 192,
+   "frameCount": 28
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [
+   0,
+   6,
+   7,
+   8,
+   13,
+   14,
+   20,
+   21,
+   27
+  ],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":163,"y":331,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":200,"h":192}},
+  "1":{"frame":{"x":163,"y":334,"w":42,"h":47},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":117,"y":58,"w":42,"h":47},"sourceSize":{"w":200,"h":192}},
+  "2":{"frame":{"x":160,"y":0,"w":56,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":62,"w":56,"h":88},"sourceSize":{"w":200,"h":192}},
+  "3":{"frame":{"x":56,"y":0,"w":102,"h":74},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":96,"w":102,"h":74},"sourceSize":{"w":200,"h":192}},
+  "4":{"frame":{"x":42,"y":206,"w":90,"h":68},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":101,"w":90,"h":68},"sourceSize":{"w":200,"h":192}},
+  "5":{"frame":{"x":33,"y":276,"w":75,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":107,"w":75,"h":57},"sourceSize":{"w":200,"h":192}},
+  "6":{"frame":{"x":163,"y":331,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":200,"h":192}},
+  "7":{"frame":{"x":163,"y":331,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":200,"h":192}},
+  "8":{"frame":{"x":163,"y":331,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":200,"h":192}},
+  "9":{"frame":{"x":110,"y":331,"w":51,"h":47},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":53,"w":51,"h":47},"sourceSize":{"w":200,"h":192}},
+  "10":{"frame":{"x":56,"y":76,"w":100,"h":66},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":55,"w":100,"h":66},"sourceSize":{"w":200,"h":192}},
+  "11":{"frame":{"x":42,"y":144,"w":93,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":56,"w":93,"h":60},"sourceSize":{"w":200,"h":192}},
+  "12":{"frame":{"x":134,"y":228,"w":76,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":58,"w":76,"h":49},"sourceSize":{"w":200,"h":192}},
+  "13":{"frame":{"x":163,"y":331,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":200,"h":192}},
+  "14":{"frame":{"x":163,"y":331,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":200,"h":192}},
+  "15":{"frame":{"x":46,"y":335,"w":38,"h":33},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":70,"w":38,"h":33},"sourceSize":{"w":200,"h":192}},
+  "16":{"frame":{"x":110,"y":279,"w":66,"h":50},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":70,"w":66,"h":50},"sourceSize":{"w":200,"h":192}},
+  "17":{"frame":{"x":158,"y":90,"w":62,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":92,"w":62,"h":35},"sourceSize":{"w":200,"h":192}},
+  "18":{"frame":{"x":0,"y":335,"w":44,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":95,"w":44,"h":32},"sourceSize":{"w":200,"h":192}},
+  "19":{"frame":{"x":0,"y":295,"w":31,"h":30},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":94,"w":31,"h":30},"sourceSize":{"w":200,"h":192}},
+  "20":{"frame":{"x":163,"y":331,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":200,"h":192}},
+  "21":{"frame":{"x":163,"y":331,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":200,"h":192}},
+  "22":{"frame":{"x":178,"y":279,"w":34,"h":53},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":126,"y":30,"w":34,"h":53},"sourceSize":{"w":200,"h":192}},
+  "23":{"frame":{"x":137,"y":144,"w":64,"h":82},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":134,"y":31,"w":64,"h":82},"sourceSize":{"w":200,"h":192}},
+  "24":{"frame":{"x":0,"y":0,"w":54,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":145,"y":55,"w":54,"h":106},"sourceSize":{"w":200,"h":192}},
+  "25":{"frame":{"x":0,"y":108,"w":40,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":159,"y":58,"w":40,"h":97},"sourceSize":{"w":200,"h":192}},
+  "26":{"frame":{"x":0,"y":207,"w":31,"h":86},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":168,"y":59,"w":31,"h":86},"sourceSize":{"w":200,"h":192}},
+  "27":{"frame":{"x":163,"y":331,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":200,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
   "image": "katana_fall_wide_smear.png",
-  "action": "katana_fall_wide_smear",
-  "frameWidth": 194,
-  "frameHeight": 192,
-  "framesPerDirection": 7,
-  "directions": ["down", "up", "left", "right"],
-  "layout": "rows = directions (down, up, left, right), columns = frames",
-  "frameIndex": "row * columns + column (§19 아틀라스 키)",
-  "frameDurationsMs": [70, 50, 40, 30, 60, 130, 60],
-  "loop": false,
-  "pixelScale": 0.5,
-  "pivot": {
-    "x": 96,
-    "y": 186
+  "format": "RGBA8888",
+  "size": {
+   "w": 220,
+   "h": 381
   },
-  "playerFrameOffset": {
-    "x": 48,
-    "y": 48
-  },
-  "anchor": "player_pivot",
-  "overlayOf": "weapons/v3/katana_fall",
-  "sameFrameAs": "weapons/v3/katana_fall",
-  "overlay": "player_katana_fall · weapons/v3/katana_fall 와 **같은 프레임 번호를 같은 시각에** 겹친다(같은 틀 192×192·피벗·playerFrameOffset·방향 행). 각성 외형(weapons/v4/katana_*_<동작>)도 프레임이 같아 그대로 겹친다.",
-  "depth": {
-    "down": "above",
-    "up": "above",
-    "left": "above",
-    "right": "above"
-  },
-  "depthRule": "무기 오버레이 바로 아래(같은 depth 규칙의 무기 직전). 무기가 몸 뒤로 가는 방향 행이면 스미어도 몸 뒤.",
-  "blendMode": "NORMAL",
-  "drawOver": "lightmap",
-  "dirTransform": "drawn4",
-  "smearFrames": [1, 2, 3, 4, 5],
-  "sweepFrames": [1, 2, 3],
-  "decayFrames": [4, 5],
-  "glowFrames": [2],
-  "impactFrame": 2,
-  "hitFrames": [2],
-  "timingMs": {
-    "total": 440,
-    "hitAt": 120,
-    "activeEndAt": 160,
-    "cancelAt": 380
-  },
-  "bladeTipAnchors": {
-    "down": [
-      [153.2, 69.2],
-      [151.6, 105.1],
-      [106.5, 162.5],
-      [48.0, 182.3],
-      [36.2, 185.4],
-      [37.6, 185.7],
-      [42.0, 182.2]
-    ],
-    "up": [
-      [40.8, 49.6],
-      [41.4, 63.5],
-      [86.5, 97.0],
-      [145.0, 132.7],
-      [156.8, 152.4],
-      [154.4, 153.4],
-      [148.0, 146.0]
-    ],
-    "left": [
-      [72.1, 77.8],
-      [39.5, 102.7],
-      [3.3, 131.2],
-      [24.1, 138.4],
-      [48.8, 145.7],
-      [48.7, 147.8],
-      [45.2, 146.0]
-    ],
-    "right": [
-      [121.9, 38.5],
-      [154.5, 65.2],
-      [190.7, 124.8],
-      [168.9, 173.0],
-      [145.2, 188.5],
-      [144.3, 189.6],
-      [147.8, 181.6]
-    ]
-  },
-  "gripAnchors": {
-    "down": [
-      [112.1, 106.2],
-      [111.5, 118.8],
-      [98.2, 137.6],
-      [81.8, 142.7],
-      [79.3, 144.1],
-      [79.3, 142.1],
-      [80.7, 140.0]
-    ],
-    "up": [
-      [81.9, 96.0],
-      [81.5, 102.4],
-      [94.8, 113.6],
-      [111.2, 123.5],
-      [113.7, 130.1],
-      [112.7, 128.1],
-      [109.3, 128.2]
-    ],
-    "left": [
-      [85.4, 105.1],
-      [75.6, 115.0],
-      [62.6, 124.1],
-      [67.3, 125.8],
-      [75.7, 129.0],
-      [74.7, 128.0],
-      [80.0, 129.5]
-    ],
-    "right": [
-      [108.6, 94.5],
-      [118.4, 105.6],
-      [131.4, 123.5],
-      [125.7, 136.8],
-      [118.3, 141.6],
-      [118.3, 140.6],
-      [113.0, 138.1]
-    ]
-  },
-  "smearHeadAnchors": {
-    "down": [null, [151.6, 105.1], [106.5, 162.5], [48.0, 182.3], [57.0, 181.0], [68.8, 176.3], null],
-    "up": [null, null, [86.5, 97.0], [145.0, 132.7], [136.0, 127.6], [123.2, 118.4], null],
-    "left": [null, [39.5, 102.7], [3.3, 131.2], [24.1, 138.4], [19.6, 138.3], [12.3, 136.6], null],
-    "right": [null, [154.5, 65.2], [190.7, 124.8], [168.9, 173.0], [174.4, 166.7], [180.7, 156.6], null]
-  },
-  "smearTailAnchors": {
-    "down": [null, [154.2, 71.2], [152.2, 75.2], [149.6, 109.1], [149.6, 110.1], [149.6, 108.1], null],
-    "up": [null, null, [43.4, 65.5], [43.4, 65.5], [43.4, 66.5], [42.4, 64.5], null],
-    "left": [null, [71.1, 80.8], [66.1, 81.8], [32.5, 103.7], [33.5, 104.7], [32.5, 103.7], null],
-    "right": [null, [122.9, 41.5], [127.9, 43.5], [160.5, 67.2], [160.5, 68.2], [160.5, 67.2], null]
-  },
-  "anchorNote": "§31-1 과 같다 — 좌표는 이 시트(= 무기 시트) 원 프레임 도트. null = 그 칸에 스미어 없음.",
-  "weapon": "katana",
-  "weaponColor": "서리 #8fe3ff(흰 끝 #e6fcff 는 판정 칸만)",
-  "palette": "무기 색 램프(계약 §28 서리) + 판정 칸 X0 날선 — 새 색 없음. paletteSwap none",
-  "paletteSwap": "none",
-  "version": "v3-r62d",
-  "source": "parts/art/work/r62d/build.py (62 루프 4 · P18 §3) · smear_branch.py → r62b smear.py 같은 코드",
-  "design": "선풍 연격 변화(2타 호 180°) 스미어 — 기본 katana_fall_smear 와 같은 칼끝 궤적, 폭 ×1.45·꼬리 덜 가늘게. 사라짐 칸은 칼에서 떨어져 제자리에서 식는다.",
-  "branch": "선풍(旋風) 1단 A — 연격 변화",
-  "replaces": "fx/v3/katana_fall_smear",
-  "replaceRule": "fx/v3/katana_fall_wide 를 쓰는 갈래 런에서 katana_fall_smear 대신 이 시트(같은 틀·프레임·ms — 1:1). 몸·무기 시트는 katana_fall 그대로",
-  "p19FrameGrow": {
-    "from": [192, 192],
-    "addRight": 2,
-    "addBottom": 0,
-    "note": "P19: 몸이 낮아져 옮긴 무기 끝이 틀 아래·오른쪽을 넘어 틀만 키움(피벗·playerFrameOffset 불변)"
-  },
-  "fps": 15.91,
-  "p19": "P19: 몸 새 자세에 맞춰 프레임마다 weaponOffsetDots 만큼 옮김(그림 그대로)",
-  "atlas": {
-    "version": "atlas57-1",
-    "format": "phaser-json-hash",
-    "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_fall_wide_smear.png)",
-    "grid": {
-      "columns": 7,
-      "rows": 4,
-      "frameWidth": 194,
-      "frameHeight": 192,
-      "frameCount": 28
-    },
-    "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
-    "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
-    "padding": 2,
-    "noTrim": false,
-    "emptyFrames": [0, 6, 7, 8, 13, 14, 20, 21, 27],
-    "dedupedFrames": 0,
-    "pages": 1
-  },
-  "frames": {
-    "0": {
-      "frame": { "x": 163, "y": 331, "w": 1, "h": 1 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "1": {
-      "frame": { "x": 163, "y": 334, "w": 42, "h": 47 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 115, "y": 72, "w": 42, "h": 47 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "2": {
-      "frame": { "x": 160, "y": 0, "w": 56, "h": 88 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 99, "y": 76, "w": 56, "h": 88 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "3": {
-      "frame": { "x": 56, "y": 0, "w": 102, "h": 74 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 48, "y": 110, "w": 102, "h": 74 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "4": {
-      "frame": { "x": 42, "y": 206, "w": 90, "h": 68 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 57, "y": 115, "w": 90, "h": 68 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "5": {
-      "frame": { "x": 33, "y": 276, "w": 75, "h": 57 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 69, "y": 121, "w": 75, "h": 57 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "6": {
-      "frame": { "x": 163, "y": 331, "w": 1, "h": 1 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "7": {
-      "frame": { "x": 163, "y": 331, "w": 1, "h": 1 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "8": {
-      "frame": { "x": 163, "y": 331, "w": 1, "h": 1 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "9": {
-      "frame": { "x": 110, "y": 331, "w": 51, "h": 47 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 45, "y": 66, "w": 51, "h": 47 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "10": {
-      "frame": { "x": 56, "y": 76, "w": 100, "h": 66 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 46, "y": 68, "w": 100, "h": 66 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "11": {
-      "frame": { "x": 42, "y": 144, "w": 93, "h": 60 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 45, "y": 69, "w": 93, "h": 60 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "12": {
-      "frame": { "x": 134, "y": 228, "w": 76, "h": 49 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 49, "y": 71, "w": 76, "h": 49 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "13": {
-      "frame": { "x": 163, "y": 331, "w": 1, "h": 1 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "14": {
-      "frame": { "x": 163, "y": 331, "w": 1, "h": 1 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "15": {
-      "frame": { "x": 46, "y": 335, "w": 38, "h": 33 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 39, "y": 82, "w": 38, "h": 33 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "16": {
-      "frame": { "x": 110, "y": 279, "w": 66, "h": 50 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 3, "y": 83, "w": 66, "h": 50 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "17": {
-      "frame": { "x": 158, "y": 90, "w": 62, "h": 35 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 1, "y": 105, "w": 62, "h": 35 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "18": {
-      "frame": { "x": 0, "y": 335, "w": 44, "h": 32 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 2, "y": 108, "w": 44, "h": 32 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "19": {
-      "frame": { "x": 0, "y": 295, "w": 31, "h": 30 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 2, "y": 107, "w": 31, "h": 30 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "20": {
-      "frame": { "x": 163, "y": 331, "w": 1, "h": 1 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "21": {
-      "frame": { "x": 163, "y": 331, "w": 1, "h": 1 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "22": {
-      "frame": { "x": 178, "y": 279, "w": 34, "h": 53 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 122, "y": 42, "w": 34, "h": 53 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "23": {
-      "frame": { "x": 137, "y": 144, "w": 64, "h": 82 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 128, "y": 44, "w": 64, "h": 82 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "24": {
-      "frame": { "x": 0, "y": 0, "w": 54, "h": 106 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 139, "y": 68, "w": 54, "h": 106 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "25": {
-      "frame": { "x": 0, "y": 108, "w": 40, "h": 97 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 153, "y": 71, "w": 40, "h": 97 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "26": {
-      "frame": { "x": 0, "y": 207, "w": 31, "h": 86 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 162, "y": 72, "w": 31, "h": 86 },
-      "sourceSize": { "w": 194, "h": 192 }
-    },
-    "27": {
-      "frame": { "x": 163, "y": 331, "w": 1, "h": 1 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
-      "sourceSize": { "w": 194, "h": 192 }
-    }
-  },
-  "meta": {
-    "app": "LOPAD atlas57 (Pillow)",
-    "version": "atlas57-1",
-    "image": "katana_fall_wide_smear.png",
-    "format": "RGBA8888",
-    "size": {
-      "w": 220,
-      "h": 381
-    },
-    "scale": "1"
-  }
+  "scale": "1"
+ }
 }

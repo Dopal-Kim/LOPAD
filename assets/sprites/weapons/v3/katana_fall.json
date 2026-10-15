@@ -1,7 +1,7 @@
 {
  "image": "katana_fall.png",
  "action": "katana_fall",
- "frameWidth": 192,
+ "frameWidth": 198,
  "frameHeight": 192,
  "framesPerDirection": 7,
  "directions": [
@@ -24,7 +24,7 @@
  ],
  "loop": false,
  "pivot": {
-  "x": 96,
+  "x": 98,
   "y": 186
  },
  "pixelScale": 0.5,
@@ -125,7 +125,7 @@
  "startsFrom": "katana_rise 끝(f6, 왼쪽 위로 든 칼)",
  "anchor": "player_pivot",
  "playerFrameOffset": {
-  "x": 48,
+  "x": 50,
   "y": 48
  },
  "depth": {
@@ -178,288 +178,288 @@
   "down": [
    {
     "handR": [
-     112.1,
-     106.2
+     114.1,
+     93.2
     ],
     "handL": [
-     106.0,
-     122.3
+     108.0,
+     109.3
     ]
    },
    {
     "handR": [
-     111.5,
-     118.8
+     113.5,
+     104.8
     ],
     "handL": [
-     107.0,
-     124.3
+     109.0,
+     110.3
     ]
    },
    {
     "handR": [
-     98.2,
-     137.6
+     100.2,
+     123.6
     ],
     "handL": [
-     118.5,
-     135.0
+     120.5,
+     121.0
     ]
    },
    {
     "handR": [
-     81.8,
-     142.7
+     83.8,
+     128.7
     ],
     "handL": [
-     118.5,
-     135.0
+     120.5,
+     121.0
     ]
    },
    {
     "handR": [
-     79.3,
-     144.1
+     80.3,
+     130.1
     ],
     "handL": [
-     118.5,
-     136.0
+     119.5,
+     122.0
     ]
    },
    {
     "handR": [
-     79.3,
-     142.1
+     81.3,
+     128.1
     ],
     "handL": [
-     118.5,
-     134.0
+     120.5,
+     120.0
     ]
    },
    {
     "handR": [
-     80.7,
-     140.0
+     82.7,
+     126.0
     ],
     "handL": [
-     102.0,
-     125.3
+     104.0,
+     111.3
     ]
    }
   ],
   "up": [
    {
     "handR": [
-     81.9,
-     96.0
+     82.9,
+     84.0
+    ],
+    "handL": [
+     89.0,
+     100.9
+    ]
+   },
+   {
+    "handR": [
+     83.5,
+     89.4
     ],
     "handL": [
      88.0,
-     112.9
+     101.9
     ]
    },
    {
     "handR": [
-     81.5,
-     102.4
+     96.8,
+     100.6
     ],
     "handL": [
-     86.0,
-     114.9
+     76.5,
+     124.2
     ]
    },
    {
     "handR": [
-     94.8,
-     113.6
+     113.2,
+     110.5
     ],
     "handL": [
-     74.5,
-     137.2
+     76.5,
+     124.2
     ]
    },
    {
     "handR": [
-     111.2,
-     123.5
+     115.7,
+     117.1
     ],
     "handL": [
-     74.5,
-     137.2
+     76.5,
+     125.2
     ]
    },
    {
     "handR": [
-     113.7,
-     130.1
+     115.7,
+     115.1
     ],
     "handL": [
-     74.5,
-     138.2
+     76.5,
+     123.2
     ]
    },
    {
     "handR": [
-     112.7,
-     128.1
+     111.3,
+     115.2
     ],
     "handL": [
-     73.5,
-     136.2
-    ]
-   },
-   {
-    "handR": [
-     109.3,
-     128.2
-    ],
-    "handL": [
-     88.0,
-     115.9
+     90.0,
+     102.9
     ]
    }
   ],
   "left": [
    {
     "handR": [
-     85.4,
-     105.1
-    ],
-    "handL": [
-     86.5,
-     119.5
-    ]
-   },
-   {
-    "handR": [
-     75.6,
-     115.0
+     84.4,
+     93.1
     ],
     "handL": [
      85.5,
-     122.5
+     107.5
     ]
    },
    {
     "handR": [
-     62.6,
-     124.1
+     74.6,
+     103.0
     ],
     "handL": [
-     100.0,
-     141.7
+     84.5,
+     110.5
     ]
    },
    {
     "handR": [
-     67.3,
-     125.8
-    ],
-    "handL": [
-     98.0,
-     141.7
-    ]
-   },
-   {
-    "handR": [
-     75.7,
-     129.0
-    ],
-    "handL": [
-     99.0,
-     142.7
-    ]
-   },
-   {
-    "handR": [
-     74.7,
-     128.0
+     60.6,
+     111.1
     ],
     "handL": [
      98.0,
-     141.7
+     128.7
     ]
    },
    {
     "handR": [
-     80.0,
-     129.5
+     66.3,
+     112.8
     ],
     "handL": [
-     83.5,
-     123.5
+     97.0,
+     128.7
+    ]
+   },
+   {
+    "handR": [
+     73.7,
+     116.0
+    ],
+    "handL": [
+     97.0,
+     129.7
+    ]
+   },
+   {
+    "handR": [
+     73.7,
+     115.0
+    ],
+    "handL": [
+     97.0,
+     128.7
+    ]
+   },
+   {
+    "handR": [
+     79.0,
+     116.5
+    ],
+    "handL": [
+     82.5,
+     110.5
     ]
    }
   ],
   "right": [
    {
     "handR": [
-     108.6,
-     94.5
+     112.6,
+     82.5
     ],
     "handL": [
-     107.5,
-     113.2
+     111.5,
+     101.2
     ]
    },
    {
     "handR": [
-     118.4,
-     105.6
+     122.4,
+     93.6
     ],
     "handL": [
-     108.5,
-     116.2
+     112.5,
+     104.2
     ]
    },
    {
     "handR": [
-     131.4,
-     123.5
+     137.4,
+     110.5
     ],
     "handL": [
-     94.0,
-     126.9
+     100.0,
+     113.9
     ]
    },
    {
     "handR": [
-     125.7,
-     136.8
+     131.7,
+     123.8
     ],
     "handL": [
-     95.0,
-     126.9
+     101.0,
+     113.9
     ]
    },
    {
     "handR": [
-     118.3,
-     141.6
+     124.3,
+     128.6
     ],
     "handL": [
-     95.0,
-     127.9
+     101.0,
+     114.9
     ]
    },
    {
     "handR": [
-     118.3,
-     140.6
+     124.3,
+     127.6
     ],
     "handL": [
-     95.0,
-     126.9
+     101.0,
+     113.9
     ]
    },
    {
     "handR": [
-     113.0,
-     138.1
+     118.0,
+     125.1
     ],
     "handL": [
-     109.5,
-     117.2
+     114.5,
+     104.2
     ]
    }
   ]
@@ -467,122 +467,122 @@
  "gripAnchors": {
   "down": [
    [
-    112.1,
-    106.2
+    114.1,
+    93.2
    ],
    [
-    111.5,
-    118.8
+    113.5,
+    104.8
    ],
    [
-    98.2,
-    137.6
+    100.2,
+    123.6
    ],
    [
-    81.8,
-    142.7
+    83.8,
+    128.7
    ],
    [
-    79.3,
-    144.1
+    80.3,
+    130.1
    ],
    [
-    79.3,
-    142.1
+    81.3,
+    128.1
    ],
    [
-    80.7,
-    140.0
+    82.7,
+    126.0
    ]
   ],
   "up": [
    [
-    81.9,
-    96.0
+    82.9,
+    84.0
    ],
    [
-    81.5,
-    102.4
+    83.5,
+    89.4
    ],
    [
-    94.8,
-    113.6
+    96.8,
+    100.6
    ],
    [
-    111.2,
-    123.5
+    113.2,
+    110.5
    ],
    [
-    113.7,
-    130.1
+    115.7,
+    117.1
    ],
    [
-    112.7,
-    128.1
+    115.7,
+    115.1
    ],
    [
-    109.3,
-    128.2
+    111.3,
+    115.2
    ]
   ],
   "left": [
    [
-    85.4,
-    105.1
+    84.4,
+    93.1
    ],
    [
-    75.6,
+    74.6,
+    103.0
+   ],
+   [
+    60.6,
+    111.1
+   ],
+   [
+    66.3,
+    112.8
+   ],
+   [
+    73.7,
+    116.0
+   ],
+   [
+    73.7,
     115.0
    ],
    [
-    62.6,
-    124.1
-   ],
-   [
-    67.3,
-    125.8
-   ],
-   [
-    75.7,
-    129.0
-   ],
-   [
-    74.7,
-    128.0
-   ],
-   [
-    80.0,
-    129.5
+    79.0,
+    116.5
    ]
   ],
   "right": [
    [
-    108.6,
-    94.5
+    112.6,
+    82.5
    ],
    [
-    118.4,
-    105.6
+    122.4,
+    93.6
    ],
    [
-    131.4,
-    123.5
+    137.4,
+    110.5
    ],
    [
-    125.7,
-    136.8
+    131.7,
+    123.8
    ],
    [
-    118.3,
-    141.6
+    124.3,
+    128.6
    ],
    [
-    118.3,
-    140.6
+    124.3,
+    127.6
    ],
    [
-    113.0,
-    138.1
+    118.0,
+    125.1
    ]
   ]
  },
@@ -629,122 +629,122 @@
  "bladeTipAnchors": {
   "down": [
    [
-    153.2,
-    69.2
+    155.2,
+    56.2
    ],
    [
-    151.6,
-    105.1
+    153.6,
+    91.1
    ],
    [
-    106.5,
-    162.5
+    108.5,
+    148.5
    ],
    [
-    48.0,
-    182.3
+    50.0,
+    168.3
    ],
    [
-    36.2,
-    185.4
+    37.2,
+    171.4
    ],
    [
-    37.6,
-    185.7
+    39.6,
+    171.7
    ],
    [
-    42.0,
-    182.2
+    44.0,
+    168.2
    ]
   ],
   "up": [
    [
-    40.8,
-    49.6
+    41.8,
+    37.6
    ],
    [
-    41.4,
-    63.5
+    43.4,
+    50.5
    ],
    [
-    86.5,
-    97.0
+    88.5,
+    84.0
    ],
    [
-    145.0,
-    132.7
+    147.0,
+    119.7
    ],
    [
-    156.8,
-    152.4
+    158.8,
+    139.4
    ],
    [
-    154.4,
-    153.4
+    157.4,
+    140.4
    ],
    [
-    148.0,
-    146.0
+    150.0,
+    133.0
    ]
   ],
   "left": [
    [
-    72.1,
-    77.8
+    71.1,
+    65.8
    ],
    [
-    39.5,
-    102.7
+    38.5,
+    90.7
    ],
    [
-    3.3,
-    131.2
+    1.3,
+    118.2
    ],
    [
-    24.1,
-    138.4
+    23.1,
+    125.4
    ],
    [
-    48.8,
-    145.7
+    46.8,
+    132.7
    ],
    [
-    48.7,
-    147.8
+    47.7,
+    134.8
    ],
    [
-    45.2,
-    146.0
+    44.2,
+    133.0
    ]
   ],
   "right": [
    [
-    121.9,
-    38.5
+    125.9,
+    26.5
    ],
    [
-    154.5,
-    65.2
+    158.5,
+    53.2
    ],
    [
-    190.7,
-    124.8
+    196.7,
+    111.8
    ],
    [
-    168.9,
-    173.0
+    174.9,
+    160.0
    ],
    [
-    145.2,
-    188.5
+    151.2,
+    175.5
    ],
    [
-    144.3,
-    189.6
+    150.3,
+    176.6
    ],
    [
-    147.8,
-    181.6
+    152.8,
+    168.6
    ]
   ]
  },
@@ -758,6 +758,24 @@
  "previousDesign": "53 Q26 B '재 칼날'(검은 재 칼날 + 호박 균열) — git 2aa9fe6 이전",
  "tipTrail": "판정 칸(glowFrames)과 그다음 한 칸에 직전 칸 칼끝 → 지금 칼끝(bladeTipAnchors)을 어깨 중심 호로 잇는 30도트 이내 가는 빛줄기를 무기 시트에 그려 둠 — 칼끝 → 휘두름 fx 호를 한 언어로 잇는다. 판정 칸만 X1 — 61 단계 6: 서리 색(머리 #e6fcff → #8fe3ff → #5cc6ee → #3d9ccf)",
  "color61s6": "61 단계 6 (P14 §2 칼 '서리'): 판정 칸 날 = 날선 X0 · 바탕 서리 흰빛 #e6fcff · 속 #8fe3ff · 등 청강 SL6, 둘째 판정 칸부터 = 날선 #bff3ff · 바탕 #8fe3ff · 속 #5cc6ee(X0 없음). 칼끝 빛줄기 = 머리 #e6fcff(첫 판정 칸) → #8fe3ff → #5cc6ee → #3d9ccf 점선. 평소 날(강철)·손잡이·칼집은 그대로",
+ "p19FrameGrowTL": {
+  "addLeft": 2,
+  "addTop": 0,
+  "fromPivot": {
+   "x": 96,
+   "y": 186
+  },
+  "note": "P19: 옮긴 칼끝이 틀 왼쪽·위를 넘어 틀을 키움 — pivot·playerFrameOffset·앵커가 그만큼 이동(JSON 값을 읽을 것)"
+ },
+ "p19FrameGrow": {
+  "from": [
+   194,
+   192
+  ],
+  "addRight": 4,
+  "addBottom": 0,
+  "note": "P19: 몸이 낮아져 옮긴 무기 끝이 틀 아래·오른쪽을 넘어 틀만 키움(피벗·playerFrameOffset 불변)"
+ },
  "p19": "P19: 몸 새 자세에 맞춰 프레임마다 weaponOffsetDots 만큼 옮김(그림 그대로)",
  "atlas": {
   "version": "atlas57-1",
@@ -766,7 +784,7 @@
   "grid": {
    "columns": 7,
    "rows": 4,
-   "frameWidth": 192,
+   "frameWidth": 198,
    "frameHeight": 192,
    "frameCount": 28
   },
@@ -779,34 +797,34 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":264,"y":128,"w":51,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":102,"y":69,"w":51,"h":88},"sourceSize":{"w":192,"h":192}},
-  "1":{"frame":{"x":260,"y":410,"w":50,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":102,"y":104,"w":50,"h":56},"sourceSize":{"w":192,"h":192}},
-  "2":{"frame":{"x":259,"y":468,"w":49,"h":34},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":132,"w":49,"h":34},"sourceSize":{"w":192,"h":192}},
-  "3":{"frame":{"x":0,"y":341,"w":97,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":133,"w":97,"h":54},"sourceSize":{"w":192,"h":192}},
-  "4":{"frame":{"x":0,"y":187,"w":108,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":134,"w":108,"h":51},"sourceSize":{"w":192,"h":192}},
-  "5":{"frame":{"x":0,"y":240,"w":107,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":132,"w":107,"h":54},"sourceSize":{"w":192,"h":192}},
-  "6":{"frame":{"x":213,"y":309,"w":99,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":42,"y":130,"w":99,"h":52},"sourceSize":{"w":192,"h":192}},
-  "7":{"frame":{"x":272,"y":0,"w":40,"h":126},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":41,"y":49,"w":40,"h":126},"sourceSize":{"w":192,"h":192}},
-  "8":{"frame":{"x":0,"y":70,"w":37,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":42,"y":63,"w":37,"h":115},"sourceSize":{"w":192,"h":192}},
-  "9":{"frame":{"x":224,"y":111,"w":38,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":77,"w":38,"h":105},"sourceSize":{"w":192,"h":192}},
-  "10":{"frame":{"x":102,"y":335,"w":97,"h":68},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":114,"w":97,"h":68},"sourceSize":{"w":192,"h":192}},
-  "11":{"frame":{"x":111,"y":166,"w":109,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":137,"w":109,"h":45},"sourceSize":{"w":192,"h":192}},
-  "12":{"frame":{"x":110,"y":213,"w":108,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":136,"w":108,"h":46},"sourceSize":{"w":192,"h":192}},
-  "13":{"frame":{"x":0,"y":296,"w":100,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":136,"w":100,"h":43},"sourceSize":{"w":192,"h":192}},
-  "14":{"frame":{"x":98,"y":405,"w":70,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":73,"y":77,"w":70,"h":93},"sourceSize":{"w":192,"h":192}},
-  "15":{"frame":{"x":109,"y":261,"w":102,"h":72},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":102,"w":102,"h":72},"sourceSize":{"w":192,"h":192}},
-  "16":{"frame":{"x":0,"y":0,"w":134,"h":68},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":109,"w":134,"h":68},"sourceSize":{"w":192,"h":192}},
-  "17":{"frame":{"x":111,"y":111,"w":111,"h":53},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":124,"w":111,"h":53},"sourceSize":{"w":192,"h":192}},
-  "18":{"frame":{"x":170,"y":410,"w":88,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":130,"w":88,"h":48},"sourceSize":{"w":192,"h":192}},
-  "19":{"frame":{"x":0,"y":513,"w":87,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":130,"w":87,"h":48},"sourceSize":{"w":192,"h":192}},
-  "20":{"frame":{"x":201,"y":363,"w":95,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":45,"y":130,"w":95,"h":45},"sourceSize":{"w":192,"h":192}},
-  "21":{"frame":{"x":39,"y":70,"w":70,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":38,"w":70,"h":112},"sourceSize":{"w":192,"h":192}},
-  "22":{"frame":{"x":220,"y":218,"w":101,"h":89},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":65,"w":101,"h":89},"sourceSize":{"w":192,"h":192}},
-  "23":{"frame":{"x":136,"y":0,"w":134,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":96,"w":134,"h":62},"sourceSize":{"w":192,"h":192}},
-  "24":{"frame":{"x":136,"y":64,"w":125,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":59,"y":128,"w":125,"h":45},"sourceSize":{"w":192,"h":192}},
-  "25":{"frame":{"x":0,"y":453,"w":88,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":59,"y":131,"w":88,"h":58},"sourceSize":{"w":192,"h":192}},
-  "26":{"frame":{"x":170,"y":460,"w":87,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":59,"y":129,"w":87,"h":61},"sourceSize":{"w":192,"h":192}},
-  "27":{"frame":{"x":0,"y":397,"w":96,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":128,"w":96,"h":54},"sourceSize":{"w":192,"h":192}}
+  "0":{"frame":{"x":264,"y":128,"w":51,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":104,"y":56,"w":51,"h":88},"sourceSize":{"w":198,"h":192}},
+  "1":{"frame":{"x":260,"y":410,"w":50,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":104,"y":90,"w":50,"h":56},"sourceSize":{"w":198,"h":192}},
+  "2":{"frame":{"x":259,"y":468,"w":49,"h":34},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":97,"y":118,"w":49,"h":34},"sourceSize":{"w":198,"h":192}},
+  "3":{"frame":{"x":0,"y":341,"w":97,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":119,"w":97,"h":54},"sourceSize":{"w":198,"h":192}},
+  "4":{"frame":{"x":0,"y":187,"w":108,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":120,"w":108,"h":51},"sourceSize":{"w":198,"h":192}},
+  "5":{"frame":{"x":0,"y":240,"w":107,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":39,"y":118,"w":107,"h":54},"sourceSize":{"w":198,"h":192}},
+  "6":{"frame":{"x":213,"y":309,"w":99,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":116,"w":99,"h":52},"sourceSize":{"w":198,"h":192}},
+  "7":{"frame":{"x":272,"y":0,"w":40,"h":126},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":42,"y":37,"w":40,"h":126},"sourceSize":{"w":198,"h":192}},
+  "8":{"frame":{"x":0,"y":70,"w":37,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":50,"w":37,"h":115},"sourceSize":{"w":198,"h":192}},
+  "9":{"frame":{"x":224,"y":111,"w":38,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":64,"w":38,"h":105},"sourceSize":{"w":198,"h":192}},
+  "10":{"frame":{"x":102,"y":335,"w":97,"h":68},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":101,"w":97,"h":68},"sourceSize":{"w":198,"h":192}},
+  "11":{"frame":{"x":111,"y":166,"w":109,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":124,"w":109,"h":45},"sourceSize":{"w":198,"h":192}},
+  "12":{"frame":{"x":110,"y":213,"w":108,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":123,"w":108,"h":46},"sourceSize":{"w":198,"h":192}},
+  "13":{"frame":{"x":0,"y":296,"w":100,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":123,"w":100,"h":43},"sourceSize":{"w":198,"h":192}},
+  "14":{"frame":{"x":98,"y":405,"w":70,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":72,"y":65,"w":70,"h":93},"sourceSize":{"w":198,"h":192}},
+  "15":{"frame":{"x":109,"y":261,"w":102,"h":72},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":39,"y":90,"w":102,"h":72},"sourceSize":{"w":198,"h":192}},
+  "16":{"frame":{"x":0,"y":0,"w":134,"h":68},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":96,"w":134,"h":68},"sourceSize":{"w":198,"h":192}},
+  "17":{"frame":{"x":111,"y":111,"w":111,"h":53},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":111,"w":111,"h":53},"sourceSize":{"w":198,"h":192}},
+  "18":{"frame":{"x":170,"y":410,"w":88,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":117,"w":88,"h":48},"sourceSize":{"w":198,"h":192}},
+  "19":{"frame":{"x":0,"y":513,"w":87,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":117,"w":87,"h":48},"sourceSize":{"w":198,"h":192}},
+  "20":{"frame":{"x":201,"y":363,"w":95,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":117,"w":95,"h":45},"sourceSize":{"w":198,"h":192}},
+  "21":{"frame":{"x":39,"y":70,"w":70,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":56,"y":26,"w":70,"h":112},"sourceSize":{"w":198,"h":192}},
+  "22":{"frame":{"x":220,"y":218,"w":101,"h":89},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":53,"w":101,"h":89},"sourceSize":{"w":198,"h":192}},
+  "23":{"frame":{"x":136,"y":0,"w":134,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":64,"y":83,"w":134,"h":62},"sourceSize":{"w":198,"h":192}},
+  "24":{"frame":{"x":136,"y":64,"w":125,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":65,"y":115,"w":125,"h":45},"sourceSize":{"w":198,"h":192}},
+  "25":{"frame":{"x":0,"y":453,"w":88,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":65,"y":118,"w":88,"h":58},"sourceSize":{"w":198,"h":192}},
+  "26":{"frame":{"x":170,"y":460,"w":87,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":65,"y":116,"w":87,"h":61},"sourceSize":{"w":198,"h":192}},
+  "27":{"frame":{"x":0,"y":397,"w":96,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":59,"y":115,"w":96,"h":54},"sourceSize":{"w":198,"h":192}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",

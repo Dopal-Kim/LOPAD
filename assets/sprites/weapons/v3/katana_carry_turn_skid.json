@@ -77,74 +77,74 @@
  "sheathMouthAnchors": {
   "down": [
    [
-    113.8,
-    150.3
+    109.8,
+    138.3
    ],
    [
-    110.8,
-    151.3
+    105.8,
+    141.3
    ],
    [
-    112.8,
-    151.6
+    108.8,
+    141.6
    ],
    [
-    111.8,
-    147.6
+    107.8,
+    137.6
    ]
   ],
   "up": [
    [
-    79.2,
-    145.1
+    83.2,
+    135.1
    ],
    [
-    81.2,
-    149.1
+    85.2,
+    137.1
    ],
    [
-    79.2,
-    146.5
+    83.2,
+    134.5
    ],
    [
-    80.2,
-    144.5
+    84.2,
+    132.5
    ]
   ],
   "left": [
    [
-    91.5,
-    147.5
+    93.5,
+    136.5
    ],
    [
     91.5,
-    149.5
+    138.5
    ],
    [
-    91.5,
-    148.8
+    90.5,
+    137.8
    ],
    [
-    91.5,
-    145.8
+    89.5,
+    134.8
    ]
   ],
   "right": [
    [
-    100.5,
-    147.5
+    98.5,
+    136.5
    ],
    [
     100.5,
-    149.5
+    138.5
    ],
    [
-    100.5,
-    148.8
+    101.5,
+    137.8
    ],
    [
-    100.5,
-    145.8
+    102.5,
+    134.8
    ]
   ]
  },
@@ -178,22 +178,22 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":0,"y":55,"w":44,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":103,"y":147,"w":44,"h":17},"sourceSize":{"w":192,"h":192}},
-  "1":{"frame":{"x":0,"y":55,"w":44,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":148,"w":44,"h":17},"sourceSize":{"w":192,"h":192}},
-  "2":{"frame":{"x":46,"y":56,"w":44,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":102,"y":149,"w":44,"h":16},"sourceSize":{"w":192,"h":192}},
-  "3":{"frame":{"x":46,"y":56,"w":44,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":145,"w":44,"h":16},"sourceSize":{"w":192,"h":192}},
-  "4":{"frame":{"x":133,"y":39,"w":34,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":147,"w":34,"h":32},"sourceSize":{"w":192,"h":192}},
-  "5":{"frame":{"x":133,"y":39,"w":34,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":151,"w":34,"h":32},"sourceSize":{"w":192,"h":192}},
-  "6":{"frame":{"x":133,"y":0,"w":34,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":144,"w":34,"h":37},"sourceSize":{"w":192,"h":192}},
-  "7":{"frame":{"x":133,"y":0,"w":34,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":142,"w":34,"h":37},"sourceSize":{"w":192,"h":192}},
-  "8":{"frame":{"x":67,"y":0,"w":64,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":137,"w":64,"h":40},"sourceSize":{"w":192,"h":192}},
-  "9":{"frame":{"x":67,"y":0,"w":64,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":139,"w":64,"h":40},"sourceSize":{"w":192,"h":192}},
-  "10":{"frame":{"x":0,"y":0,"w":65,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":139,"w":65,"h":38},"sourceSize":{"w":192,"h":192}},
-  "11":{"frame":{"x":0,"y":0,"w":65,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":136,"w":65,"h":38},"sourceSize":{"w":192,"h":192}},
-  "12":{"frame":{"x":66,"y":42,"w":62,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":144,"w":62,"h":12},"sourceSize":{"w":192,"h":192}},
-  "13":{"frame":{"x":66,"y":42,"w":62,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":146,"w":62,"h":12},"sourceSize":{"w":192,"h":192}},
-  "14":{"frame":{"x":0,"y":40,"w":64,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":145,"w":64,"h":13},"sourceSize":{"w":192,"h":192}},
-  "15":{"frame":{"x":0,"y":40,"w":64,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":142,"w":64,"h":13},"sourceSize":{"w":192,"h":192}}
+  "0":{"frame":{"x":0,"y":55,"w":44,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":135,"w":44,"h":17},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":0,"y":55,"w":44,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":138,"w":44,"h":17},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":46,"y":56,"w":44,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":98,"y":139,"w":44,"h":16},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":46,"y":56,"w":44,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":97,"y":135,"w":44,"h":16},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":133,"y":39,"w":34,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":137,"w":34,"h":32},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":133,"y":39,"w":34,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":139,"w":34,"h":32},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":133,"y":0,"w":34,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":132,"w":34,"h":37},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":133,"y":0,"w":34,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":130,"w":34,"h":37},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":67,"y":0,"w":64,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":77,"y":126,"w":64,"h":40},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":67,"y":0,"w":64,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":128,"w":64,"h":40},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":0,"y":0,"w":65,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":74,"y":128,"w":65,"h":38},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":0,"y":0,"w":65,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":73,"y":125,"w":65,"h":38},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":66,"y":42,"w":62,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":133,"w":62,"h":12},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":66,"y":42,"w":62,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":135,"w":62,"h":12},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":0,"y":40,"w":64,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":134,"w":64,"h":13},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":0,"y":40,"w":64,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":56,"y":131,"w":64,"h":13},"sourceSize":{"w":192,"h":192}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",

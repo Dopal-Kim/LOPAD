@@ -64,6 +64,16 @@
  "reusedFrom": "weapons/v3/bow_release_awaken",
  "glowRule": "glowFrames(무기 시트 판정 순간)에 가장 밝음",
  "glowFrames": [],
+ "weaponColor": {
+  "round": "61s6-P14-weapon-color",
+  "weapon": "bow",
+  "name": "비취",
+  "key": "#40e0a0",
+  "secondary": "바랜 금",
+  "how": "갈래 외형의 빛·장식 색 → 무기 램프",
+  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
+ },
+ "p20": "P20 새 몸: 프레임마다 weaponOffsetDots(몸 JSON) 만큼 옮김(그림 그대로)",
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -84,22 +94,22 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":128,"y":0,"w":27,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":115,"y":93,"w":27,"h":103},"sourceSize":{"w":256,"h":256}},
-  "1":{"frame":{"x":157,"y":0,"w":27,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":115,"y":93,"w":27,"h":103},"sourceSize":{"w":256,"h":256}},
-  "2":{"frame":{"x":332,"y":0,"w":39,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":116,"y":97,"w":39,"h":98},"sourceSize":{"w":256,"h":256}},
-  "3":{"frame":{"x":186,"y":0,"w":41,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":117,"y":97,"w":41,"h":102},"sourceSize":{"w":256,"h":256}},
-  "4":{"frame":{"x":501,"y":0,"w":22,"h":67},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":77,"w":22,"h":67},"sourceSize":{"w":256,"h":256}},
-  "5":{"frame":{"x":477,"y":0,"w":22,"h":68},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":77,"w":22,"h":68},"sourceSize":{"w":256,"h":256}},
-  "6":{"frame":{"x":563,"y":0,"w":33,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":84,"w":33,"h":57},"sourceSize":{"w":256,"h":256}},
-  "7":{"frame":{"x":525,"y":0,"w":36,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":83,"w":36,"h":62},"sourceSize":{"w":256,"h":256}},
-  "8":{"frame":{"x":0,"y":0,"w":31,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":80,"y":83,"w":31,"h":106},"sourceSize":{"w":256,"h":256}},
-  "9":{"frame":{"x":33,"y":0,"w":31,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":80,"y":83,"w":31,"h":106},"sourceSize":{"w":256,"h":256}},
-  "10":{"frame":{"x":373,"y":0,"w":50,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":87,"w":50,"h":96},"sourceSize":{"w":256,"h":256}},
-  "11":{"frame":{"x":229,"y":0,"w":50,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":85,"w":50,"h":101},"sourceSize":{"w":256,"h":256}},
-  "12":{"frame":{"x":66,"y":0,"w":29,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":79,"w":29,"h":105},"sourceSize":{"w":256,"h":256}},
-  "13":{"frame":{"x":97,"y":0,"w":29,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":79,"w":29,"h":105},"sourceSize":{"w":256,"h":256}},
-  "14":{"frame":{"x":425,"y":0,"w":50,"h":95},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":86,"w":50,"h":95},"sourceSize":{"w":256,"h":256}},
-  "15":{"frame":{"x":281,"y":0,"w":49,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":150,"y":84,"w":49,"h":98},"sourceSize":{"w":256,"h":256}}
+  "0":{"frame":{"x":128,"y":0,"w":27,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":117,"y":84,"w":27,"h":103},"sourceSize":{"w":256,"h":256}},
+  "1":{"frame":{"x":157,"y":0,"w":27,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":117,"y":84,"w":27,"h":103},"sourceSize":{"w":256,"h":256}},
+  "2":{"frame":{"x":332,"y":0,"w":39,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":117,"y":87,"w":39,"h":98},"sourceSize":{"w":256,"h":256}},
+  "3":{"frame":{"x":186,"y":0,"w":41,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":118,"y":87,"w":41,"h":102},"sourceSize":{"w":256,"h":256}},
+  "4":{"frame":{"x":501,"y":0,"w":22,"h":67},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":113,"y":69,"w":22,"h":67},"sourceSize":{"w":256,"h":256}},
+  "5":{"frame":{"x":477,"y":0,"w":22,"h":68},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":113,"y":69,"w":22,"h":68},"sourceSize":{"w":256,"h":256}},
+  "6":{"frame":{"x":563,"y":0,"w":33,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":75,"w":33,"h":57},"sourceSize":{"w":256,"h":256}},
+  "7":{"frame":{"x":525,"y":0,"w":36,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":74,"w":36,"h":62},"sourceSize":{"w":256,"h":256}},
+  "8":{"frame":{"x":0,"y":0,"w":31,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":79,"y":74,"w":31,"h":106},"sourceSize":{"w":256,"h":256}},
+  "9":{"frame":{"x":33,"y":0,"w":31,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":79,"y":74,"w":31,"h":106},"sourceSize":{"w":256,"h":256}},
+  "10":{"frame":{"x":373,"y":0,"w":50,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":78,"w":50,"h":96},"sourceSize":{"w":256,"h":256}},
+  "11":{"frame":{"x":229,"y":0,"w":50,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":76,"w":50,"h":101},"sourceSize":{"w":256,"h":256}},
+  "12":{"frame":{"x":66,"y":0,"w":29,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":70,"w":29,"h":105},"sourceSize":{"w":256,"h":256}},
+  "13":{"frame":{"x":97,"y":0,"w":29,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":70,"w":29,"h":105},"sourceSize":{"w":256,"h":256}},
+  "14":{"frame":{"x":425,"y":0,"w":50,"h":95},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":150,"y":77,"w":50,"h":95},"sourceSize":{"w":256,"h":256}},
+  "15":{"frame":{"x":281,"y":0,"w":49,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":75,"w":49,"h":98},"sourceSize":{"w":256,"h":256}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -111,14 +121,5 @@
    "h": 106
   },
   "scale": "1"
- },
- "weaponColor": {
-  "round": "61s6-P14-weapon-color",
-  "weapon": "bow",
-  "name": "비취",
-  "key": "#40e0a0",
-  "secondary": "바랜 금",
-  "how": "갈래 외형의 빛·장식 색 → 무기 램프",
-  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
  }
 }

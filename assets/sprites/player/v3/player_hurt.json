@@ -1,400 +1,784 @@
 {
-  "image": "player_hurt.png",
-  "action": "hurt",
-  "frameWidth": 96,
-  "frameHeight": 144,
-  "framesPerDirection": 3,
-  "directions": ["down", "up", "left", "right"],
-  "layout": "rows = directions (down, up, left, right), columns = frames",
-  "frameIndex": "row * frames + column",
-  "fps": 18.75,
-  "frameDurationsMs": [50, 50, 60],
-  "loop": false,
-  "pivot": {
-    "x": 48,
-    "y": 138
-  },
-  "pixelScale": 0.5,
-  "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
-  "source": "parts/art/work/hero19/build.py (P19 주인공 역동성 — hero_v3 리그 재자세 · 무기 오버레이 프레임 오프셋 동기)",
-  "emissiveColors": ["#e2a33c", "#eecc78", "#f4de9b"],
-  "flashFrame": 0,
-  "note2": "0 균열 백열 + 재 튐 · 1 젖힘(어깨 혼불 눌림) · 2 회복. 재 조각은 시트에 포함(몸 밖 1~2px)",
-  "v2Timing": {
-    "frames": 2,
-    "frameDurationsMs": [70, 90],
-    "totalMs": 160
-  },
-  "handAnchors": {
-    "down": [
-      {
-        "handR": [15.5, 72.6],
-        "handL": [82.2, 71.1]
-      },
-      {
-        "handR": [21.3, 88.3],
-        "handL": [76.3, 87.6]
-      },
-      {
-        "handR": [25.3, 93.6],
-        "handL": [70.7, 93.6]
-      }
+ "image": "player_hurt.png",
+ "action": "hurt",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "framesPerDirection": 3,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 18.75,
+ "frameDurationsMs": [
+  50,
+  50,
+  60
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/hero20/build.py (P20 새 몸 리그 rig20 · P19 이동 자세 loco19 · 무기 오버레이 오프셋 동기)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#eecc78",
+  "#f4de9b"
+ ],
+ "flashFrame": 0,
+ "note2": "0 균열 백열 + 재 튐 · 1 젖힘(어깨 혼불 눌림) · 2 회복. 재 조각은 시트에 포함(몸 밖 1~2px)",
+ "v2Timing": {
+  "frames": 2,
+  "frameDurationsMs": [
+   70,
+   90
+  ],
+  "totalMs": 160
+ },
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     27.2,
+     68.9
     ],
-    "up": [
-      {
-        "handR": [80.5, 72.6],
-        "handL": [13.8, 71.1]
-      },
-      {
-        "handR": [74.7, 88.3],
-        "handL": [19.7, 87.6]
-      },
-      {
-        "handR": [70.7, 93.6],
-        "handL": [25.3, 93.6]
-      }
-    ],
-    "left": [
-      {
-        "handR": [41.2, 73.3],
-        "handL": [38.2, 70.7]
-      },
-      {
-        "handR": [39.8, 86.2],
-        "handL": [36.8, 85.1]
-      },
-      {
-        "handR": [31.3, 89.1],
-        "handL": [28.3, 87.2]
-      }
-    ],
-    "right": [
-      {
-        "handR": [57.8, 70.7],
-        "handL": [54.8, 73.3]
-      },
-      {
-        "handR": [59.2, 85.1],
-        "handL": [56.2, 86.2]
-      },
-      {
-        "handR": [67.7, 87.2],
-        "handL": [64.7, 89.1]
-      }
+    "handL": [
+     75.8,
+     70.7
     ]
-  },
-  "anchorNote": "handAnchors = 프레임별 손 중심(몸 시트 도트 좌표, 해부 기준 R = 오른손 · L = 왼손). 무기 시트 좌표 = 몸 좌표 + playerFrameOffset(48,48). 칼은 오른손(R)이 쥔다. 대기·걷기·달리기에서 왼손(L)은 칼집 입구를 쥔다(53라운드).",
-  "scarAnchor": {
-    "down": [
-      {
-        "x": 51.1,
-        "y": 59.7,
-        "w": 25.5,
-        "h": 21.5,
-        "rot": 6.0,
-        "visible": false
-      },
-      {
-        "x": 48.1,
-        "y": 71.0,
-        "w": 25.5,
-        "h": 19.1,
-        "rot": -0.9,
-        "visible": false
-      },
-      {
-        "x": 48.0,
-        "y": 73.4,
-        "w": 25.5,
-        "h": 17.9,
-        "rot": 0.0,
-        "visible": false
-      }
+   },
+   {
+    "handR": [
+     28.0,
+     86.4
     ],
-    "up": [
-      {
-        "x": 44.9,
-        "y": 59.7,
-        "w": 25.5,
-        "h": 21.5,
-        "rot": -6.0,
-        "visible": true
-      },
-      {
-        "x": 47.9,
-        "y": 71.0,
-        "w": 25.5,
-        "h": 19.1,
-        "rot": 0.9,
-        "visible": true
-      },
-      {
-        "x": 48.0,
-        "y": 73.4,
-        "w": 25.5,
-        "h": 17.9,
-        "rot": 0.0,
-        "visible": true
-      }
-    ],
-    "left": [
-      {
-        "x": 56.0,
-        "y": 74.4,
-        "w": 7.2,
-        "h": 11.3,
-        "rot": 25.3,
-        "visible": true
-      },
-      {
-        "x": 54.2,
-        "y": 75.3,
-        "w": 7.2,
-        "h": 11.3,
-        "rot": 6.0,
-        "visible": true
-      },
-      {
-        "x": 47.2,
-        "y": 74.0,
-        "w": 7.2,
-        "h": 11.3,
-        "rot": -20.3,
-        "visible": true
-      }
-    ],
-    "right": [
-      {
-        "x": 40.0,
-        "y": 74.4,
-        "w": 7.2,
-        "h": 11.3,
-        "rot": -25.3,
-        "visible": true
-      },
-      {
-        "x": 41.8,
-        "y": 75.3,
-        "w": 7.2,
-        "h": 11.3,
-        "rot": -6.0,
-        "visible": true
-      },
-      {
-        "x": 48.8,
-        "y": 74.0,
-        "w": 7.2,
-        "h": 11.3,
-        "rot": 20.3,
-        "visible": true
-      }
+    "handL": [
+     69.5,
+     84.6
     ]
-  },
-  "scarAnchorNote": "53라운드 Q4 · 계약 §13: 프레임별 등 상흔 사각형(몸 시트 도트 좌표). x·y = 사각형 중심, w·h = 회전 전 크기, rot = 도(위쪽 변이 오른쪽으로 기울면 +, 시계 방향), visible = 이 프레임에 상흔을 그림. up = 등 가운데(visible), left·right = 굽은 등 위 어깨 쪽 작은 사각형(visible), down = 가슴 쪽 자리(visible:false). 사망 4프레임부터(재 무덤으로 가라앉음)는 false.",
-  "carryOverlay": null,
-  "carryDrawnOverlay": null,
-  "note": "v3 · 53라운드 Q1 1.5배 — 96×144 도트, 화면 48×72 (pixelScale 0.5, 계약 §13). 개념 gemini/concept_char/hero3_b.",
-  "weaponOffsetDots": {
-    "down": [
-      [0, 1],
-      [0, 3],
-      [0, 4]
+   },
+   {
+    "handR": [
+     30.2,
+     93.5
     ],
-    "up": [
-      [0, 1],
-      [0, 3],
-      [0, 4]
-    ],
-    "left": [
-      [-9, 1],
-      [-3, 4],
-      [2, 4]
-    ],
-    "right": [
-      [9, 1],
-      [3, 4],
-      [-2, 4]
+    "handL": [
+     65.8,
+     93.5
     ]
-  },
-  "weaponOffsetBackDots": {
-    "down": [
-      [3, -1],
-      [-1, 5],
-      [0, 6]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     68.8,
+     70.5
     ],
-    "up": [
-      [-3, -1],
-      [1, 5],
-      [0, 6]
-    ],
-    "left": [
-      [-3, 1],
-      [-2, 3],
-      [-4, 7]
-    ],
-    "right": [
-      [3, 1],
-      [2, 3],
-      [4, 7]
+    "handL": [
+     20.2,
+     72.3
     ]
-  },
-  "eyeAnchors": {
-    "down": [
-      [61.7, 21.0],
-      [53.5, 41.8],
-      [54.3, 49.0]
+   },
+   {
+    "handR": [
+     68.0,
+     83.8
     ],
-    "up": [null, null, null],
-    "left": [
-      [51.3, 39.8],
-      [35.1, 44.1],
-      [13.1, 53.5]
-    ],
-    "right": [
-      [44.7, 39.8],
-      [60.9, 44.1],
-      [82.9, 53.5]
+    "handL": [
+     26.5,
+     81.9
     ]
-  },
-  "chestAnchors": {
-    "down": [
-      [50.8, 63.0],
-      [48.1, 74.0],
-      [48.0, 76.2]
+   },
+   {
+    "handR": [
+     65.8,
+     89.7
     ],
-    "up": [
-      [45.2, 63.0],
-      [47.9, 74.0],
-      [48.0, 76.2]
-    ],
-    "left": [
-      [46.6, 71.8],
-      [44.5, 75.4],
-      [38.3, 77.6]
-    ],
-    "right": [
-      [49.4, 71.8],
-      [51.5, 75.4],
-      [57.7, 77.6]
+    "handL": [
+     30.2,
+     89.7
     ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     62.1,
+     72.4
+    ],
+    "handL": [
+     59.4,
+     73.8
+    ]
+   },
+   {
+    "handR": [
+     51.6,
+     82.0
+    ],
+    "handL": [
+     48.9,
+     84.9
+    ]
+   },
+   {
+    "handR": [
+     31.1,
+     86.7
+    ],
+    "handL": [
+     28.4,
+     88.9
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     36.6,
+     73.8
+    ],
+    "handL": [
+     33.9,
+     72.4
+    ]
+   },
+   {
+    "handR": [
+     47.1,
+     84.9
+    ],
+    "handL": [
+     44.4,
+     82.0
+    ]
+   },
+   {
+    "handR": [
+     67.6,
+     88.9
+    ],
+    "handL": [
+     64.9,
+     86.7
+    ]
+   }
+  ]
+ },
+ "anchorNote": "handAnchors = 프레임별 손 중심(몸 시트 도트 좌표, 해부 기준 R = 오른손 · L = 왼손). 무기 시트 좌표 = 몸 좌표 + playerFrameOffset(48,48). 칼은 오른손(R)이 쥔다. 대기·걷기·달리기에서 왼손(L)은 칼집 입구를 쥔다(53라운드).",
+ "scarAnchor": {
+  "down": [
+   {
+    "x": 50.0,
+    "y": 58.4,
+    "w": 21.0,
+    "h": 15.0,
+    "rot": 5.5,
+    "visible": false
+   },
+   {
+    "x": 48.5,
+    "y": 64.4,
+    "w": 21.0,
+    "h": 16.8,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 48.0,
+    "y": 66.2,
+    "w": 21.0,
+    "h": 16.2,
+    "rot": 0.0,
+    "visible": false
+   }
+  ],
+  "up": [
+   {
+    "x": 46.0,
+    "y": 61.3,
+    "w": 21.0,
+    "h": 12.7,
+    "rot": -6.5,
+    "visible": true
+   },
+   {
+    "x": 47.5,
+    "y": 64.3,
+    "w": 21.0,
+    "h": 16.8,
+    "rot": -0.0,
+    "visible": true
+   },
+   {
+    "x": 48.0,
+    "y": 65.1,
+    "w": 21.0,
+    "h": 16.9,
+    "rot": 0.0,
+    "visible": true
+   }
+  ],
+  "left": [
+   {
+    "x": 54.1,
+    "y": 66.3,
+    "w": 7.0,
+    "h": 10.1,
+    "rot": 31.5,
+    "visible": true
+   },
+   {
+    "x": 52.9,
+    "y": 66.9,
+    "w": 7.0,
+    "h": 10.1,
+    "rot": 12.3,
+    "visible": true
+   },
+   {
+    "x": 46.4,
+    "y": 65.0,
+    "w": 7.0,
+    "h": 10.1,
+    "rot": -13.9,
+    "visible": true
+   }
+  ],
+  "right": [
+   {
+    "x": 41.9,
+    "y": 66.3,
+    "w": 7.0,
+    "h": 10.1,
+    "rot": -31.5,
+    "visible": true
+   },
+   {
+    "x": 43.1,
+    "y": 66.9,
+    "w": 7.0,
+    "h": 10.1,
+    "rot": -12.3,
+    "visible": true
+   },
+   {
+    "x": 49.6,
+    "y": 65.0,
+    "w": 7.0,
+    "h": 10.1,
+    "rot": 13.9,
+    "visible": true
+   }
+  ]
+ },
+ "scarAnchorNote": "53라운드 Q4 · 계약 §13: 프레임별 등 상흔 사각형(몸 시트 도트 좌표). x·y = 사각형 중심, w·h = 회전 전 크기, rot = 도(위쪽 변이 오른쪽으로 기울면 +, 시계 방향), visible = 이 프레임에 상흔을 그림. up = 등 가운데(visible), left·right = 굽은 등 위 어깨 쪽 작은 사각형(visible), down = 가슴 쪽 자리(visible:false). 사망 4프레임부터(재 무덤으로 가라앉음)는 false.",
+ "carryOverlay": null,
+ "carryDrawnOverlay": null,
+ "note": "v3 · 53라운드 Q1 1.5배 — 96×144 도트, 화면 48×72 (pixelScale 0.5, 계약 §13). 개념 gemini/concept_char/hero3_b.",
+ "weaponOffsetDots": {
+  "down": [
+   [
+    -4,
+    -11
+   ],
+   [
+    -4,
+    -7
+   ],
+   [
+    -4,
+    -6
+   ]
+  ],
+  "up": [
+   [
+    4,
+    -9
+   ],
+   [
+    4,
+    -8
+   ],
+   [
+    4,
+    -8
+   ]
+  ],
+  "left": [
+   [
+    -6,
+    -10
+   ],
+   [
+    -2,
+    -7
+   ],
+   [
+    1,
+    -6
+   ]
+  ],
+  "right": [
+   [
+    6,
+    -10
+   ],
+   [
+    2,
+    -8
+   ],
+   [
+    -1,
+    -7
+   ]
+  ]
+ },
+ "weaponOffsetBackDots": {
+  "down": [
+   [
+    3,
+    -11
+   ],
+   [
+    0,
+    -2
+   ],
+   [
+    0,
+    0
+   ]
+  ],
+  "up": [
+   [
+    -2,
+    -3
+   ],
+   [
+    0,
+    -6
+   ],
+   [
+    0,
+    -8
+   ]
+  ],
+  "left": [
+   [
+    -8,
+    -11
+   ],
+   [
+    -8,
+    -8
+   ],
+   [
+    -10,
+    -1
+   ]
+  ],
+  "right": [
+   [
+    8,
+    -11
+   ],
+   [
+    8,
+    -8
+   ],
+   [
+    10,
+    -1
+   ]
+  ]
+ },
+ "eyeAnchors": {
+  "down": [
+   [
+    57.0,
+    22.4
+   ],
+   [
+    51.2,
+    38.0
+   ],
+   [
+    51.3,
+    45.9
+   ]
+  ],
+  "up": [
+   null,
+   null,
+   null
+  ],
+  "left": [
+   [
+    57.5,
+    34.3
+   ],
+   [
+    44.1,
+    37.0
+   ],
+   [
+    24.3,
+    43.9
+   ]
+  ],
+  "right": [
+   [
+    38.6,
+    33.5
+   ],
+   [
+    52.0,
+    36.3
+   ],
+   [
+    71.8,
+    43.1
+   ]
+  ]
+ },
+ "chestAnchors": {
+  "down": [
+   [
+    50.7,
+    53.2
+   ],
+   [
+    48.6,
+    66.6
+   ],
+   [
+    48.0,
+    70.6
+   ]
+  ],
+  "up": [
+   [
+    46.0,
+    61.4
+   ],
+   [
+    47.5,
+    62.4
+   ],
+   [
+    48.0,
+    62.7
+   ]
+  ],
+  "left": [
+   [
+    41.3,
+    59.3
+   ],
+   [
+    38.7,
+    64.5
+   ],
+   [
+    32.9,
+    69.0
+   ]
+  ],
+  "right": [
+   [
+    54.7,
+    59.3
+   ],
+   [
+    57.3,
+    64.5
+   ],
+   [
+    63.1,
+    69.0
+   ]
+  ]
+ },
+ "fxAnchorNote": "P19 fx 기준점(몸 도트): eyeAnchors = 분노한 눈 중심(fx/v3/hero_eye_trail 자리, null = 안 보임 — 뒷모습·눈 깜빡), chestAnchors = 가슴 균열(fx/v3/hero_ember_breath 자리). 몸 피벗 기준 = (x − 48, y − 138)",
+ "previousSource": "parts/art/work/hero_v3/build.py (53라운드 Q1·Q4 — 96×144 1.5배 재출력)",
+ "p20": "P20 주인공 새 몸(2026-10-15, 프로듀서 재점검 '부적합 — 몸 설계부터 다시'): 키아트 hero3_b 비율 — 약 6.8등신, 작은 숯빛 맨머리·좁은 턱·가늘게 빛나는 한쪽 눈, 마른 근육질, 찢긴 가슴·등 균열(번개 아님), 붕대 팔뚝·정강이, 왼어깨 견갑·오른정강이 갑주, 등에 박힌 화살 3대, 찢긴 허리천 + 작은 가죽 주머니. 새 리그 parts/art/work/hero20/rig20.py. 틀·피벗·프레임 수·ms·판정 필드 그대로, 무기 오버레이는 프레임마다 weaponOffsetDots 만큼 옮겨 구움(손 앵커 오프셋 동기 b+).",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 player_hurt.png)",
+  "grid": {
+   "columns": 3,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 12
   },
-  "fxAnchorNote": "P19 fx 기준점(몸 도트): eyeAnchors = 분노한 눈 중심(fx/v3/hero_eye_trail 자리, null = 안 보임 — 뒷모습·눈 깜빡), chestAnchors = 가슴 균열(fx/v3/hero_ember_breath 자리). 몸 피벗 기준 = (x − 48, y − 138)",
-  "p19": "P19 주인공 역동성(2026-10-14): 키아트 hero3_b 의 낮게 웅크린 포식자 결로 몸만 다시 렌더. 프레임 수·ms·피벗·판정 시점 그대로. 무기 오버레이는 다시 그리지 않고 프레임마다 weaponOffsetDots 만큼 통째로 옮겼다(handAnchors 도 같은 만큼) — 손·무기 동기 유지.",
-  "previousSource": "parts/art/work/hero_v3/build.py (53라운드 Q1·Q4 — 96×144 1.5배 재출력)",
-  "atlas": {
-    "version": "atlas57-1",
-    "format": "phaser-json-hash",
-    "source": "parts/art/work/atlas57/build.py (원 격자 시트 player_hurt.png)",
-    "grid": {
-      "columns": 3,
-      "rows": 4,
-      "frameWidth": 96,
-      "frameHeight": 144,
-      "frameCount": 12
-    },
-    "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
-    "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
-    "padding": 2,
-    "noTrim": false,
-    "emptyFrames": [],
-    "dedupedFrames": 0,
-    "pages": 1
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 76,
+    "h": 139
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 14,
+    "y": 4,
+    "w": 76,
+    "h": 139
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 144
+   }
   },
-  "frames": {
-    "0": {
-      "frame": { "x": 81, "y": 133, "w": 75, "h": 136 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 12, "y": 4, "w": 75, "h": 136 },
-      "sourceSize": { "w": 96, "h": 144 }
-    },
-    "1": {
-      "frame": { "x": 81, "y": 0, "w": 79, "h": 131 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 13, "y": 9, "w": 79, "h": 131 },
-      "sourceSize": { "w": 96, "h": 144 }
-    },
-    "2": {
-      "frame": { "x": 0, "y": 138, "w": 76, "h": 122 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 8, "y": 18, "w": 76, "h": 122 },
-      "sourceSize": { "w": 96, "h": 144 }
-    },
-    "3": {
-      "frame": { "x": 0, "y": 0, "w": 79, "h": 136 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 6, "y": 4, "w": 79, "h": 136 },
-      "sourceSize": { "w": 96, "h": 144 }
-    },
-    "4": {
-      "frame": { "x": 0, "y": 271, "w": 84, "h": 116 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 3, "y": 24, "w": 84, "h": 116 },
-      "sourceSize": { "w": 96, "h": 144 }
-    },
-    "5": {
-      "frame": { "x": 162, "y": 0, "w": 65, "h": 119 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 16, "y": 21, "w": 65, "h": 119 },
-      "sourceSize": { "w": 96, "h": 144 }
-    },
-    "6": {
-      "frame": { "x": 158, "y": 133, "w": 70, "h": 126 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 17, "y": 13, "w": 70, "h": 126 },
-      "sourceSize": { "w": 96, "h": 144 }
-    },
-    "7": {
-      "frame": { "x": 86, "y": 271, "w": 60, "h": 111 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 21, "y": 28, "w": 60, "h": 111 },
-      "sourceSize": { "w": 96, "h": 144 }
-    },
-    "8": {
-      "frame": { "x": 0, "y": 389, "w": 73, "h": 104 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 9, "y": 35, "w": 73, "h": 104 },
-      "sourceSize": { "w": 96, "h": 144 }
-    },
-    "9": {
-      "frame": { "x": 158, "y": 261, "w": 71, "h": 124 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 9, "y": 15, "w": 71, "h": 124 },
-      "sourceSize": { "w": 96, "h": 144 }
-    },
-    "10": {
-      "frame": { "x": 168, "y": 387, "w": 61, "h": 111 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 15, "y": 28, "w": 61, "h": 111 },
-      "sourceSize": { "w": 96, "h": 144 }
-    },
-    "11": {
-      "frame": { "x": 86, "y": 387, "w": 80, "h": 104 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 8, "y": 35, "w": 80, "h": 104 },
-      "sourceSize": { "w": 96, "h": 144 }
-    }
+  "1": {
+   "frame": {
+    "x": 243,
+    "y": 0,
+    "w": 73,
+    "h": 132
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 16,
+    "y": 11,
+    "w": 73,
+    "h": 132
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 144
+   }
   },
-  "meta": {
-    "app": "LOPAD atlas57 (Pillow)",
-    "version": "atlas57-1",
-    "image": "player_hurt.png",
-    "format": "RGBA8888",
-    "size": {
-      "w": 229,
-      "h": 498
-    },
-    "scale": "1"
+  "2": {
+   "frame": {
+    "x": 318,
+    "y": 124,
+    "w": 79,
+    "h": 121
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 7,
+    "y": 22,
+    "w": 79,
+    "h": 121
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 144
+   }
+  },
+  "3": {
+   "frame": {
+    "x": 163,
+    "y": 0,
+    "w": 78,
+    "h": 133
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 6,
+    "y": 8,
+    "w": 78,
+    "h": 133
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 144
+   }
+  },
+  "4": {
+   "frame": {
+    "x": 78,
+    "y": 0,
+    "w": 83,
+    "h": 136
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 1,
+    "y": 5,
+    "w": 83,
+    "h": 136
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 144
+   }
+  },
+  "5": {
+   "frame": {
+    "x": 318,
+    "y": 0,
+    "w": 59,
+    "h": 122
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 19,
+    "y": 19,
+    "w": 59,
+    "h": 122
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 144
+   }
+  },
+  "6": {
+   "frame": {
+    "x": 379,
+    "y": 0,
+    "w": 60,
+    "h": 116
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 18,
+    "y": 26,
+    "w": 60,
+    "h": 116
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 144
+   }
+  },
+  "7": {
+   "frame": {
+    "x": 163,
+    "y": 135,
+    "w": 67,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 21,
+    "y": 27,
+    "w": 67,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 144
+   }
+  },
+  "8": {
+   "frame": {
+    "x": 0,
+    "y": 141,
+    "w": 60,
+    "h": 109
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 23,
+    "y": 33,
+    "w": 60,
+    "h": 109
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 144
+   }
+  },
+  "9": {
+   "frame": {
+    "x": 243,
+    "y": 134,
+    "w": 60,
+    "h": 116
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 19,
+    "y": 26,
+    "w": 60,
+    "h": 116
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 144
+   }
+  },
+  "10": {
+   "frame": {
+    "x": 399,
+    "y": 118,
+    "w": 47,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 29,
+    "y": 27,
+    "w": 47,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 144
+   }
+  },
+  "11": {
+   "frame": {
+    "x": 78,
+    "y": 138,
+    "w": 66,
+    "h": 109
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 8,
+    "y": 33,
+    "w": 66,
+    "h": 109
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 144
+   }
   }
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "player_hurt.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 446,
+   "h": 250
+  },
+  "scale": "1"
+ },
+ "bodyRig": "parts/art/work/hero20/rig20.py"
 }

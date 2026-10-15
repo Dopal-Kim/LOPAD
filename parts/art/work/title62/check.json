@@ -29,7 +29,7 @@
    1080
   ],
   "mode": "RGBA",
-  "bytes": 27204,
+  "bytes": 26948,
   "alphaMinMax": [
    0,
    255
@@ -43,7 +43,7 @@
    567
   ],
   "mode": "RGBA",
-  "bytes": 7071,
+  "bytes": 6868,
   "alphaMinMax": [
    0,
    255
@@ -100,14 +100,14 @@
  },
  "title_fx_glow_hero.png": {
   "size": [
-   229,
-   303
+   235,
+   274
   ],
   "mode": "RGBA",
-  "bytes": 48142,
+  "bytes": 46143,
   "alphaMinMax": [
    0,
-   180
+   255
   ]
  },
  "title_fx_voice_katana.png": {

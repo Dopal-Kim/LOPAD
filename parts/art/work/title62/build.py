@@ -137,7 +137,7 @@ def build_meta(state):
             {"key": "title_hero", "image": "title_hero.png", "depth": 6, "parallax": 1.0, "x": state["hero"]["x"], "y": state["hero"]["y"],
              "note": "주인공만(near 에 이미 그려져 있음). 호흡용 덧그림 — scaleY 1.000↔1.008, 원점 = 발(아래 가운데). 1 미만으로 줄이지 말 것(아래 그림이 비친다)"},
             {"key": "title_fx_glow_hero", "image": "title_fx_glow_hero.png", "depth": 7, "parallax": 1.0, "blendMode": "ADD",
-             "x": state["glows"]["hero"]["x"], "y": state["glows"]["hero"]["y"], "note": "등 상흔·두개골 실금·눈·어깨 혼불 빛무리 — 호흡과 같은 주기로 알파 0.55↔1.0"},
+             "x": state["glows"]["hero"]["x"], "y": state["glows"]["hero"]["y"], "note": "등 상흔 찢긴 균열·눈·어깨 혼불 빛무리 — 호흡과 같은 주기로 알파 0.55↔1.0"},
             {"key": "title_fx_voice_*", "depth": 8, "parallax": 1.0, "blendMode": "ADD", "ref": "voices[]"},
             {"key": "embers#near", "image": "title_fx_embers.png", "depth": 9, "ref": "title_fx_embers.json emitters mound·back_crack·voices"},
             {"key": "title_fx_fog#near", "image": "title_fx_fog.png", "depth": 10, "ref": "title_fx_fog.json instances[2]"},

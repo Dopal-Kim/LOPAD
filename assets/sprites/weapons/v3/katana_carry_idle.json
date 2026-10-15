@@ -1,290 +1,258 @@
 {
+ "image": "katana_carry_idle.png",
+ "action": "carry_idle",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "framesPerDirection": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 4.92,
+ "frameDurationsMs": [
+  200,
+  200,
+  180,
+  220,
+  200,
+  220
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/katana61s5/build.py (61 단계 5 P13 §2 — 칼 재디자인 '은선', 무기+이펙트 함께)",
+ "weapon": "katana",
+ "carry": "waist sheath (해부 왼허리 칼집 — 일기장은 오른허리)",
+ "bodySheet": "player_idle",
+ "anchor": "player_pivot",
+ "design": "은선(銀線) 칼 (61 단계 5 P13 §2) — 얇고 긴 연마 강철 날(날선 1도트 백광 · 청강 바탕 + 물결 하몬 · 어두운 등 테, 밑동 4 → 몸 3 → 칼끝 1도트) · 요코테 반짝 · 호박 금 하바키·카시라 · 둥근 검은 쇠 코등이 · 검은 감은 끈 손잡이(마름모 눈) · 검은 옻칠 칼집(윤기 줄 · 금 입구테·끝 장식 · 짙은 호박 끈)",
+ "designRef": "parts/art/README.md 「61 단계 5」 절 (Gemini 미사용, 도트 직접)",
+ "glowRule": "판정(glow) 프레임 = 날 전체 백열(날선 X0 · 바탕 X1 · 등은 청강 SL6 로 남겨 실루엣 유지) — 56 Q50 '판정 순간 하얗게 번쩍'. heat1~3(회전 베기·가드 불가 내려베기 모으기) = 날이 호박으로 달아오름. 평소 = 무채 G13/G11 · 청강 SL7~SL4(층 램프 교체와 무관한 고정 무채) + 호박 금 점",
+ "colorBudget": "11",
+ "colorNote": "61 단계 5: 칼만 무채 16 의 밝은 칸(G11·G13, 판정 X0/X1)을 쓴다 — '재 칼날' 주인공 30색 제한(53 Q32)을 칼날에 한해 풀었다(자율 모드 아트 판단, README 61 단계 5). 호박(A18~A26)은 층 램프 교체 대상 그대로",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 칼집·손잡이 픽셀은 몸 실루엣으로 지워 두었다 → 항상 몸 위에 겹친다(above). right 는 칼집이 먼 허리라 몸 밖으로 나온 칼집 끝만 보인다.",
+ "sheathMouthAnchors": {
+  "down": [
+   [
+    106.8,
+    136.3
+   ],
+   [
+    107.1,
+    136.3
+   ],
+   [
+    107.4,
+    136.3
+   ],
+   [
+    107.2,
+    136.3
+   ],
+   [
+    106.8,
+    136.3
+   ],
+   [
+    105.4,
+    136.3
+   ]
+  ],
+  "up": [
+   [
+    85.2,
+    130.2
+   ],
+   [
+    84.9,
+    130.2
+   ],
+   [
+    84.6,
+    130.2
+   ],
+   [
+    84.8,
+    130.2
+   ],
+   [
+    85.2,
+    130.2
+   ],
+   [
+    86.6,
+    130.2
+   ]
+  ],
+  "left": [
+   [
+    90.5,
+    132.8
+   ],
+   [
+    90.5,
+    132.8
+   ],
+   [
+    90.5,
+    132.8
+   ],
+   [
+    90.5,
+    132.8
+   ],
+   [
+    90.5,
+    132.8
+   ],
+   [
+    90.5,
+    132.8
+   ]
+  ],
+  "right": [
+   [
+    101.5,
+    132.8
+   ],
+   [
+    101.5,
+    132.8
+   ],
+   [
+    101.5,
+    132.8
+   ],
+   [
+    101.5,
+    132.8
+   ],
+   [
+    101.5,
+    132.8
+   ],
+   [
+    101.5,
+    132.8
+   ]
+  ]
+ },
+ "sheathMouthNote": "칼집 입구(무기 시트 좌표) — 뽑기 이펙트·손 위치 참고용",
+ "overlay": "player_idle 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 (96,186) = 주인공 피벗 (48,138).",
+ "leftHandGrip": true,
+ "leftHandNote": "대기·걷기·달리기: 왼손이 칼집 입구 바로 뒤를 쥐고 엄지로 코등이를 누른다(손 픽셀 위 칼집·코등이는 지워 둠).",
+ "colors": 11,
+ "r61s5": "61 단계 5 P13 §2 칼 재디자인(무기+이펙트 함께) — 틀·피벗·프레임·ms·행·앵커 그대로, 그림만 교체",
+ "version": "v3-r61s5",
+ "previousDesign": "53 Q26 B '재 칼날'(검은 재 칼날 + 호박 균열) — git 2aa9fe6 이전",
+ "p19": "P19 주인공 역동성: 몸 새 자세에 맞춰 프레임마다 weaponOffsetDots(왼허리 이동) 만큼 옮김(그림은 그대로)",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_carry_idle.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 4,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 24
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 6,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":69,"y":94,"w":43,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":133,"w":43,"h":17},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":69,"y":75,"w":44,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":133,"w":44,"h":17},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":141,"y":43,"w":45,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":133,"w":45,"h":17},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":141,"y":62,"w":45,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":133,"w":45,"h":17},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":115,"y":81,"w":44,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":133,"w":44,"h":17},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":0,"y":106,"w":43,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":133,"w":43,"h":17},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":72,"y":43,"w":32,"h":30},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":135,"w":32,"h":30},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":34,"y":74,"w":33,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":135,"w":33,"h":29},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":0,"y":43,"w":34,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":135,"w":34,"h":29},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":36,"y":43,"w":34,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":135,"w":34,"h":29},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":106,"y":43,"w":33,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":135,"w":33,"h":29},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":0,"y":74,"w":32,"h":30},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":135,"w":32,"h":30},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":0,"y":0,"w":61,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":122,"w":61,"h":41},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":63,"y":0,"w":61,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":122,"w":61,"h":41},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":126,"y":0,"w":60,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":122,"w":60,"h":41},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":126,"y":0,"w":60,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":122,"w":60,"h":41},"sourceSize":{"w":192,"h":192}},
+  "16":{"frame":{"x":63,"y":0,"w":61,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":122,"w":61,"h":41},"sourceSize":{"w":192,"h":192}},
+  "17":{"frame":{"x":0,"y":0,"w":61,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":122,"w":61,"h":41},"sourceSize":{"w":192,"h":192}},
+  "18":{"frame":{"x":114,"y":100,"w":61,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":130,"w":61,"h":11},"sourceSize":{"w":192,"h":192}},
+  "19":{"frame":{"x":45,"y":113,"w":60,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":130,"w":60,"h":11},"sourceSize":{"w":192,"h":192}},
+  "20":{"frame":{"x":107,"y":113,"w":59,"h":10},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":130,"w":59,"h":10},"sourceSize":{"w":192,"h":192}},
+  "21":{"frame":{"x":107,"y":113,"w":59,"h":10},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":130,"w":59,"h":10},"sourceSize":{"w":192,"h":192}},
+  "22":{"frame":{"x":45,"y":113,"w":60,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":130,"w":60,"h":11},"sourceSize":{"w":192,"h":192}},
+  "23":{"frame":{"x":114,"y":100,"w":61,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":130,"w":61,"h":11},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
   "image": "katana_carry_idle.png",
-  "action": "carry_idle",
-  "frameWidth": 192,
-  "frameHeight": 192,
-  "framesPerDirection": 6,
-  "directions": ["down", "up", "left", "right"],
-  "layout": "rows = directions (down, up, left, right), columns = frames",
-  "frameIndex": "row * frames + column",
-  "fps": 4.92,
-  "frameDurationsMs": [200, 200, 180, 220, 200, 220],
-  "loop": true,
-  "pivot": {
-    "x": 96,
-    "y": 186
+  "format": "RGBA8888",
+  "size": {
+   "w": 186,
+   "h": 124
   },
-  "pixelScale": 0.5,
-  "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
-  "source": "parts/art/work/katana61s5/build.py (61 단계 5 P13 §2 — 칼 재디자인 '은선', 무기+이펙트 함께)",
-  "weapon": "katana",
-  "carry": "waist sheath (해부 왼허리 칼집 — 일기장은 오른허리)",
-  "bodySheet": "player_idle",
-  "anchor": "player_pivot",
-  "design": "은선(銀線) 칼 (61 단계 5 P13 §2) — 얇고 긴 연마 강철 날(날선 1도트 백광 · 청강 바탕 + 물결 하몬 · 어두운 등 테, 밑동 4 → 몸 3 → 칼끝 1도트) · 요코테 반짝 · 호박 금 하바키·카시라 · 둥근 검은 쇠 코등이 · 검은 감은 끈 손잡이(마름모 눈) · 검은 옻칠 칼집(윤기 줄 · 금 입구테·끝 장식 · 짙은 호박 끈)",
-  "designRef": "parts/art/README.md 「61 단계 5」 절 (Gemini 미사용, 도트 직접)",
-  "glowRule": "판정(glow) 프레임 = 날 전체 백열(날선 X0 · 바탕 X1 · 등은 청강 SL6 로 남겨 실루엣 유지) — 56 Q50 '판정 순간 하얗게 번쩍'. heat1~3(회전 베기·가드 불가 내려베기 모으기) = 날이 호박으로 달아오름. 평소 = 무채 G13/G11 · 청강 SL7~SL4(층 램프 교체와 무관한 고정 무채) + 호박 금 점",
-  "colorBudget": "11",
-  "colorNote": "61 단계 5: 칼만 무채 16 의 밝은 칸(G11·G13, 판정 X0/X1)을 쓴다 — '재 칼날' 주인공 30색 제한(53 Q32)을 칼날에 한해 풀었다(자율 모드 아트 판단, README 61 단계 5). 호박(A18~A26)은 층 램프 교체 대상 그대로",
-  "playerFrameOffset": {
-    "x": 48,
-    "y": 48
-  },
-  "depth": {
-    "down": "above",
-    "up": "above",
-    "left": "above",
-    "right": "above"
-  },
-  "depthByFrame": {
-    "down": ["above", "above", "above", "above", "above", "above"],
-    "up": ["above", "above", "above", "above", "above", "above"],
-    "left": ["above", "above", "above", "above", "above", "above"],
-    "right": ["above", "above", "above", "above", "above", "above"]
-  },
-  "occlusionBaked": true,
-  "depthNote": "몸 뒤로 가는 칼집·손잡이 픽셀은 몸 실루엣으로 지워 두었다 → 항상 몸 위에 겹친다(above). right 는 칼집이 먼 허리라 몸 밖으로 나온 칼집 끝만 보인다.",
-  "sheathMouthAnchors": {
-    "down": [
-      [110.8, 146.3],
-      [111.1, 146.3],
-      [111.4, 146.3],
-      [111.2, 146.3],
-      [110.8, 146.3],
-      [110.4, 146.3]
-    ],
-    "up": [
-      [81.2, 143.2],
-      [80.9, 143.2],
-      [80.6, 142.2],
-      [80.8, 143.2],
-      [81.2, 143.2],
-      [81.6, 143.2]
-    ],
-    "left": [
-      [91.5, 143.8],
-      [91.5, 143.8],
-      [91.5, 143.8],
-      [91.5, 143.8],
-      [91.5, 143.8],
-      [91.5, 143.8]
-    ],
-    "right": [
-      [100.5, 143.8],
-      [100.5, 143.8],
-      [100.5, 143.8],
-      [100.5, 143.8],
-      [100.5, 143.8],
-      [100.5, 143.8]
-    ]
-  },
-  "sheathMouthNote": "칼집 입구(무기 시트 좌표) — 뽑기 이펙트·손 위치 참고용",
-  "overlay": "player_idle 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 (96,186) = 주인공 피벗 (48,138).",
-  "leftHandGrip": true,
-  "leftHandNote": "대기·걷기·달리기: 왼손이 칼집 입구 바로 뒤를 쥐고 엄지로 코등이를 누른다(손 픽셀 위 칼집·코등이는 지워 둠).",
-  "colors": 11,
-  "r61s5": "61 단계 5 P13 §2 칼 재디자인(무기+이펙트 함께) — 틀·피벗·프레임·ms·행·앵커 그대로, 그림만 교체",
-  "version": "v3-r61s5",
-  "previousDesign": "53 Q26 B '재 칼날'(검은 재 칼날 + 호박 균열) — git 2aa9fe6 이전",
-  "p19": "P19 주인공 역동성: 몸 새 자세에 맞춰 프레임마다 weaponOffsetDots(왼허리 이동) 만큼 옮김(그림은 그대로)",
-  "atlas": {
-    "version": "atlas57-1",
-    "format": "phaser-json-hash",
-    "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_carry_idle.png)",
-    "grid": {
-      "columns": 6,
-      "rows": 4,
-      "frameWidth": 192,
-      "frameHeight": 192,
-      "frameCount": 24
-    },
-    "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
-    "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
-    "padding": 2,
-    "noTrim": false,
-    "emptyFrames": [],
-    "dedupedFrames": 6,
-    "pages": 1
-  },
-  "frames": {
-    "0": {
-      "frame": { "x": 69, "y": 94, "w": 43, "h": 17 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 100, "y": 143, "w": 43, "h": 17 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "1": {
-      "frame": { "x": 69, "y": 75, "w": 44, "h": 17 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 100, "y": 143, "w": 44, "h": 17 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "2": {
-      "frame": { "x": 141, "y": 43, "w": 45, "h": 17 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 100, "y": 143, "w": 45, "h": 17 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "3": {
-      "frame": { "x": 141, "y": 62, "w": 45, "h": 17 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 100, "y": 143, "w": 45, "h": 17 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "4": {
-      "frame": { "x": 115, "y": 81, "w": 44, "h": 17 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 100, "y": 143, "w": 44, "h": 17 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "5": {
-      "frame": { "x": 0, "y": 106, "w": 43, "h": 17 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 100, "y": 143, "w": 43, "h": 17 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "6": {
-      "frame": { "x": 72, "y": 43, "w": 32, "h": 30 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 49, "y": 148, "w": 32, "h": 30 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "7": {
-      "frame": { "x": 34, "y": 74, "w": 33, "h": 29 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 48, "y": 148, "w": 33, "h": 29 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "8": {
-      "frame": { "x": 0, "y": 43, "w": 34, "h": 29 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 47, "y": 147, "w": 34, "h": 29 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "9": {
-      "frame": { "x": 36, "y": 43, "w": 34, "h": 29 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 47, "y": 148, "w": 34, "h": 29 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "10": {
-      "frame": { "x": 106, "y": 43, "w": 33, "h": 29 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 48, "y": 148, "w": 33, "h": 29 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "11": {
-      "frame": { "x": 0, "y": 74, "w": 32, "h": 30 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 50, "y": 148, "w": 32, "h": 30 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "12": {
-      "frame": { "x": 0, "y": 0, "w": 61, "h": 41 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 76, "y": 133, "w": 61, "h": 41 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "13": {
-      "frame": { "x": 63, "y": 0, "w": 61, "h": 41 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 76, "y": 133, "w": 61, "h": 41 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "14": {
-      "frame": { "x": 126, "y": 0, "w": 60, "h": 41 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 76, "y": 133, "w": 60, "h": 41 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "15": {
-      "frame": { "x": 126, "y": 0, "w": 60, "h": 41 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 76, "y": 133, "w": 60, "h": 41 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "16": {
-      "frame": { "x": 63, "y": 0, "w": 61, "h": 41 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 76, "y": 133, "w": 61, "h": 41 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "17": {
-      "frame": { "x": 0, "y": 0, "w": 61, "h": 41 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 76, "y": 133, "w": 61, "h": 41 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "18": {
-      "frame": { "x": 114, "y": 100, "w": 61, "h": 11 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 56, "y": 141, "w": 61, "h": 11 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "19": {
-      "frame": { "x": 45, "y": 113, "w": 60, "h": 11 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 57, "y": 141, "w": 60, "h": 11 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "20": {
-      "frame": { "x": 107, "y": 113, "w": 59, "h": 10 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 57, "y": 141, "w": 59, "h": 10 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "21": {
-      "frame": { "x": 107, "y": 113, "w": 59, "h": 10 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 57, "y": 141, "w": 59, "h": 10 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "22": {
-      "frame": { "x": 45, "y": 113, "w": 60, "h": 11 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 57, "y": 141, "w": 60, "h": 11 },
-      "sourceSize": { "w": 192, "h": 192 }
-    },
-    "23": {
-      "frame": { "x": 114, "y": 100, "w": 61, "h": 11 },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": { "x": 56, "y": 141, "w": 61, "h": 11 },
-      "sourceSize": { "w": 192, "h": 192 }
-    }
-  },
-  "meta": {
-    "app": "LOPAD atlas57 (Pillow)",
-    "version": "atlas57-1",
-    "image": "katana_carry_idle.png",
-    "format": "RGBA8888",
-    "size": {
-      "w": 186,
-      "h": 124
-    },
-    "scale": "1"
-  }
+  "scale": "1"
+ }
 }
