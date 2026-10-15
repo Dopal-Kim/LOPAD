@@ -37,3 +37,9 @@
 
 ## 5. 측정
 - 봇 드라이버는 `parts/system/tools/bot/`(시스템 S3 가 scratchpad/a64/drv 에서 옮김) — P19 ⑥ 지표를 `npm run bot:metrics`(또는 node 스크립트)로 재현.
+
+## 조정 기록 · 계약 보강 (P19 2단계)
+- §1 보강: `ENEMY_DAMAGED.weapon?`(무기 적중 — 환경 피해엔 없음), `ENEMY_BOWLED.chain`, `ENEMY_TELEGRAPH.ms`, `ENEMY_ATTACK` kind 'drum'·phase beat/rally/run/runEnd/blast, 내부 `combat:alive{count}`(전투 북 층). UI 중계 페이로드에는 `screen{x,y}`(논리 960×540, 줌·스크롤 반영).
+- §3 보강: 마스크 `_` = 테라스 단 끝(아래 단 착지, 걷기 막힘), `legend` 로 `~` = water|drop, `doors` = [{side:'west'|'east', at:0..1}] 입구·출구 순, `lighting.lights` 좌표 = 마스크 칸, 확장 필드 `lighting.ambientByRegion`·`centerArt`·`dress`. 주인공은 낙하 구역에 들어가지 못함(적만 떨어짐). 형태 id: plaza_fountain·dock_quay·crossroad·terrace·cellar·rampart·distillery·banquet_hall. 노드 이름 `route.json shapeNames`(스토리 65 팩).
+- §4 보강: `UiSnapshot.camera{zoom(논리 배율), combat, view{x,y,w,h}}`, `UiOffscreenEnemy{id:number, angle(화면 가운데 → 적), distTiles(주인공 기준), threat}`.
+- 새 UI 이벤트 `ui:enemy-bark`(UiEnemyBark{screen,id,x,y,kind,text} — 머리 위 말풍선, 같은 적 4초·전체 1.5초 간격) — UI 미구현.
