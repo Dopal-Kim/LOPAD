@@ -28,6 +28,11 @@ export class TrialChip {
 
   constructor(private scene: Phaser.Scene) {}
 
+  /** 보이면 아래 끝 y (P19 처음 보는 적 카드가 그 아래로) */
+  get bottom(): number | null {
+    return this.box?.visible ? this.box.y + STRUCT.chipH : null;
+  }
+
   render(t: UiNodeTrial | null | undefined, show: boolean, pos: { x: number; y: number }, stageIndex: number): void {
     const v = show ? trialView(t, r60Text) : null;
     if (!v) {

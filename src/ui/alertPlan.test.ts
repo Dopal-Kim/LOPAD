@@ -5,6 +5,18 @@ const ids = (a: { type: string; id: number }[], type: string): number[] =>
   a.filter((x) => x.type === type).map((x) => x.id);
 
 describe('AlertPlan (62 P0-6 알림 큐)', () => {
+  it('P19 hold: 전투 중 미룬 종류는 기다린 시간을 세지 않고, 그동안 다른 종류가 먼저 뜬다', () => {
+    const p = new AlertPlan(1);
+    const g = p.push('growth', 0, true);
+    p.tick(10_000, false, ['growth']);
+    expect(p.queued.map((e) => e.id)).toEqual([g.id]);
+    const w = p.push('warn', 10_000, false);
+    expect(p.visible.map((e) => e.id)).toEqual([w.id]);
+    const after = p.gone(w.id, 10_100, false, ['growth']);
+    expect(after).toEqual([]);
+    expect(ids(p.tick(10_200, false), 'show')).toEqual([g.id]);
+  });
+
   it('두 장까지 바로 띄우고 셋째는 줄을 선다', () => {
     const p = new AlertPlan(2);
     const a = p.push('room', 0, false);

@@ -25,6 +25,7 @@ import { UI_SCENE_KEYS } from './keys';
  *   addTexture(key, canvas)     // 61 단계 5: 임시 그림 (아트가 아직 없는 개성 카드 그림 모의 확인용)
  *   hasTexture(key)             // 61 단계 6: 텍스처가 읽혔는가
  *   tune: { transitionSlow? }   // 61 단계 6: 그림 속 입구 전환을 n 배 느리게 (단계별 캡처용)
+ *                               // P19: popSlow = 반응 팝을 n 배 느리게
  * }
  */
 type Patch = Partial<UiSnapshot> | ((s: UiSnapshot) => Partial<UiSnapshot>);

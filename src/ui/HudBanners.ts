@@ -147,7 +147,7 @@ export class BannerQueue {
         kind: 'room',
         key: `region:${item.region}`,
         label: item.region,
-        timing: ALERT_UI.room,
+        timing: ALERT_UI.region,
         build: (sc) => bannerCard(sc, lines, stageIndex),
         merge: (prev) => prev,
       });

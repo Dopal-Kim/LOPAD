@@ -9,6 +9,7 @@
  *  - 줄에서 `ttlMs` 넘게 기다린 낮은 알림은 버린다(낮은 것 생략). 막혀 있는 동안(전환·탄생 연출)은 기다린 시간을 세지 않는다.
  *  - 같은 `key` 가 보이거나 줄에 있으면 새로 세우지 않고 합친다(HudAlerts 가 그림을 다시 만든다).
  *  - `supersedes`: 이 알림이 오면 그 종류의 보이는 알림은 접고, 줄에 선 것은 버린다(보스 국면이 바뀌면 지난 파훼 카드 등).
+ *  - P19 `hold`: 그 종류는 줄에서만 기다린다(기다린 시간도 세지 않음) — 전투 중 개성·안내를 전투 뒤로 미룬다.
  */
 
 export type AlertKind = 'boss' | 'break' | 'enemy' | 'warn' | 'growth' | 'room' | 'info';
@@ -139,13 +140,13 @@ export class AlertPlan {
   }
 
   /** 보이던 알림이 다 사라졌다 (또는 접힘이 끝났다) — 다음 차례 */
-  gone(id: number, now: number, blocked: boolean): AlertAction[] {
+  gone(id: number, now: number, blocked: boolean, hold: readonly AlertKind[] = []): AlertAction[] {
     this.shown = this.shown.filter((e) => e.id !== id);
-    return this.tick(now, blocked);
+    return this.tick(now, blocked, hold);
   }
 
-  /** 매 프레임: 오래 기다린 것은 버리고, 자리가 나면 띄운다. 막혀 있으면 기다린 시각을 민다 */
-  tick(now: number, blocked: boolean): AlertAction[] {
+  /** 매 프레임: 오래 기다린 것은 버리고, 자리가 나면 띄운다. 막혀 있으면(또는 hold 종류면) 기다린 시각을 민다 */
+  tick(now: number, blocked: boolean, hold: readonly AlertKind[] = []): AlertAction[] {
     const actions: AlertAction[] = [];
     if (blocked) {
       for (const e of this.waiting) e.at = now;
@@ -153,13 +154,15 @@ export class AlertPlan {
     }
     const keep: AlertEntry[] = [];
     for (const e of this.waiting) {
+      if (hold.includes(e.kind)) e.at = now;
       if (now - e.at > e.ttlMs) actions.push({ type: 'drop', id: e.id });
       else keep.push(e);
     }
     this.waiting = keep;
-    while (this.shown.length < this.max && this.waiting.length) {
-      const e = this.waiting.shift()!;
-      this.show(e, actions);
+    while (this.shown.length < this.max) {
+      const i = this.waiting.findIndex((w) => !hold.includes(w.kind));
+      if (i < 0) break;
+      this.show(this.waiting.splice(i, 1)[0], actions);
     }
     return actions;
   }

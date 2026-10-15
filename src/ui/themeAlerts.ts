@@ -6,8 +6,8 @@ export const ALERT_UI = {
   top: 40,
   /** 알림 사이 */
   gap: 6,
-  /** 동시에 보이는 장수 */
-  max: 2,
+  /** 동시에 보이는 장수 — P19 ④G: 가운데 글 띠는 늘 1장 (더 중요한 것이 오면 접고, 나머지는 줄) */
+  max: 1,
   /** 다른 것 아래로 비킬 때 사이 */
   belowGap: 6,
   /** 자리 옮김 (아래 알림이 올라옴) */
@@ -25,8 +25,10 @@ export const ALERT_UI = {
   bandMaxW: 640,
   /** 띠 양 끝이 흐려지는 폭 (단계 3칸) */
   bandFade: 36,
-  /** 방 이름 배너 (옛 화면 가운데 2배 글) */
-  room: { inMs: 200, holdMs: 1300, outMs: 300, drop: 4 },
+  /** 방 이름 배너 (옛 화면 가운데 2배 글) — P19 ④G: 입장 0.8초만 */
+  room: { inMs: 200, holdMs: 800, outMs: 300, drop: 4 },
+  /** 새 지역 띠 (노드 이름 + 지역 · 한 줄 설명 — 읽을 글이 길어 옛 머묾 그대로) */
+  region: { inMs: 200, holdMs: 1300, outMs: 300, drop: 4 },
   /** 주의 · 문 닫힘 카드 */
   warn: { inMs: 160, holdMs: 1800, outMs: 300, drop: 4, blinks: 3, blinkMs: 160 },
   /** 짧은 안내 (세트 단계 등 옛 가운데 배너) */

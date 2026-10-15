@@ -1,5 +1,6 @@
 import type { MapPathSpec } from './routeView';
 import { WEAPON_HUE } from './themeWeapon';
+import { TELL } from './themeP19';
 
 /**
  * UI 테마 (41라운드, 계약 `contracts/ui-art-kit.md` v0.4).
@@ -120,6 +121,10 @@ export const TEXT_STYLES = {
     halo: { color: { accentSlot: 20 }, alpha: 0.5 },
     shade: { color: GRAY[0], alpha: 1 },
   },
+  /** P19 예고 색 언어 (계약 free-combat §2) 글자 — 경고 호박 · 위험 적 · 기회 금. 할로 없이 먹 그늘 */
+  tell_warn: { body: TELL.warn, bodyAlpha: 1, shade: { color: GRAY[0], alpha: 1 } },
+  tell_danger: { body: TELL.danger, bodyAlpha: 1, shade: { color: GRAY[0], alpha: 1 } },
+  tell_chance: { body: TELL.chance, bodyAlpha: 1, shade: { color: GRAY[0], alpha: 1 } },
   /**
    * 60라운드 §14.9 엘리트 이름표 글자 (아트 JSON 권장 #eecc78 = 1층 램프 슬롯 25, 자체 발광) — 할로 없이 그늘 G00.
    * 월드 위 이름표 전용 (종이·HUD 글자 아님)

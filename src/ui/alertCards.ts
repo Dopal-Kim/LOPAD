@@ -2,6 +2,7 @@ import type Phaser from 'phaser';
 import { bannerCard, type AlertSpec } from './HudAlerts';
 import { r53Text } from './text';
 import { ALERT_UI as A } from './themeAlerts';
+import { TELL } from './themeP19';
 
 /**
  * 62 P0-6 방 시작 카드 하나: '주의 · 적이 다가온다'(ENEMY_INCOMING)와 '문이 닫혔다'(시스템 공지)를 한 장으로 합친다.
@@ -31,11 +32,13 @@ export function roomStartAlert(parts: RoomStartParts, stageIndex: number): Alert
         sc,
         parts.warn
           ? [
-              { text: r53Text('warnTitle'), style: 'ink_accent', scale: 2, gap: 2 },
+              { text: r53Text('warnTitle'), style: 'tell_warn', scale: 2, gap: 2 },
               { text: body, style: 'ink_body' },
             ]
           : [{ text: body, style: 'ink_body' }],
         stageIndex,
+        // P19 예고 색 언어: 주의 = 경고(호박)
+        parts.warn ? TELL.warn : undefined,
       ),
     onShow: (box) => {
       if (!parts.warn) return;

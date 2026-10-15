@@ -68,6 +68,11 @@ export class BuildLayer {
     this.grade = new GradeCard(scene);
   }
 
+  /** 왼쪽 위 띠(빌드 칩·성과 칩)의 아래 끝 y (P19 처음 보는 적 카드 자리) */
+  get leftBottom(): number {
+    return Math.max(this.chips.bottom(), this.trial.bottom ?? 0);
+  }
+
   /** bundleTop = 가운데 아래 글(완벽 성공 문구)의 아래 끝 (61라운드: 전투 묶음 `centerBottom`) */
   render(s: UiSnapshot, f: BuildLayerFrame, bundleTop: number): void {
     this.bundleTop = bundleTop;

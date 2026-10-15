@@ -59,7 +59,6 @@ export class HudNarrative {
       onShown: (channel, ms) => {
         if (channel === 'speech' || channel === 'voice') this.boss?.storyShown(ms);
       },
-      alert: (spec) => deps.alerts.push(spec),
     });
   }
 
@@ -83,7 +82,6 @@ export class HudNarrative {
       this.boss?.broke(p);
     });
     on(UI_EVENTS.BOSS_DIED, (p: unknown) => this.boss?.died(p, snap(), this.finisherSeen));
-    on(R61_EVENTS.ENEMY_INTRO, (p: unknown) => this.story.enemyIntro(p));
     // 조사 쪽지는 메뉴·런 끝·층 전환에 덮는다, 보스 카드는 런 끝·층 전환에 치운다
     for (const e of [UI_EVENTS.MENU_OPEN, UI_EVENTS.RUN_ENDED, UI_EVENTS.STAGE_STARTED])
       on(e, () => this.story.closeNote());

@@ -5,6 +5,7 @@ import { debugExpose } from './debug';
 import { GlowText } from './glow';
 import { swatch } from './StructureHud';
 import { ALERT_UI as A } from './themeAlerts';
+import { hexToNum } from './theme';
 
 type Glow = Parameters<GlowText['setGlowStyle']>[0];
 
@@ -67,7 +68,8 @@ export class HudAlerts {
 
   constructor(
     private scene: Phaser.Scene,
-    private deps: { blocked: () => boolean; top: () => number },
+    /** hold = 지금 줄에서만 기다릴 종류 (P19: 전투 중 개성·안내) */
+    private deps: { blocked: () => boolean; top: () => number; hold?: () => readonly AlertKind[] },
   ) {}
 
   /** 그 종류가 보이거나 줄에 있다 */
@@ -104,7 +106,7 @@ export class HudAlerts {
       }
     }
     const now = this.scene.time.now;
-    const r = this.plan.push(spec.kind, now, this.deps.blocked(), {
+    const r = this.plan.push(spec.kind, now, this.deps.blocked() || this.held().includes(spec.kind), {
       key: spec.key ?? null,
       ttlMs: spec.ttlMs,
     });
@@ -114,7 +116,7 @@ export class HudAlerts {
 
   /** 매 STATE: 오래 기다린 것은 버리고 자리가 나면 띄운다. 위 끝이 바뀌면 자리를 옮긴다 */
   tick(): void {
-    this.apply(this.plan.tick(this.scene.time.now, this.deps.blocked()));
+    this.apply(this.plan.tick(this.scene.time.now, this.deps.blocked(), this.held()));
     const top = this.deps.top();
     if (top !== this.lastTop) this.layout();
   }
@@ -133,6 +135,10 @@ export class HudAlerts {
     for (const it of this.items.values())
       if (it.pushedAt < t && !keep.includes(it.spec.kind)) actions.push(...this.plan.remove(it.id));
     this.apply(actions);
+  }
+
+  private held(): readonly AlertKind[] {
+    return this.deps.hold?.() ?? [];
   }
 
   /** 그 종류만 접는다 */
@@ -250,7 +256,7 @@ export class HudAlerts {
   private finish(it: Item, notify: boolean): void {
     this.kill(it);
     this.items.delete(it.id);
-    if (notify) this.apply(this.plan.gone(it.id, this.scene.time.now, this.deps.blocked()));
+    if (notify) this.apply(this.plan.gone(it.id, this.scene.time.now, this.deps.blocked(), this.held()));
     else this.layout();
   }
 
@@ -328,6 +334,7 @@ export function bannerCard(
   scene: Phaser.Scene,
   lines: BannerLine[],
   stageIndex: number,
+  lineHex?: string,
 ): { box: Phaser.GameObjects.Container; h: number; texts: GlowText[] } {
   const W = UI_SCREEN.WIDTH;
   const texts = lines.map(
@@ -342,12 +349,12 @@ export function bannerCard(
   const textW = Math.max(0, ...texts.map((t) => t.displayWidth));
   const bw = Math.min(A.bandMaxW, Math.max(A.bandMinW, textW + A.bandFade * 2 + 24));
   const g = scene.add.graphics();
-  bandRect(scene, g, Math.round(W / 2 - bw / 2), 0, bw, h, stageIndex);
+  bandRect(scene, g, Math.round(W / 2 - bw / 2), 0, bw, h, stageIndex, lineHex);
   const box = scene.add.container(0, 0, [g, ...texts]);
   return { box, h, texts };
 }
 
-/** 잉크 띠: 가운데는 진하게, 양 끝 `bandFade` 는 3단으로 옅게 + 위·아래 강조 1px (가운데만) */
+/** 잉크 띠: 가운데는 진하게, 양 끝 `bandFade` 는 3단으로 옅게 + 위·아래 강조 1px (가운데만 — lineHex 면 그 색, P19 예고 색) */
 export function bandRect(
   scene: Phaser.Scene,
   g: Phaser.GameObjects.Graphics,
@@ -356,6 +363,7 @@ export function bandRect(
   w: number,
   h: number,
   stageIndex: number,
+  lineHex?: string,
 ): void {
   const ink = swatch(scene, stageIndex, { gray: 0 });
   const f = Math.min(A.bandFade, Math.floor(w / 4));
@@ -367,7 +375,7 @@ export function bandRect(
     g.fillStyle(ink, a).fillRect(x + k * step, y, step, h);
     g.fillStyle(ink, a).fillRect(x + w - (k + 1) * step, y, step, h);
   }
-  const line = swatch(scene, stageIndex, { slot: 20 });
+  const line = lineHex ? hexToNum(lineHex) : swatch(scene, stageIndex, { slot: 20 });
   g.fillStyle(line, 1)
     .fillRect(x + step * 3, y, mid, 1)
     .fillRect(x + step * 3, y + h - 1, mid, 1);

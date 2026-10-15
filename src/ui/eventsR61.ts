@@ -15,3 +15,12 @@ export const R61_EVENTS = {
   /** 신규 적 첫 등장 `{ id?, name, desc? }` */
   ENEMY_INTRO: contractEvent('ENEMY_INTRO', 'ui:enemy-intro'),
 } as const;
+
+/** P19 S1 자유 전투 반응 이벤트 (계약 free-combat §1 — 시스템이 `ui:` 접두로 중계, 페이로드는 월드 좌표) */
+export const P19_EVENTS = {
+  ENEMY_WALL_SLAM: contractEvent('ENEMY_WALL_SLAM', 'ui:enemy-wall-slam'),
+  ENEMY_BOWLED: contractEvent('ENEMY_BOWLED', 'ui:enemy-bowled'),
+  ENEMY_FELL: contractEvent('ENEMY_FELL', 'ui:enemy-fell'),
+  HAZARD_EXPLODED: contractEvent('HAZARD_EXPLODED', 'ui:hazard-exploded'),
+  COMBO_STREAK: contractEvent('COMBO_STREAK', 'ui:combo-streak'),
+} as const;

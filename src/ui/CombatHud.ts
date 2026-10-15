@@ -16,6 +16,7 @@ import { r60Text } from './text';
 import { GROGGY, WGAUGE } from './theme';
 import { COMBAT_HUD as C } from './themeR61';
 import { DIET } from './themeAlerts';
+import { COMBAT_DIM } from './themeP19';
 
 /** 62 P1-15: 각성 띠가 있으면 체력 줄 아래로 이만큼 더 (띠 3 + 틈 2 + 눈금) */
 const BAND_ROW_EXTRA = DIET.growthBandH + DIET.growthBandGap + DIET.bigTickOut;
@@ -70,12 +71,16 @@ export class CombatHud {
   private resDot: ResourceDot;
   /** 이번 그로기의 전체 시간 (시작 때 본 가장 큰 leftMs, 끝나면 0) */
   private groggyTotal = 0;
+  /** P19 ④G: 묶음 전체를 담는 층 (전투 중 반투명) */
+  private layer: Phaser.GameObjects.Layer;
+  private dimTo = 1;
 
   constructor(
     private scene: Phaser.Scene,
     stageIndex: number,
   ) {
     this.si = stageIndex;
+    const before = new Set(scene.children.list);
     const x = C.left;
     this.panel = inkPanel(scene, x, 0, C.minW, 64);
     this.hpIcon = icon(scene, 0, 0, ICON.hp);
@@ -95,6 +100,8 @@ export class CombatHud {
     this.goldText = this.glow('', 'ink_body');
     this.growth = new GrowthBand(scene);
     this.resDot = new ResourceDot(scene);
+    // 위에서 만든 것 전부를 층 하나로 (층 알파가 아이들 알파에 곱해진다 — 깜빡임 알파는 그대로)
+    this.layer = scene.add.layer(scene.children.list.filter((o) => !before.has(o)));
     this.relayout({ big: false, sub: false, growth: false });
   }
 
@@ -151,6 +158,7 @@ export class CombatHud {
     // ---- 1행 체력
     this.hpGauge.set(s.maxHp > 0 ? s.hp / s.maxHp : 0);
     const low = hpLow(s.hp, s.maxHp, C.hpLowRatio);
+    this.dim(s.inCombat && !low ? COMBAT_DIM.alpha : 1);
     const blinkOn = Math.floor(now / C.hpBlinkMs) % 2 === 0;
     this.hpText
       .setText(`${s.hp} / ${s.maxHp}`)
@@ -225,6 +233,14 @@ export class CombatHud {
       this.panel.resize(w, this.h);
     }
     if (cv) this.carry.setPosition(C.left + this.w - C.padX - this.carry.boxW, t + r.weapon + (gv ? 1 : 0));
+  }
+
+  /** P19 ④G: 전투 중 반투명 (체력 낮음이면 또렷하게) */
+  private dim(alpha: number): void {
+    if (alpha === this.dimTo) return;
+    this.dimTo = alpha;
+    this.scene.tweens.killTweensOf(this.layer);
+    this.scene.tweens.add({ targets: this.layer, alpha, duration: COMBAT_DIM.fadeMs });
   }
 
   /** 막대·눈금이 2배인지, 보조 줄이 있는지로 행 높이가 바뀌면 묶음을 다시 놓는다 (아래 여백 고정, 위로 늘어난다) */

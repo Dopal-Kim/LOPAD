@@ -19,9 +19,7 @@ import {
 } from './storyView';
 import { swatch } from './StructureHud';
 import { storyText } from './text';
-import { CLUE_UI, ENEMY_INTRO_UI, EVENT_UI, SPEECH_UI, STORY_UI, VOICE_UI } from './themeStory';
-import { bandRect, type AlertSpec } from './HudAlerts';
-import { ALERT_UI } from './themeAlerts';
+import { CLUE_UI, EVENT_UI, SPEECH_UI, STORY_UI, VOICE_UI } from './themeStory';
 
 export interface StoryHudOptions {
   /** 자막을 지금 띄워도 되는가 (글꼴 준비 · 탄생 연출 아님) */
@@ -37,13 +35,6 @@ export interface StoryHudOptions {
   stageIndex: () => number;
   /** 한 줄이 떴다 (보스 처치 뒤 메뉴 기다림을 늘이는 데 쓴다) */
   onShown?: (channel: StoryChannel, holdMs: number) => void;
-  /** 62 P0-6: 위 가운데 알림 줄 (신규 적 소개) */
-  alert?: (spec: AlertSpec) => void;
-}
-
-interface IntroItem {
-  name: string;
-  desc: string | null;
 }
 
 interface Showing {
@@ -64,7 +55,7 @@ interface Showing {
  *  - voice: 원한의 한마디 — 전투 묶음 바로 위, 무기 빛 세로 줄 + 따옴표 한 줄. 무기마다 글씨 색·등장·떨림이 다르다(VOICE_LOOK). 이름 없음.
  *  - event: 이벤트 도입·결과 문장 — 하단 가운데 종이 띠(지문체). 메뉴가 떠 있으면 닫힌 뒤.
  *  - clue: 조사 기록 — 가운데 위 일기장 쪽지, 줄이 하나씩 적힌다. Enter·Esc·누르기로 덮는다(전투·메뉴·층 전환에도 닫힘).
- * 신규 적 첫 등장 소개(`enemyIntro`)는 화면 위쪽 짧은 이름 자막(차례 따로).
+ * 신규 적 첫 등장 소개는 P19 에서 왼쪽 위 작은 카드로 옮겼다(HudP19.ts `IntroCorner`).
  * 망령(주인공)의 말은 없다 — UI 가 붙이는 낱말도 지문·안내뿐(textStory.ts).
  */
 export class StoryHud {
@@ -162,18 +153,6 @@ export class StoryHud {
     }
     this.note = undefined;
     debugExpose('clueNote', null);
-  }
-
-  /** 신규 적 첫 등장 소개 (페이로드 `{ name, desc? }`) */
-  enemyIntro(p: unknown): void {
-    if (!p || typeof p !== 'object') return;
-    const o = p as Record<string, unknown>;
-    const name = typeof o.name === 'string' ? o.name.trim() : '';
-    if (!name) return;
-    const desc = typeof o.desc === 'string' && o.desc.trim() ? o.desc.trim() : null;
-    // 62 P0-6: 위 가운데 알림 줄 — 같은 웨이브에 여럿이면 한 장에 이름을 잇는다
-    this.opts.alert?.(this.introAlert([{ name, desc }]));
-    debugExpose('enemyIntro', { name, desc });
   }
 
   /** 런 끝·층 전환: 쌓인 것과 떠 있는 것을 모두 치운다 */
@@ -457,69 +436,6 @@ export class StoryHud {
     n.box.add([panel, zone, title, r, ...lines, foot]);
     n.box.setPosition(Math.round(UI_SCREEN.WIDTH / 2 - C.w / 2), C.top).setDepth(C.depth);
     this.exposeNote();
-  }
-
-  // ---- 신규 적 소개
-
-  /** 신규 적 소개 알림 (이름 양옆 괘선 · 한 줄 설명). 같은 때 여럿이면 합친다 (최대 queueMax) */
-  private introAlert(list: IntroItem[]): AlertSpec & { intros: IntroItem[] } {
-    const I = ENEMY_INTRO_UI;
-    return {
-      kind: 'enemy',
-      key: 'enemyIntro',
-      label: list.map((i) => i.name).join(' · '),
-      timing: { inMs: I.inMs, holdMs: I.holdMs, outMs: I.fadeMs, drop: 4 },
-      build: (sc) => this.buildIntro(sc, list),
-      merge: (prev) => {
-        const old = (prev as AlertSpec & { intros?: IntroItem[] }).intros ?? [];
-        const names = new Set(old.map((i) => i.name));
-        const add = list.filter((i) => !names.has(i.name));
-        return this.introAlert([...old, ...add].slice(-I.queueMax));
-      },
-      intros: list,
-    };
-  }
-
-  private buildIntro(sc: Phaser.Scene, list: IntroItem[]): { box: Phaser.GameObjects.Container; h: number } {
-    const I = ENEMY_INTRO_UI;
-    const si = this.opts.stageIndex();
-    const cx = UI_SCREEN.WIDTH / 2;
-    const objs: Phaser.GameObjects.GameObject[] = [];
-    const band = sc.add.graphics();
-    objs.push(band);
-    let y = 4;
-    const tag = this.glow(storyText('enemyIntroTag'), 'ink_faint');
-    tag.placeCenter(cx, y);
-    objs.push(tag);
-    y += tag.displayHeight;
-    const g = sc.add.graphics();
-    objs.push(g);
-    let maxW = tag.displayWidth;
-    for (const it of list) {
-      const name = this.glow(it.name, 'ink_accent');
-      name.placeCenter(cx, y);
-      const midY = name.y + Math.round(name.displayHeight / 2);
-      g.fillStyle(swatch(sc, si, { gray: 0 }), 1)
-        .fillRect(name.x - I.ruleGap - I.ruleW, midY - 1, I.ruleW, 3)
-        .fillRect(name.x + name.displayWidth + I.ruleGap, midY - 1, I.ruleW, 3);
-      g.fillStyle(swatch(sc, si, { slot: I.ruleSlot }), 1)
-        .fillRect(name.x - I.ruleGap - I.ruleW, midY, I.ruleW, 1)
-        .fillRect(name.x + name.displayWidth + I.ruleGap, midY, I.ruleW, 1);
-      objs.push(name);
-      maxW = Math.max(maxW, name.displayWidth + (I.ruleGap + I.ruleW) * 2);
-      y += name.displayHeight;
-      if (it.desc) {
-        const d = this.glow(it.desc, 'ink_faint');
-        d.placeCenter(cx, y);
-        objs.push(d);
-        maxW = Math.max(maxW, d.displayWidth);
-        y += d.displayHeight;
-      }
-    }
-    const h = y + 4;
-    const bw = Math.min(ALERT_UI.bandMaxW, Math.max(ALERT_UI.bandMinW, maxW + ALERT_UI.bandFade * 2 + 16));
-    bandRect(sc, band, Math.round(cx - bw / 2), 0, bw, h, si);
-    return { box: sc.add.container(0, 0, objs), h };
   }
 
   // ---- 디버그

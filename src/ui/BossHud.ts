@@ -24,6 +24,7 @@ import { TimedCard, cardTotalMs } from './timedCard';
 import { bandRect, type AlertSpec } from './HudAlerts';
 import type { AlertKind } from './alertPlan';
 import { sequenceExtend, sequenceGone, sequenceShown } from './uiSequence';
+import { cameraZoom } from './p19View';
 
 /** 보스 막대 높이 (보스 틀 9-slice) */
 const BAR_H = SLICE.gaugeBoss.h;
@@ -141,11 +142,12 @@ export class BossHud {
     if (broken) {
       const blink = Math.floor(now / B.brokenBlinkMs) % 2 === 0;
       this.brokenText
-        .setGlowStyle(blink ? 'ink_accent' : 'ink_body')
+        // P19 예고 색 언어: 무너짐 = 기회(금)
+        .setGlowStyle(blink ? 'tell_chance' : 'ink_body')
         .setPosition(this.nameText.x + this.nameText.displayWidth + 6, this.nameText.y);
     }
     this.drawTicks(look, bx, by);
-    this.drawCandles(look, now, !overlay);
+    this.drawCandles(look, now, !overlay, cameraZoom(s));
   }
 
   /** BOSS_STARTED: 지난 보스전 카드만 치운다 — 이름 카드는 포효(BOSS_ROAR) 때 (61 단계 4 §17.1). introMs 로 싸움 시작 시각을 잰다 */
@@ -215,7 +217,8 @@ export class BossHud {
       build: (sc) => {
         const box = sc.add.container(0, 0);
         let y = this.addCentered(box, fill(storyText('phaseOrdinal'), { n: e.phase }), 'ink_faint', B.bandPad, 1) + 2;
-        y = this.addCentered(box, phaseName, 'ink_accent', y, 2) + 6;
+        // P19 예고 색 언어: 새 국면 = 위험(적)
+        y = this.addCentered(box, phaseName, 'tell_danger', y, 2) + 6;
         if (names.length > 1) y = this.addStrip(box, names, e.phase, y) + 6;
         if (dark !== undefined && e.phase === dark) y = this.addCentered(box, storyText('darkHint'), 'ink_body', y, 1);
         return { box, h: this.addBand(box, y) };
@@ -245,7 +248,7 @@ export class BossHud {
       timing: B.breakStamp,
       build: (sc) => {
         const box = sc.add.container(0, 0);
-        let y = this.addCentered(box, head, 'ink_accent', B.bandPad, 2) + 2;
+        let y = this.addCentered(box, head, 'tell_chance', B.bandPad, 2) + 2;
         if (label) y = this.addCentered(box, label, 'ink_body', y, 1) + 2;
         y = this.addCentered(box, sub, 'ink_faint', y, 1);
         return { box, h: this.addBand(box, y) };
@@ -264,7 +267,8 @@ export class BossHud {
     const sc = this.scene;
     this.chip?.cancel();
     const inner = sc.add.container(0, 0);
-    const t1 = new GlowText(sc, 0, 0, headLine, 'ink_accent', { stageIndex: this.si });
+    // P19 예고 색 언어: 파훼·결정타 = 기회(금)
+    const t1 = new GlowText(sc, 0, 0, headLine, 'tell_chance', { stageIndex: this.si });
     const t2 = new GlowText(sc, 0, 0, sub, 'ink_faint', { stageIndex: this.si });
     t1.placeCenter(0, C.pad);
     t2.placeCenter(0, C.pad + t1.displayHeight + C.lineGap);
@@ -440,12 +444,14 @@ export class BossHud {
   }
 
   /** 촛대 안내: 어둠 국면 + 촛대 값이 있을 때만 (까딱임 주기마다 다시 그림) */
-  private drawCandles(look: BossLook | null, now: number, show: boolean): void {
+  private drawCandles(look: BossLook | null, now: number, show: boolean, zoom = cameraZoom(null)): void {
     const C = B.candle;
     const guides =
       show && look?.dark ? candleGuides(look.candles, { w: UI_SCREEN.WIDTH, h: UI_SCREEN.HEIGHT }, C.edge) : [];
     const bob = Math.floor(now / C.bobMs) % 2;
-    const sig = guides.length ? `${bob}|${this.si}|${guides.map((g) => `${g.kind}${g.x},${g.y}`).join(';')}` : '';
+    const sig = guides.length
+      ? `${bob}|${this.si}|${zoom}|${guides.map((g) => `${g.kind}${g.x},${g.y}`).join(';')}`
+      : '';
     if (sig === this.candleSig) return;
     this.candleSig = sig;
     const g = this.candles.clear();
@@ -458,7 +464,7 @@ export class BossHud {
     for (const v of guides) {
       if (v.kind === 'mark') {
         // 촛대 위 아래 꼭지 세모 (까딱임 1px) + 작은 불씨 점
-        const y = v.y - C.markUp - bob;
+        const y = v.y - Math.round(C.markUpWorld * zoom) - bob;
         g.fillStyle(ink, 1).fillTriangle(v.x - a - 1, y - 1, v.x + a + 1, y - 1, v.x, y + a + 1);
         g.fillStyle(lit, 1).fillTriangle(v.x - a, y, v.x + a, y, v.x, y + a);
         g.fillStyle(flame, 1).fillRect(v.x - 1, y - 4, 2, 2);

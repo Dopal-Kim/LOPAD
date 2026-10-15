@@ -71,8 +71,8 @@ export const SHOP_CARD = {
 /** 산 물건이 주인공 쪽으로 빨려 드는 반짝임 */
 export const SHOP_BUY_FX = {
   sparks: 7,
-  /** 물건 윗변(offer.screen) 에서 물건 몸 가운데까지 */
-  itemDy: 14,
+  /** 물건 윗변(offer.screen) 에서 물건 몸 가운데까지 — 월드 px (화면 px = × 카메라 논리 배율, P19 줌 1.75·1.6) */
+  itemDyWorld: 7,
   flyMs: 420,
   stagger: 30,
   /** 주인공 몸 가운데 (스냅샷에 주인공 화면 좌표가 없어 카메라가 따라가는 화면 가운데 — 시스템 요청) */

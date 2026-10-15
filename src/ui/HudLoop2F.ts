@@ -16,6 +16,7 @@ import { fill } from './fmt';
 import { GlowText } from './glow';
 import type { AlertSpec } from './HudAlerts';
 import { accentHex } from './kit';
+import { cameraZoom } from './p19View';
 import { ShopOfferCard } from './ShopOfferCard';
 import { GRAY, hexToNum } from './theme';
 import { SHOP_BUY_FX as FX } from './themeLoop2F';
@@ -92,7 +93,7 @@ export class HudLoop2F {
         stallId: offer.stallId,
         key: offer.line.key,
         x: Math.round(offer.screen.x),
-        y: Math.round(offer.screen.y) + FX.itemDy,
+        y: Math.round(offer.screen.y + FX.itemDyWorld * cameraZoom(s)),
         at: this.scene.time.now,
       };
     this.signs.update(s.signs, !overlay);

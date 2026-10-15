@@ -66,5 +66,7 @@ export const R62_TEXT = {
     '번진 이름 위에 덧쓴다. 획은 같은 손이다.',
     "쉼터 기둥에 칼로 새긴 글씨. '외상 갚고 금방 온다.'",
   ].join('\n'),
+  // ---- P19 1-U 연속 처치 (오른쪽 가장자리 작은 표 — 숫자 앞 낱말, 스토리 결이 오면 바꾼다)
+  comboTag: '연속',
 } as const;
 export type R62TextKey = keyof typeof R62_TEXT;

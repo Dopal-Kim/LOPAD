@@ -59,6 +59,11 @@ import { transitionBusy } from './transitionState';
 import { DeathVeil, ExitArrow } from './HudLoop2E';
 import { setEchoHeads, traitEchoHeads } from './noticeEcho';
 import { preloadMapGhost } from './mapGhost';
+import { HudP19 } from './HudP19';
+import type { AlertKind } from './alertPlan';
+
+/** P19 ④G: 전투 중에는 가운데 글 띠에 개성·안내를 띄우지 않고 전투 뒤로 미룬다 */
+const HOLD_IN_COMBAT: readonly AlertKind[] = ['growth', 'info'];
 
 /** 메뉴 씬 안전망: MENU_OPEN 뒤 이만큼 기다려도 메뉴 씬이 없으면 UI 가 띄운다 (ms) */
 const MENU_SAFETY_MS = 60;
@@ -139,6 +144,10 @@ export class HudScene extends Phaser.Scene {
   /** 62 루프 2 UI E (계약 C): 사망 연출 동안 HUD 걷기 · 출구 방향 화살표 (HudLoop2E.ts) */
   private deathVeil?: DeathVeil;
   private exitArrow?: ExitArrow;
+  /** P19 1-U: 화면 밖 적 표식 · 반응 팝 · 연속 처치 · 처음 보는 적 카드 (HudP19.ts) */
+  private p19?: HudP19;
+  /** 마지막 STATE 의 inCombat (알림 미루기) */
+  private inCombat = false;
 
   constructor() {
     super(UI_SCENE_KEYS.HUD);
@@ -180,6 +189,7 @@ export class HudScene extends Phaser.Scene {
     this.alerts = new HudAlerts(this, {
       blocked: () => !this.built || this.birth.active || transitionBusy(),
       top: () => this.alertTop(),
+      hold: () => (this.inCombat ? HOLD_IN_COMBAT : []),
     });
     this.banners = new BannerQueue(this, () => this.built && !this.birth.active && !transitionBusy(), this.alerts);
     this.narr = new HudNarrative(this, {
@@ -204,6 +214,7 @@ export class HudScene extends Phaser.Scene {
     this.cameras.main.setAlpha(1);
     this.deathVeil = new DeathVeil(this, () => {
       this.alerts.clear();
+      this.p19?.clear();
       this.narr?.story.reset();
       this.toasts?.clear();
       this.peek?.hide();
@@ -244,6 +255,14 @@ export class HudScene extends Phaser.Scene {
       snapshot: () => withDebug(uiCommands.getUiSnapshot()),
     });
     this.loop2F.subscribe((e, h) => this.on(e, h));
+    this.p19 = new HudP19(this, {
+      stageIndex: () => Math.max(0, this.stageIndex),
+      introTop: () => this.buildLayer?.leftBottom ?? STRUCT.chipTop,
+      snapshot: () => withDebug(uiCommands.getUiSnapshot()),
+    });
+    this.p19.subscribe((e, h) => this.on(e, h));
+    for (const e of [UI_EVENTS.TRANSITION_BEGIN, UI_EVENTS.ROUTE_NODE_ENTERED, UI_EVENTS.RUN_ENDED])
+      this.on(e, () => this.p19?.clear());
     this.training.subscribe((e, h) => this.on(e, h));
     // 53라운드 계약: 튜토리얼 단계 카드 · 적 등장 예고('주의' 경고, Q49·Q60)
     this.on(UI_EVENTS.TUTORIAL_STEP, (p: unknown) => this.onTutorialStep(p));
@@ -365,6 +384,8 @@ export class HudScene extends Phaser.Scene {
       this.training?.destroy();
       this.loop2F?.destroy();
       this.loop2F = undefined;
+      this.p19?.destroy();
+      this.p19 = undefined;
       this.training = undefined;
       this.labGuide = undefined;
       this.peek?.destroy();
@@ -752,6 +773,7 @@ export class HudScene extends Phaser.Scene {
       return;
     }
     const si = Math.max(0, s.stageIndex);
+    this.inCombat = Boolean(s.inCombat);
     if (si !== this.stageIndex) {
       this.stageIndex = si;
       for (const t of this.glows) t.setStageIndex(si);
@@ -836,6 +858,7 @@ export class HudScene extends Phaser.Scene {
     );
     this.training?.render(s, overlay);
     this.exitArrow?.render(s, overlay || this.birth.active || Boolean(this.deathVeil?.down), si, this.time.now);
+    this.p19?.render(s, overlay || this.birth.active || Boolean(this.deathVeil?.down) || doorBusy);
     // 62 P0-6: 위 가운데 알림 줄 (오래 기다린 것 버림 · 자리 나면 띄움 · 위 끝 바뀌면 옮김)
     this.alerts.tick();
     this.challenge?.tick(s.statuses?.find((st) => st.id === 'ring') ?? null, si);

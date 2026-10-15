@@ -153,21 +153,6 @@ export const CLUE_UI = {
   footGap: 10,
 } as const;
 
-/** 신규 적 첫 등장 소개 (화면 위쪽 짧은 이름 자막) — 성과 칩(34)·도장 카드(92) 사이 */
-export const ENEMY_INTRO_UI = {
-  top: 58,
-  /** 이름 양옆 괘선 길이·간격 */
-  ruleW: 36,
-  ruleGap: 8,
-  inMs: 160,
-  holdMs: 2200,
-  fadeMs: 300,
-  /** 이어서 오면 쌓아 두는 상한 */
-  queueMax: 3,
-  /** 괘선 색 (강조 20) */
-  ruleSlot: 20,
-} as const;
-
 /** 보스 UI (P6·P10) */
 export const BOSS_UI = {
   /** 보스 막대 (아래 가운데) 폭·전투 묶음과 띄울 최소 간격 — 61 단계 1 값 그대로 */
@@ -199,7 +184,8 @@ export const BOSS_UI = {
   /** 처치 카드가 끝나기 전 메뉴는 기다린다 (보스 대사·한마디가 이어지면 늘이되 처치 시점에서 이만큼까지) */
   menuWaitMaxMs: 4500,
   /** 촛대 안내: 화면 가장자리 여백·화살 크기·화면 안 표지가 촛대 위로 뜨는 높이·까딱임 */
-  candle: { edge: 22, arrow: 7, markUp: 20, bobMs: 260, slot: 22, hintSlot: 25 },
+  /** markUpWorld = 촛대 위 표식 높이 (월드 px — 화면 px = × 카메라 논리 배율, P19 보스 줌 1.5) */
+  candle: { edge: 22, arrow: 7, markUpWorld: 10, bobMs: 260, slot: 22, hintSlot: 25 },
   depth: 52,
 } as const;
 
