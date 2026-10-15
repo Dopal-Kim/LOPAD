@@ -22,6 +22,7 @@ import hero  # noqa: E402
 from hero import pose  # noqa: E402
 
 rig34 = A19.rig34
+_RISE, _BLADE = A19.rise_adjust, A19.blade_tw      # build.py attack 단계가 A19 쪽을 바꿔도 gen 은 원래 함수
 DIAG = A19.DIAG
 SIDE = ("left", "right")
 SRC = "parts/art/work/hero20/gen20.py (P20 새 몸 리그 — 역할 결 재자세 · 무기 오버레이 오프셋 동기)"
@@ -227,9 +228,9 @@ def render_generic(name):
                 lst.append(dict(img=old[d][i].copy(), rig=None, off=(0, 0), back_off=(0, 0), src=i, hands=hands, err=0.0, role=role,
                                 empty=True))
                 continue
-            tw, elev = A19.blade_tw(meta, i, d)
+            tw, elev = _BLADE(meta, i, d)
             if w != "bow":
-                st = A19.rise_adjust(st, elev, w)
+                st = _RISE(st, elev, w)
             bo = belt(old[d][i])
             if bo is not None:                     # 옛 안무의 웅크림(무릎 꿇기·착지)을 살림
                 oc = (bo[1] - ref_belt(d)) / 1.5 + 1.0

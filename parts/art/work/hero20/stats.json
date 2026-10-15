@@ -1,663 +1,7 @@
 {
- "player_idle": {
-  "colors": 25,
-  "handErrMax": 0.0,
-  "overlays": 28,
-  "lostPx": 0,
-  "offsets": {
-   "down": [
-    [
-     -5,
-     -4
-    ],
-    [
-     -5,
-     -4
-    ],
-    [
-     -5,
-     -4
-    ],
-    [
-     -5,
-     -4
-    ],
-    [
-     -5,
-     -4
-    ],
-    [
-     -6,
-     -4
-    ]
-   ],
-   "right": [
-    [
-     1,
-     -6
-    ],
-    [
-     1,
-     -6
-    ],
-    [
-     1,
-     -6
-    ],
-    [
-     1,
-     -6
-    ],
-    [
-     1,
-     -6
-    ],
-    [
-     1,
-     -6
-    ]
-   ]
-  },
-  "sec": 6.1
- },
- "player_idle_free": {
-  "colors": 25,
-  "handErrMax": 0.0,
-  "overlays": 50,
-  "lostPx": 0,
-  "offsets": {
-   "down": [
-    [
-     -5,
-     -4
-    ],
-    [
-     -5,
-     -4
-    ],
-    [
-     -5,
-     -4
-    ],
-    [
-     -5,
-     -4
-    ],
-    [
-     -5,
-     -4
-    ],
-    [
-     -6,
-     -4
-    ]
-   ],
-   "right": [
-    [
-     1,
-     -6
-    ],
-    [
-     1,
-     -6
-    ],
-    [
-     1,
-     -6
-    ],
-    [
-     1,
-     -6
-    ],
-    [
-     1,
-     -6
-    ],
-    [
-     1,
-     -6
-    ]
-   ]
-  },
-  "sec": 13.3
- },
- "player_walk": {
-  "colors": 25,
-  "handErrMax": 0.0,
-  "overlays": 28,
-  "lostPx": 0,
-  "offsets": {
-   "down": [
-    [
-     -4,
-     -6
-    ],
-    [
-     -4,
-     -5
-    ],
-    [
-     -3,
-     -5
-    ],
-    [
-     -4,
-     -6
-    ],
-    [
-     -4,
-     -6
-    ],
-    [
-     -5,
-     -7
-    ],
-    [
-     -5,
-     -7
-    ],
-    [
-     -5,
-     -7
-    ]
-   ],
-   "right": [
-    [
-     1,
-     -7
-    ],
-    [
-     1,
-     -7
-    ],
-    [
-     0,
-     -7
-    ],
-    [
-     1,
-     -7
-    ],
-    [
-     1,
-     -7
-    ],
-    [
-     1,
-     -7
-    ],
-    [
-     0,
-     -7
-    ],
-    [
-     1,
-     -7
-    ]
-   ]
-  },
-  "sec": 8.7
- },
- "player_walk_free": {
-  "colors": 25,
-  "handErrMax": 0.0,
-  "overlays": 50,
-  "lostPx": 0,
-  "offsets": {
-   "down": [
-    [
-     -4,
-     -6
-    ],
-    [
-     -4,
-     -5
-    ],
-    [
-     -3,
-     -5
-    ],
-    [
-     -4,
-     -6
-    ],
-    [
-     -4,
-     -6
-    ],
-    [
-     -5,
-     -7
-    ],
-    [
-     -5,
-     -7
-    ],
-    [
-     -5,
-     -7
-    ]
-   ],
-   "right": [
-    [
-     1,
-     -7
-    ],
-    [
-     1,
-     -7
-    ],
-    [
-     0,
-     -7
-    ],
-    [
-     1,
-     -7
-    ],
-    [
-     1,
-     -7
-    ],
-    [
-     1,
-     -7
-    ],
-    [
-     0,
-     -7
-    ],
-    [
-     1,
-     -7
-    ]
-   ]
-  },
-  "sec": 18.4
- },
- "player_run": {
-  "colors": 25,
-  "handErrMax": 0.0,
-  "overlays": 28,
-  "lostPx": 0,
-  "offsets": {
-   "down": [
-    [
-     -4,
-     -5
-    ],
-    [
-     -4,
-     -4
-    ],
-    [
-     -4,
-     -5
-    ],
-    [
-     -4,
-     -5
-    ],
-    [
-     -5,
-     -6
-    ],
-    [
-     -5,
-     -6
-    ],
-    [
-     -4,
-     -6
-    ],
-    [
-     -4,
-     -6
-    ]
-   ],
-   "right": [
-    [
-     -6,
-     -6
-    ],
-    [
-     -6,
-     -6
-    ],
-    [
-     -6,
-     -6
-    ],
-    [
-     -6,
-     -6
-    ],
-    [
-     -6,
-     -6
-    ],
-    [
-     -6,
-     -6
-    ],
-    [
-     -6,
-     -6
-    ],
-    [
-     -6,
-     -6
-    ]
-   ]
-  },
-  "sec": 8.4
- },
- "player_run_free": {
-  "colors": 25,
-  "handErrMax": 0.0,
-  "overlays": 50,
-  "lostPx": 0,
-  "offsets": {
-   "down": [
-    [
-     -4,
-     -5
-    ],
-    [
-     -4,
-     -4
-    ],
-    [
-     -4,
-     -5
-    ],
-    [
-     -4,
-     -5
-    ],
-    [
-     -5,
-     -6
-    ],
-    [
-     -5,
-     -6
-    ],
-    [
-     -4,
-     -6
-    ],
-    [
-     -4,
-     -6
-    ]
-   ],
-   "right": [
-    [
-     -6,
-     -6
-    ],
-    [
-     -6,
-     -6
-    ],
-    [
-     -6,
-     -6
-    ],
-    [
-     -6,
-     -6
-    ],
-    [
-     -6,
-     -6
-    ],
-    [
-     -6,
-     -6
-    ],
-    [
-     -6,
-     -6
-    ],
-    [
-     -6,
-     -6
-    ]
-   ]
-  },
-  "sec": 18.6
- },
- "player_dash": {
-  "colors": 25,
-  "handErrMax": 0.0,
-  "overlays": 78,
-  "lostPx": 0,
-  "offsets": {
-   "down": [
-    [
-     -4,
-     -7
-    ],
-    [
-     -4,
-     -4
-    ],
-    [
-     -4,
-     -4
-    ],
-    [
-     -4,
-     -5
-    ],
-    [
-     -4,
-     -7
-    ]
-   ],
-   "right": [
-    [
-     -2,
-     -6
-    ],
-    [
-     -8,
-     -5
-    ],
-    [
-     -10,
-     -4
-    ],
-    [
-     -10,
-     -5
-    ],
-    [
-     -2,
-     -7
-    ]
-   ]
-  },
-  "sec": 14.9
- },
- "player_hurt": {
-  "colors": 27,
-  "handErrMax": 0.0,
-  "overlays": 0,
-  "lostPx": 0,
-  "offsets": {
-   "down": [
-    [
-     -4,
-     -11
-    ],
-    [
-     -4,
-     -7
-    ],
-    [
-     -4,
-     -6
-    ]
-   ],
-   "right": [
-    [
-     6,
-     -10
-    ],
-    [
-     2,
-     -8
-    ],
-    [
-     -1,
-     -7
-    ]
-   ]
-  },
-  "sec": 1.3
- },
- "player_death": {
-  "colors": 30,
-  "handErrMax": 0.0,
-  "overlays": 0,
-  "lostPx": 0,
-  "offsets": {
-   "down": [
-    [
-     -4,
-     -10
-    ],
-    [
-     -4,
-     -10
-    ],
-    [
-     -4,
-     -10
-    ],
-    [
-     -4,
-     -10
-    ],
-    [
-     -4,
-     -10
-    ],
-    [
-     -4,
-     -10
-    ],
-    [
-     -4,
-     -10
-    ],
-    [
-     -4,
-     -10
-    ],
-    [
-     -4,
-     -10
-    ],
-    [
-     -4,
-     -10
-    ]
-   ],
-   "right": [
-    [
-     5,
-     -11
-    ],
-    [
-     3,
-     -11
-    ],
-    [
-     -3,
-     -11
-    ],
-    [
-     -6,
-     -11
-    ],
-    [
-     -6,
-     -11
-    ],
-    [
-     -6,
-     -11
-    ],
-    [
-     -6,
-     -11
-    ],
-    [
-     -6,
-     -11
-    ],
-    [
-     -6,
-     -11
-    ],
-    [
-     -6,
-     -11
-    ]
-   ]
-  },
-  "sec": 3.1
- },
- "player_turn_skid": {
-  "colors": 25,
-  "overlays": 78,
-  "lostPx": 0,
-  "offsets": {
-   "down": [
-    [
-     -2,
-     -10
-    ],
-    [
-     -6,
-     -7
-    ],
-    [
-     -3,
-     -5
-    ],
-    [
-     -4,
-     -9
-    ]
-   ],
-   "right": [
-    [
-     -2,
-     -9
-    ],
-    [
-     0,
-     -7
-    ],
-    [
-     1,
-     -7
-    ],
-    [
-     2,
-     -10
-    ]
-   ]
-  }
- },
  "player_attack": {
   "frames": 7,
-  "handErrMax": 0.0,
+  "handErrMax": 0.98,
   "overlays": 1,
   "lostPx": 0,
   "offRight": [
@@ -670,8 +14,8 @@
     -8
    ],
    [
-    0,
-    -8
+    -5,
+    -7
    ],
    [
     2,
@@ -691,63 +35,49 @@
    ]
   ]
  },
- "flip": [
-  "weapons/v3/greatsword_leap_slam",
-  "weapons/v3/greatsword_leap_slam_awaken",
-  "weapons/v4/greatsword_berserk_a1_leap_slam",
-  "weapons/v4/greatsword_berserk_a2_leap_slam",
-  "weapons/v4/greatsword_crush_a1_leap_slam",
-  "weapons/v4/greatsword_crush_a2_glow_leap_slam",
-  "weapons/v4/greatsword_crush_a2_leap_slam",
-  "weapons/v4/greatsword_weight_a1_leap_slam",
-  "weapons/v4/greatsword_weight_a2_leap_slam"
- ],
- "player_birth": {
-  "frames": 34
- },
  "player_bow_aim": {
   "frames": 8,
-  "handErrMax": 0.0,
+  "handErrMax": 0.98,
   "overlays": 1,
   "lostPx": 0,
   "offRight": [
    [
-    0,
+    -3,
     -7
    ],
    [
-    0,
-    -8
+    -3,
+    -7
    ],
    [
-    0,
-    -8
+    -3,
+    -7
    ],
    [
-    0,
-    -8
+    -5,
+    -7
    ],
    [
-    0,
-    -8
+    -5,
+    -7
    ],
    [
-    0,
-    -8
+    -5,
+    -7
    ],
    [
     2,
     -9
    ],
    [
-    1,
+    -1,
     -10
    ]
   ]
  },
  "player_bow_arrow_rain": {
   "frames": 12,
-  "handErrMax": 0.0,
+  "handErrMax": 0.3,
   "overlays": 11,
   "lostPx": 0,
   "offRight": [
@@ -792,18 +122,18 @@
     -9
    ],
    [
-    1,
+    -1,
     -9
    ],
    [
-    1,
+    -1,
     -9
    ]
   ]
  },
  "player_bow_arrow_rain_stand": {
   "frames": 14,
-  "handErrMax": 0.0,
+  "handErrMax": 0.3,
   "overlays": 1,
   "lostPx": 0,
   "offRight": [
@@ -812,8 +142,8 @@
     -9
    ],
    [
-    0,
-    -8
+    -2,
+    -7
    ],
    [
     0,
@@ -856,100 +186,100 @@
     -9
    ],
    [
-    1,
+    -1,
     -9
    ],
    [
-    1,
+    -1,
     -9
    ]
   ]
  },
  "player_bow_draw_hold": {
   "frames": 14,
-  "handErrMax": 0.0,
+  "handErrMax": 0.19,
   "overlays": 11,
   "lostPx": 0,
   "offRight": [
    [
-    0,
+    -3,
     -7
    ],
    [
-    0,
+    -3,
+    -7
+   ],
+   [
+    -3,
+    -7
+   ],
+   [
+    -3,
+    -7
+   ],
+   [
+    -3,
+    -7
+   ],
+   [
+    -5,
+    -7
+   ],
+   [
+    -5,
+    -7
+   ],
+   [
+    -5,
+    -7
+   ],
+   [
+    -5,
+    -7
+   ],
+   [
+    -5,
+    -7
+   ],
+   [
+    -5,
     -8
    ],
    [
-    0,
+    -5,
     -8
    ],
    [
-    0,
+    -5,
     -8
    ],
    [
-    0,
+    -5,
     -8
-   ],
-   [
-    0,
-    -8
-   ],
-   [
-    0,
-    -8
-   ],
-   [
-    0,
-    -8
-   ],
-   [
-    0,
-    -8
-   ],
-   [
-    0,
-    -8
-   ],
-   [
-    0,
-    -9
-   ],
-   [
-    0,
-    -9
-   ],
-   [
-    0,
-    -9
-   ],
-   [
-    0,
-    -9
    ]
   ]
  },
  "player_bow_rapid_loop": {
   "frames": 12,
-  "handErrMax": 0.0,
+  "handErrMax": 0.98,
   "overlays": 11,
   "lostPx": 0,
   "offRight": [
    [
-    1,
+    -1,
     -10
    ],
    [
-    1,
+    -1,
     -10
    ],
    [
-    1,
+    -1,
     -9
    ],
    [
-    0,
-    -8
+    -3,
+    -7
    ],
    [
     2,
@@ -960,12 +290,12 @@
     -9
    ],
    [
-    1,
+    -1,
     -9
    ],
    [
-    0,
-    -8
+    -3,
+    -7
    ],
    [
     2,
@@ -976,18 +306,18 @@
     -9
    ],
    [
-    1,
+    -1,
     -9
    ],
    [
-    1,
+    -1,
     -9
    ]
   ]
  },
  "player_bow_release": {
   "frames": 4,
-  "handErrMax": 0.0,
+  "handErrMax": 0.98,
   "overlays": 11,
   "lostPx": 0,
   "offRight": [
@@ -1000,11 +330,11 @@
     -9
    ],
    [
-    1,
+    -1,
     -9
    ],
    [
-    1,
+    -1,
     -9
    ]
   ]
@@ -1319,7 +649,7 @@
  },
  "player_greatsword_charge_plunge": {
   "frames": 9,
-  "handErrMax": 0.0,
+  "handErrMax": 0.13,
   "overlays": 4,
   "lostPx": 0,
   "offRight": [
@@ -1943,7 +1273,7 @@
  },
  "player_greatsword_special": {
   "frames": 12,
-  "handErrMax": 0.0,
+  "handErrMax": 0.47,
   "overlays": 14,
   "lostPx": 0,
   "offRight": [
@@ -1976,12 +1306,12 @@
     -10
    ],
    [
-    5,
+    2,
     -10
    ],
    [
-    5,
-    -11
+    0,
+    -10
    ],
    [
     8,
@@ -2704,5 +2034,19 @@
     -12
    ]
   ]
+ },
+ "flip": [
+  "weapons/v3/greatsword_leap_slam",
+  "weapons/v3/greatsword_leap_slam_awaken",
+  "weapons/v4/greatsword_berserk_a1_leap_slam",
+  "weapons/v4/greatsword_berserk_a2_leap_slam",
+  "weapons/v4/greatsword_crush_a1_leap_slam",
+  "weapons/v4/greatsword_crush_a2_glow_leap_slam",
+  "weapons/v4/greatsword_crush_a2_leap_slam",
+  "weapons/v4/greatsword_weight_a1_leap_slam",
+  "weapons/v4/greatsword_weight_a2_leap_slam"
+ ],
+ "player_birth": {
+  "frames": 34
  }
 }

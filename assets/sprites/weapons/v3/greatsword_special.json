@@ -644,22 +644,22 @@
    },
    {
     "handR": [
-     156.5,
+     153.5,
      131.5
     ],
     "handL": [
-     165.5,
+     162.5,
      117.7
     ]
    },
    {
     "handR": [
-     158.9,
-     130.3
+     153.9,
+     131.3
     ],
     "handL": [
-     168.2,
-     116.7
+     163.2,
+     117.7
     ]
    },
    {
@@ -875,12 +875,12 @@
     131.7
    ],
    [
-    156.5,
+    153.5,
     131.5
    ],
    [
-    158.9,
-    130.3
+    153.9,
+    131.3
    ],
    [
     149.2,
@@ -1149,12 +1149,12 @@
     49.0
    ],
    [
-    207.3,
+    204.3,
     50.3
    ],
    [
-    212.0,
-    50.7
+    207.0,
+    51.7
    ],
    [
     241.9,
@@ -1253,8 +1253,8 @@
   "40":{"frame":{"x":64,"y":319,"w":41,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":127,"y":38,"w":41,"h":112},"sourceSize":{"w":244,"h":272}},
   "41":{"frame":{"x":66,"y":205,"w":42,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":127,"y":39,"w":42,"h":112},"sourceSize":{"w":244,"h":272}},
   "42":{"frame":{"x":0,"y":294,"w":62,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":142,"y":49,"w":62,"h":102},"sourceSize":{"w":244,"h":272}},
-  "43":{"frame":{"x":0,"y":192,"w":64,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":144,"y":50,"w":64,"h":100},"sourceSize":{"w":244,"h":272}},
-  "44":{"frame":{"x":0,"y":92,"w":67,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":146,"y":51,"w":67,"h":98},"sourceSize":{"w":244,"h":272}},
+  "43":{"frame":{"x":0,"y":192,"w":64,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":141,"y":50,"w":64,"h":100},"sourceSize":{"w":244,"h":272}},
+  "44":{"frame":{"x":0,"y":92,"w":67,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":141,"y":52,"w":67,"h":98},"sourceSize":{"w":244,"h":272}},
   "45":{"frame":{"x":0,"y":1552,"w":113,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":130,"y":135,"w":113,"h":22},"sourceSize":{"w":244,"h":272}},
   "46":{"frame":{"x":0,"y":580,"w":65,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":123,"y":135,"w":65,"h":88},"sourceSize":{"w":244,"h":272}},
   "47":{"frame":{"x":0,"y":751,"w":60,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":119,"y":137,"w":60,"h":88},"sourceSize":{"w":244,"h":272}}

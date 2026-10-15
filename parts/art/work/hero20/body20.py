@@ -76,7 +76,7 @@ def fold_elbows(d, p):
         if h is None or side in el:
             continue
         sh = R0.anchors["shoulder" + side]
-        if h[1] - sh[1] < 16.0:
+        if -4.0 <= h[1] - sh[1] < 16.0:           # 앞으로 흔든 팔만 안쪽으로(머리 위로 든 팔은 rig20 이 바깥·위로 굽힘)
             el[side] = -m * s
     q = dict(p)
     q["elbow"] = el or None

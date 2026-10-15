@@ -185,8 +185,8 @@
   "43":{"frame":{"x":0,"y":762,"w":23,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":134,"y":92,"w":23,"h":22},"sourceSize":{"w":256,"h":256}},
   "44":{"frame":{"x":0,"y":486,"w":24,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":135,"y":91,"w":24,"h":23},"sourceSize":{"w":256,"h":256}},
   "45":{"frame":{"x":0,"y":511,"w":24,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":134,"y":89,"w":24,"h":23},"sourceSize":{"w":256,"h":256}},
-  "46":{"frame":{"x":0,"y":302,"w":25,"h":25},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":154,"y":110,"w":25,"h":25},"sourceSize":{"w":256,"h":256}},
-  "47":{"frame":{"x":0,"y":536,"w":23,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":154,"y":110,"w":23,"h":24},"sourceSize":{"w":256,"h":256}}
+  "46":{"frame":{"x":0,"y":302,"w":25,"h":25},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":152,"y":110,"w":25,"h":25},"sourceSize":{"w":256,"h":256}},
+  "47":{"frame":{"x":0,"y":536,"w":23,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":152,"y":110,"w":23,"h":24},"sourceSize":{"w":256,"h":256}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",

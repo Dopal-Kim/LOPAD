@@ -344,6 +344,10 @@ def build(d, p):
     for k, v in (("lean_f", 0.6), ("twist_deg", 0.0)):
         p.setdefault(k, v)
     B = Body(d, p)
+    if B.view == "side" and not B.diag and any(t[1] < B.P(0, 0, SH_Y)[1] - 4.0 for t in p["handAt"].values()):
+        # 머리 위로 칼을 든 자세: 가슴을 카메라 쪽으로 비틀고 살짝 젖힘(키아트 OVERHEAD SLASH 의 비튼 몸통)
+        B.tw = math.radians(-18.0 if B.s > 0 else 18.0)
+        B.lean -= math.radians(4.0)
     R = Rig3(FW, FH, S=S, src=DPIV, dst=PIV)
     details = []
     view, near = B.view, B.near
@@ -451,8 +455,21 @@ def build(d, p):
             hand = B.proj(hw)[0]
         else:
             hand = _reach(shj, tgt, p["reachFrac"])
+        over = tgt is not None and tgt[1] < shj[1] - 4.0
+        if over:                                   # 머리 위로 든 팔: 어깨가 들리며 손 쪽으로 — 팔꿈치가 굽어 막대 팔이 되지 않게(키아트 OVERHEAD SLASH)
+            vx, vy = hand[0] - shj[0], hand[1] - shj[1]
+            vl = math.hypot(vx, vy) or 1.0
+            shj = (shj[0] + vx / vl * 2.6, shj[1] + vy / vl * 2.6 - 0.8)
+            hand = _reach(shj, tgt, 0.93)
         bend = (p["elbow"] or {}).get(side)
-        if bend is None:
+        if bend is None and over:
+            c1, c2 = ik2(shj, hand, UPPER, FORE, 1), ik2(shj, hand, UPPER, FORE, -1)
+            if view == "side":
+                el = c1 if (c1[0] - c2[0]) * (1 if B.s > 0 else -1) > 0 else c2       # 팔꿈치는 앞·위로
+            else:
+                cx = B.P(0, 0, 40)[0]
+                el = c1 if abs(c1[0] - cx) >= abs(c2[0] - cx) else c2              # 팔꿈치는 바깥으로
+        elif bend is None:
             if view == "side":
                 bend = -(1 if B.s > 0 else -1)
                 el = ik2(shj, hand, UPPER, FORE, bend)
@@ -537,29 +554,45 @@ def build(d, p):
         return min(best, 9.0)
 
     def loin(back_panel):
+        """찢긴 허리천: 허리띠 아래 좁은 띠 + 아래로 갈수록 좁아지며 갈라지는 천 자락(앞 3 · 뒤 2) — 자락 사이로 다리·어둠이 보인다(P20 2차)."""
         sign = -1 if back_panel else 1
-        n = 9
-        ang = [(-62 + 124 * i / (n - 1)) for i in range(n)]
         w, fe, be = section(50.8)
         mid, half = (fe + be) / 2, (fe - be) / 2
         push = knee_push(sign)
-        jag = [-3.0, 0.4, -1.6, 2.2, 0.0, 3.0, -1.0, 0.8, -2.6] if not back_panel else [-2.6, 0.2, -1.2, 1.4, -0.6, 2.0, -0.4, -0.6, -3.0]
-        hem_y = 63.2 if not back_panel else 62.0
-        top, bot = [], []
-        for i, t in enumerate(ang):
+
+        def ring_pt(t, y, out=0.7):
             r = math.radians(t)
-            a = (w + 0.7) * math.sin(r)
-            f = mid + sign * (half + 0.7) * math.cos(r)
-            top.append(B.proj(B.local(a, f, 50.6))[0])
-            k = math.cos(r)
-            hy = hem_y + jag[i] - 1.2 * (1 - k)
-            a2 = a * (0.98 + 0.06 * math.sin(i * 2.1))
-            f2 = f + sign * push * k + sw * 0.6
-            pw = (B.pel[0] + a2, B.pel[1] + f2, B.pel[2] - (HIP_Y - hy))
-            bot.append(B.proj(pw)[0])
+            return (w + out) * math.sin(r), mid + sign * (half + out) * math.cos(r)
+
+        def hang(t, y, shrink=1.0, k_push=1.0):
+            a, f = ring_pt(t, y)
+            k = math.cos(math.radians(t))
+            pw = (B.pel[0] + a * shrink, B.pel[1] + f + sign * push * k * k_push + sw * 0.6 * k_push, B.pel[2] - (HIP_Y - y))
+            return B.proj(pw)[0]
+        band_top = [B.proj(B.local(*ring_pt(t, 50.6), 50.6))[0] for t in range(-16, 17, 16)]
+        band_bot = [hang(t, 52.2, 1.0, 0.15) for t in range(-16, 17, 16)]
+        tails = ([(-27.0, 7.5, 59.6, -0.8), (0.0, 13.5, 65.8, 0.4), (28.0, 7.0, 58.8, 0.9)] if not back_panel
+                 else [(-17.0, 13.0, 61.0, -0.4), (19.0, 12.0, 59.8, 0.6)])
+        polys = []
+        for tc, hw, tip_y, tdx in tails:
+            top = [hang(tc + hw * u, 52.0, 1.0, 0.2) for u in (-1.0, 0.0, 1.0)]
+            ym = 52.0 + (tip_y - 52.0) * 0.5
+            midR = hang(tc + hw * 0.45, ym + 0.8, 0.98, 0.7)
+            notch = hang(tc + hw * 0.1, ym + 2.6, 0.98, 0.75)
+            midL = hang(tc - hw * 0.4, ym - 0.4, 0.98, 0.7)
+            tip = hang(tc + tdx * 6.0, tip_y, 0.97, 1.0)
+            polys.append([top[0], top[1], top[2], midR, notch, tip, midL])
         name = "loinB" if back_panel else "loin"
-        quads(R, P(name, CLOTH, 1 if back_panel else 0 + 1, soft=1.6, group=name), top, bot)
-        details.append(("loin", top, bot, name))
+
+        def fn(dr):
+            for i in range(len(band_top) - 1):
+                h = _hull([band_top[i], band_top[i + 1], band_bot[i + 1], band_bot[i]])
+                if len(h) >= 3:
+                    dr.polygon([(round(x), round(y)) for x, y in (R.T(c) for c in h)], fill=255)
+            for pg in polys:
+                dr.polygon([(round(x), round(y)) for x, y in (R.T(c) for c in pg)], fill=255)
+        R.shape(P(name, CLOTH, 1 if not back_panel else 0, soft=1.4, group=name), fn)
+        details.append(("loin", polys, None, name))
 
     def belt(back_side):
         pts = []
@@ -569,15 +602,14 @@ def build(d, p):
                 pts.append(B.surf(a, 50.6, back_side, out=0.4))
         if len(pts) >= 2:
             pts.sort(key=lambda q: q[0])
-            R.capsule(P("belt", CLOTH, 2, soft=0.8), pts, [1.1] * len(pts))
+            R.capsule(P("belt", CLOTH, 1, soft=0.8), pts, [1.0] * len(pts))
 
     def pouch(shade):
-        # 작은 가죽 주머니(해부 오른허리) — 일기장이 든 주머니(사망 끝 바닥 일기장과 이어짐)
-        c0 = B.P(-8.3, 0.8, 53.2)
-        ax = math.sin(math.radians(B.psi) + B.tw)
-        wv = 1.6 + 1.0 * abs(math.cos(math.radians(B.psi)))
-        pts = [(c0[0] - wv, c0[1] - 2.0), (c0[0] + wv, c0[1] - 2.0), (c0[0] + wv + 0.2, c0[1] + 2.0), (c0[0] + wv - 0.6, c0[1] + 3.0),
-               (c0[0] - wv + 0.6, c0[1] + 3.0), (c0[0] - wv - 0.2, c0[1] + 2.0)]
+        # 작은 가죽 주머니(해부 오른허리 옆구리) — 일기장이 든 주머니(사망 끝 바닥 일기장과 이어짐)
+        c0 = B.P(-9.0, -0.4, 52.8)
+        wv = 0.9 + 0.5 * abs(math.cos(math.radians(B.psi)))
+        pts = [(c0[0] - wv, c0[1] - 1.5), (c0[0] + wv, c0[1] - 1.5), (c0[0] + wv + 0.2, c0[1] + 1.3), (c0[0] + wv - 0.4, c0[1] + 2.2),
+               (c0[0] - wv + 0.4, c0[1] + 2.2), (c0[0] - wv - 0.2, c0[1] + 1.3)]
         R.poly(P("pouch", LEATH, 2 - shade, soft=1.0), pts)
         details.append(("pouch", c0, wv))
 
@@ -826,15 +858,15 @@ def decorate(R, B, p, details):
             fline(R, [(an[0] - 1.6, an[1] + 0.6), (an[0] + 1.6, an[1] + 1.4)], PL[0], "foot" + kind[-1])
             fline(R, [(mid[0] - 1.4, mid[1] - 1.2), (mid[0] + 1.2, mid[1] - 0.4)], PL[0], "foot" + kind[-1])
         elif kind == "loin":
-            _, top, bot, name = det
-            for j in (2, 4, 6):
-                fline(R, [lerp(top[j], bot[j], 0.25), lerp(top[j], bot[j], 0.92)], WD[0] if name == "loinB" else WD[1], name)
-            q = R.T(lerp(top[5], bot[5], 0.7))
-            R.px(q[0], q[1], OUT)
+            _, polys, _, name = det
+            for pg in polys:
+                fline(R, [lerp(pg[1], pg[5], 0.15), lerp(pg[1], pg[5], 0.8)], WD[0] if name == "loinB" else WD[1], name)
+                q = R.T(pg[5])
+                R.px(q[0], q[1] - 1, OUT)
         elif kind == "pouch":
             _, c0, wv = det
-            fline(R, [(c0[0] - wv, c0[1] - 0.6), (c0[0] + wv, c0[1] - 0.6)], WD[1], "pouch")
-            q = R.T((c0[0], c0[1] + 0.2))
+            fline(R, [(c0[0] - wv, c0[1] - 0.5), (c0[0] + wv, c0[1] - 0.5)], WD[1], "pouch")
+            q = R.T((c0[0], c0[1] + 0.3))
             R.px(q[0], q[1], SL[6]); R.px(q[0], q[1] + 1, SL[2])
         elif kind == "plate":
             _, plate = det
