@@ -22,7 +22,9 @@ import type { LightSpec } from '../systems/sprites/spriteDefs';
 import type { LightSource } from '../systems/lighting/lightRegistry';
 import type { CoverArt } from './coverPillars';
 import {
+  dressOf,
   floorMacroIndex,
+  planFloorDress,
   wallEdgeBits,
   groundV4,
   planTerrainOverlay,
@@ -86,6 +88,7 @@ export class QuarterView {
   ) {
     this.boundaryWalls = boundaryWalls;
     this.dropCells = new Set((layout.arena?.drops ?? []).map((d) => `${d.x},${d.y}`));
+    this.stageCells = new Set((layout.arena?.stageCells ?? []).map((d) => `${d.x},${d.y}`));
     this.cover = features.cover ?? null;
     this.canal = features.canal ?? null;
     for (const t of this.canal?.tiles ?? []) this.canalAt.set(`${t.x},${t.y}`, t.kind);
@@ -110,6 +113,7 @@ export class QuarterView {
       over.setScale(this.scale).setDepth(DEPTH.TILES + QUARTER.V4_OVERLAY_DEPTH);
       for (const o of planTerrainOverlay(this.v4, this.terrain, layout)) over.putTileAt(o.index, o.x, o.y);
       this.v4Layer = over;
+      this.addDress(tileset, layout);
     }
     if (props.length > 0 && propSkin === skin) {
       const layer = this.map.createBlankLayer('qv_props', tileset, 0, 0, layout.widthTiles, layout.heightTiles)!;
@@ -123,6 +127,96 @@ export class QuarterView {
     this.startCanal();
     this.startV4Water();
   }
+
+  /** P19 2단계 바닥 꾸밈 레이어 · 덮개 합성 텍스처 (가면 알파로 오린 재질 칸) */
+  private dressLayers: Phaser.Tilemaps.TilemapLayer[] = [];
+  private dressMap: Phaser.Tilemaps.Tilemap | null = null;
+  private dressTexture: string | null = null;
+
+  /**
+   * P19 2단계 (art §34 mock compose): 흙·돌 덮개 = 재질 매크로를 가면[cfg] 알파로 오린 합성 칸(쓰는 짝만 캔버스 한 장에) + 테,
+   * 데칼 · 벽 발치 그늘 · 난간. 정적 — 방을 만들 때 한 번
+   */
+  private addDress(tileset: Phaser.Tilemaps.Tileset, layout: FloorLayout): void {
+    const d = dressOf(this.skin.def);
+    if (!d || !this.terrain) return;
+    const plan = planFloorDress(d, this.terrain, layout);
+    const px = this.skin.tilePx;
+    const W = layout.widthTiles;
+    const H = layout.heightTiles;
+    const layer = (name: string, depth: number, map = this.map, ts = tileset) => {
+      const l = map.createBlankLayer(name, ts, 0, 0, W, H)!;
+      l.setScale(this.scale).setDepth(DEPTH.TILES + depth);
+      this.dressLayers.push(l);
+      return l;
+    };
+    // 합성 칸 (재질 매크로 × 가면) — 쓰는 짝만
+    const pairs = new Map<string, number>();
+    for (const c of plan.cover) {
+      const key = `${c.macro}:${c.mask}`;
+      if (!pairs.has(key)) pairs.set(key, pairs.size);
+    }
+    const src = this.scene.textures.get(this.skin.textureKey).getSourceImage() as HTMLImageElement | HTMLCanvasElement;
+    const cols = Math.max(1, Math.floor(src.width / px));
+    const at = (i: number) => [(i % cols) * px, Math.floor(i / cols) * px] as const;
+    const COLS = 16;
+    if (pairs.size > 0 && typeof document !== 'undefined') {
+      const key = `qv_dress_${this.skin.textureKey}`;
+      if (this.scene.textures.exists(key)) this.scene.textures.remove(key);
+      const rows = Math.ceil(pairs.size / COLS);
+      const canvas = this.scene.textures.createCanvas(key, COLS * px, rows * px);
+      const ctx = canvas?.getContext();
+      if (canvas && ctx) {
+        for (const [pair, i] of pairs) {
+          const [macro, mask] = pair.split(':').map(Number);
+          const x = (i % COLS) * px;
+          const y = Math.floor(i / COLS) * px;
+          // 칸 하나씩 오린다 (destination-in 은 그린 사각형 밖도 지우므로 임시 캔버스에서)
+          const tmp = document.createElement('canvas');
+          tmp.width = px;
+          tmp.height = px;
+          const t = tmp.getContext('2d')!;
+          const [mx, my] = at(macro);
+          const [kx, ky] = at(mask);
+          t.drawImage(src, mx, my, px, px, 0, 0, px, px);
+          t.globalCompositeOperation = 'destination-in';
+          t.drawImage(src, kx, ky, px, px, 0, 0, px, px);
+          ctx.drawImage(tmp, x, y);
+        }
+        canvas.refresh();
+        this.dressTexture = key;
+        const map = this.scene.make.tilemap({ width: W, height: H, tileWidth: px, tileHeight: px });
+        const cts = map.addTilesetImage(key, key, px, px, 0, 0)!;
+        this.dressMap = map;
+        const coverL = { dirt: layer('qv_dirt', 0.002, map, cts), stone: layer('qv_stone', 0.004, map, cts) };
+        const rimL = { dirt: layer('qv_dirt_rim', 0.003), stone: layer('qv_stone_rim', 0.005) };
+        for (const c of plan.cover) {
+          coverL[c.material].putTileAt(pairs.get(`${c.macro}:${c.mask}`)!, c.x, c.y);
+          rimL[c.material].putTileAt(c.rim, c.x, c.y);
+        }
+      }
+    }
+    const decals = layer('qv_decal', 0.006);
+    for (const c of plan.decals) decals.putTileAt(c.index, c.x, c.y);
+    const shade = [layer('qv_wallshade_n', 0.007), layer('qv_wallshade_we', 0.008)];
+    for (const c of plan.shadows) shade[c.layer].putTileAt(c.index, c.x, c.y);
+    const rail = layer('qv_railing', QUARTER.V4_OVERLAY_DEPTH + 0.001);
+    for (const c of plan.railings) rail.putTileAt(c.index, c.x, c.y);
+    // 낭떠러지 채움 밝히기 (형태 틀 dress.dropLift — 더하기 혼합, 조명 아래)
+    const lift = layout.arena?.dress?.dropLift ?? 0;
+    const drops = (layout.arena?.drops ?? []).filter((q) => q.kind === 'drop');
+    if (lift > 0 && drops.length > 0) {
+      const g = this.scene.add
+        .graphics()
+        .setDepth(DEPTH.TILES + 0.0015)
+        .setBlendMode(Phaser.BlendModes.ADD);
+      g.fillStyle(0xffffff, lift);
+      for (const q of drops) g.fillRect(q.x * TILE, q.y * TILE, TILE, TILE);
+      this.dropLift = g;
+    }
+  }
+
+  private dropLift: Phaser.GameObjects.Graphics | null = null;
 
   /** P19 1-A v4 지형 (없으면 null — 예전 바닥) */
   private readonly v4: TerrainV4 | null;
@@ -147,6 +241,9 @@ export class QuarterView {
       },
     });
   }
+
+  /** P19 2단계 무대 중심 그림 밑 벽 칸 (벽 그림 대신 바닥 — 그림은 WorldSetup.createCenterArt) */
+  private readonly stageCells: ReadonlySet<string>;
 
   /** P19 S2 낙하 구역 칸 (빈 칸이지만 골목 입구로 그리지 않는다 — 수로·자리표시 그림) */
   private readonly dropCells: ReadonlySet<string>;
@@ -265,7 +362,7 @@ export class QuarterView {
     const canal = this.canalAt.get(`${x},${y}`);
     if (canal) return this.canalIndex(canal);
     const id = this.src.idAt(x, y);
-    if (id === TileId.Wall && this.isCover(x, y)) return this.coverGround(x, y);
+    if (id === TileId.Wall && (this.isCover(x, y) || this.stageCells.has(`${x},${y}`))) return this.coverGround(x, y);
     if (id === TileId.Wall) return this.skin.voidIndex;
     if (this.v4 && this.terrain) {
       const g = groundV4(this.v4, this.terrain, id, x, y, this.v4Frame);
@@ -319,6 +416,7 @@ export class QuarterView {
         if (!this.isWall(x, y)) continue;
         // 바닥 칸도 다시 (벽이 생기거나 사라진 칸)
         this.refreshGround(x, y);
+        if (this.stageCells.has(`${x},${y}`)) continue;
         // 62 I: 엄폐 칸은 돌기둥 한 장 (벽 타일 대신)
         if (this.isCover(x, y)) {
           this.placePillar(x, y);
@@ -623,6 +721,15 @@ export class QuarterView {
     this.v4Timer = null;
     this.v4Layer?.destroy();
     this.v4Layer = null;
+    for (const l of this.dressLayers) l.destroy();
+    this.dropLift?.destroy();
+    this.dropLift = null;
+    this.dressLayers = [];
+    this.dressMap?.destroy();
+    this.dressMap = null;
+    if (this.dressTexture && this.scene.textures.exists(this.dressTexture))
+      this.scene.textures.remove(this.dressTexture);
+    this.dressTexture = null;
     for (const w of this.walls) w.img.destroy();
     this.walls = [];
     this.byColumn.clear();

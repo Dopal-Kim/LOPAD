@@ -70,6 +70,8 @@ export interface RouteFloorDef {
   names: Partial<Record<RouteKind, string[]>>;
   /** 62 D (P2-2): 노드 이름 → 고유 한 줄 (UiRouteNode.desc — 없으면 지역 설명) */
   nodeLines?: Record<string, string>;
+  /** P19 2단계 (스토리 65 팩): 형태 틀 id → 전투 노드 이름 (한 판에 처음 = [0], 두 번째 = [1]) — routeArena.namedRoute */
+  shapeNames?: Record<string, string[]>;
   /** 49라운드: 단계(col) → 지역 id. 모자라면 마지막 값 */
   regionByCol?: string[];
 }

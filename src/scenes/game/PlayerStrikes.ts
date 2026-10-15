@@ -126,6 +126,9 @@ export class PlayerStrikes {
       // P19 대검 무게: 판정 순간 카메라가 아래로 짧게 (weight.impactShake)
       const ws = weapon.def.weight?.impactShake;
       if (ws && combo) g.shake.add(g.time.now, ws.px, ws.ms, { x: 0, y: 1 });
+      // P19 대검 무게: 판정 순간 짧은 줌 펀치 (weight.impactPunch — GameCamera.punch)
+      const wp = weapon.def.weight?.impactPunch;
+      if (wp && combo) g.cam.punch(wp.amount, wp.ms);
       // 58라운드 Q3 대검 차지: 내리찍은 자리에서 커서까지 균열
       if (p.crackLine) this.crackLine.start(at, main.impact);
       // 후속 판정 · 쌍격·난무 추가 타 · 지진 2단 (씬 시계 — 히트스톱 동안 멈춤)

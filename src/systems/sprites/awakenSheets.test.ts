@@ -113,7 +113,6 @@ describe.skipIf(!present)('60라운드 계약 §21 — 최종 각성 재디자�
   it('각성 오버레이: 원 무기 오버레이와 같은 자리 (overlayPivot = 원 + pivotDelta = JSON pivot), 프레임·ms 같음', () => {
     expect(body).not.toBeNull();
     let checked = 0;
-    const frames = new Set<string>();
     for (const w of WEAPONS)
       for (const r of awakenSheetRequests(w).filter((q) => q.category === 'weapons')) {
         const aw = read(`weapons/v3/${r.name}_${r.action}`);
@@ -127,16 +126,12 @@ describe.skipIf(!present)('60라운드 계약 §21 — 최종 각성 재디자�
         expect(aw.weaponSheetPivot, r.action).toEqual(base.pivot);
         expect(aw.frames, r.action).toBe(base.frames);
         expect(frameDurations(aw), r.action).toEqual(frameDurations(base));
-        frames.add(`${w}:${aw.frameWidth}x${aw.frameHeight}`);
+        // 각성 틀 = 원 틀보다 넓다(아트 §35 로 원 틀이 바뀌어도 크기는 JSON 에서만 읽는다 — 여백 값은 고정하지 않음)
+        expect(aw.frameWidth, r.action).toBeGreaterThan(base.frameWidth);
+        expect(aw.frameHeight, r.action).toBeGreaterThan(base.frameHeight);
         checked += 1;
       }
     expect(checked).toBeGreaterThan(50);
-    // 틀: 칼 264 · 단검/활 256 · 대검 가로 +80·세로 +64
-    expect(frames).toContain('katana:264x264');
-    expect(frames).toContain('dagger:256x256');
-    expect(frames).toContain('bow:256x256');
-    for (const f of [...frames].filter((x) => x.startsWith('greatsword:')))
-      expect(['320x336', '320x360', '360x376', '328x352']).toContain(f.split(':')[1]);
   });
 
   it('각성 순간 fx: 무기마다 12프레임 · 주인공 피벗을 따라감 · 각성 묶음에 있고 부팅 묶음에는 없다', () => {

@@ -118,6 +118,17 @@ export interface ArenaInfo {
   cover?: { x: number; y: number }[];
   /** 적 등장 자리 (마스크 S) */
   enemySpawns?: { x: number; y: number }[];
+  /** P19 2단계 바닥 덮개 규칙 (art §34 mock compose — 돌 덮개 = 무대 중심 반경 칸 · 높은 단 위) */
+  dress?: ArenaDress;
+  /** P19 2단계 무대 중심 그림이 덮는 벽 칸 (벽 그림 없음 · 바닥 그림 · 판정은 벽) */
+  stageCells?: { x: number; y: number }[];
+}
+
+export interface ArenaDress {
+  stoneRadius: number;
+  stoneOnHigh: boolean;
+  /** 낭떠러지(drop) 채움 밝히기 0..1 (더하기 혼합 흰빛 알파 — 회랑 황무지 마른 골짜기, P19 ⑤3 휘도) */
+  dropLift: number;
 }
 
 /** P19 S2 낙하 구역 종류 (계약 free-combat §1 ENEMY_FELL zone 의 water·drop + 테라스 단 끝 ledge) */

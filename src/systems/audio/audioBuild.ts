@@ -32,6 +32,7 @@ import { currentAttackTag } from '../build/attackTags';
 import type { TraitAct } from '../../data/growthTypes';
 import { RESONANCE_SFX, traitProcSfx } from '../growth/traitArt';
 import { t, type AudioTrigger } from './audioTrigger';
+import { igniteJustPlayed } from './audioP19';
 
 const s = (name: string): string => `sfx/${name}`;
 
@@ -393,7 +394,12 @@ export const BUILD_AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     when: (p) => p.effect === 'stillness',
     sfx: BUILD_SFX.stillness,
   }),
-  t({ event: Events.POOL_IGNITED, note: '술 웅덩이 점화 (취기 술불)', sfx: BUILD_SFX.drunkIgnite }),
+  t({
+    event: Events.POOL_IGNITED,
+    note: '술 웅덩이 점화 (취기 술불) — P19: 같은 순간 hazard_ignite(HAZARD_IGNITED)가 울렸으면 쉰다',
+    when: () => !igniteJustPlayed(),
+    sfx: BUILD_SFX.drunkIgnite,
+  }),
   t({ event: Events.DRUNK_SWAY, note: '취보 휘청', sfx: BUILD_SFX.drunkSway }),
   t<EndureTriggeredPayload>({
     event: Events.ENDURE_TRIGGERED,

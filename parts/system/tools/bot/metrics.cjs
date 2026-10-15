@@ -28,6 +28,7 @@ const PASS = {
   gapMaxMs: (v) => v <= 1500,
   stillPct: (v) => v <= 15,
   hitstopPct: (v) => v <= 8,
+  env: (v) => v >= 8,
 };
 
 async function runWeapon(base, W) {
@@ -87,9 +88,9 @@ async function runWeapon(base, W) {
 
 function table(rows) {
   const mark = (ok, v) => (ok ? '' : '✗') + v;
-  const lines = ['| 무기 | 노드 | 클리어 s | 웨이브 | 처치 | 활성 평균/최대 | 동시 공격 평균 | 3+ % | 공백 최대 s | 정지 % | 히트스톱 % |', '|---|---|---|---|---|---|---|---|---|---|---|'];
+  const lines = ['| 무기 | 노드 | 클리어 s | 웨이브 | 처치 | 활성 평균/최대 | 동시 공격 평균 | 3+ % | 공백 최대 s | 정지 % | 히트스톱 % | 환경 | 징집병 타수 |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|'];
   for (const r of rows) {
-    lines.push(`| ${r.weapon} | ${r.node} | ${mark(PASS.combatMs(r.combatMs), r.combatMs == null ? '-' : (r.combatMs / 1000).toFixed(1))} | ${r.waves} | ${r.kills} | ${mark(PASS.aliveAvg(r.aliveAvg), r.aliveAvg)}/${mark(PASS.aliveMax(r.aliveMax), r.aliveMax)} | ${mark(PASS.attackersAvg(r.attackersAvg), r.attackersAvg)} | ${mark(PASS.attackers3(r.attackersHist['3+']), r.attackersHist['3+'])} | ${mark(PASS.gapMaxMs(r.gapMaxMs), (r.gapMaxMs / 1000).toFixed(2))} | ${mark(PASS.stillPct(r.stillPct), r.stillPct)} | ${mark(PASS.hitstopPct(r.hitstopPct), r.hitstopPct)} |`);
+    lines.push(`| ${r.weapon} | ${r.node} | ${mark(PASS.combatMs(r.combatMs), r.combatMs == null ? '-' : (r.combatMs / 1000).toFixed(1))} | ${r.waves} | ${r.kills} | ${mark(PASS.aliveAvg(r.aliveAvg), r.aliveAvg)}/${mark(PASS.aliveMax(r.aliveMax), r.aliveMax)} | ${mark(PASS.attackersAvg(r.attackersAvg), r.attackersAvg)} | ${mark(PASS.attackers3(r.attackersHist['3+']), r.attackersHist['3+'])} | ${mark(PASS.gapMaxMs(r.gapMaxMs), (r.gapMaxMs / 1000).toFixed(2))} | ${mark(PASS.stillPct(r.stillPct), r.stillPct)} | ${mark(PASS.hitstopPct(r.hitstopPct), r.hitstopPct)} | ${mark(PASS.env(r.env ?? 0), r.env ?? '-')} | ${(r.ttk && r.ttk.dummy && r.ttk.dummy.hits) ?? '-'} |`);
   }
   return lines.join('\n');
 }

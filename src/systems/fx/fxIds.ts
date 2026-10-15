@@ -7,7 +7,7 @@ import type { ComboDef, WeaponMovesDef } from '../../data/types';
 import { moveFxNames } from '../../data/moveTypes';
 import { comboArtNames } from '../weapon/comboArt';
 import { BIRTH_FX, COMBO_HITS } from '../sprites/spriteDefs';
-import { BUILD_ART, FEEDBACK, WEAPON_FX } from '../../core/Constants';
+import { BUILD_ART, ENEMY_FX, FEEDBACK, WEAPON_FX } from '../../core/Constants';
 
 /** 연격 베기 이펙트 `fx/<무기>_combo<n>` */
 export function comboFxId(weaponId: string, n: number): string {
@@ -199,6 +199,9 @@ const P19_FX_IDS: readonly string[] = [
   ...Object.values(REACTION_FX).flatMap((v) =>
     typeof v === 'string' ? [v] : typeof v === 'object' ? Object.values(v) : [],
   ),
+  // 예고 색 언어 시트 (art §34 tele_* — 원·부채꼴 진행도 구동) · 깃발 고수 오라
+  ...Object.values(ENEMY_FX.TIER_IDS).flatMap((t) => Object.values(t)),
+  'drum_aura',
   HERO_FX.SKID,
   HERO_FX.DASH_AFTERIMAGE,
   HERO_FX.EYE_TRAIL,

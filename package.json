@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.ts\" \"data/**/*.json\" \"*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"data/**/*.json\" \"*.ts\"",
-    "bot:metrics": "node parts/system/tools/bot/metrics.cjs"
+    "bot:metrics": "node parts/system/tools/bot/metrics.cjs",
+    "bot:shots": "node parts/system/tools/bot/shots.cjs"
   },
   "dependencies": {
     "phaser": "~3.90.0"

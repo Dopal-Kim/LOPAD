@@ -48,6 +48,18 @@ export class MobSquad {
     return true;
   }
 
+  /** P19 2단계: 지금 이 종류가 토큰을 받을 수 있는가 (받지는 않는다 — 다가가기 시작 판단) */
+  available(kind: string, elite: boolean): boolean {
+    let pool = 0;
+    let same = 0;
+    for (const [w, h] of this.holders) {
+      if ((w as { active?: boolean }).active === false) continue;
+      if (h.elite === elite) pool++;
+      if (!elite && !h.elite && h.kind === kind) same++;
+    }
+    return pool < (elite ? this.eliteMax : this.max) && (elite || same < (this.kindMax[kind] ?? Infinity));
+  }
+
   release(who: object): void {
     this.holders.delete(who);
   }
@@ -81,4 +93,11 @@ export class MobSquad {
     this.holders.clear();
     this.drums = [];
   }
+}
+
+/** 북채가 북면에 닿는 시각 ms (시트 `beatFrames` — 프레임 시작 = 앞 프레임 길이 합). 시트가 없으면 [] */
+export function beatTimesMs(def: { beatFrames?: unknown; frameDurationsMs?: unknown } | undefined): number[] {
+  const frames = Array.isArray(def?.beatFrames) ? (def.beatFrames as number[]) : [];
+  const durs = Array.isArray(def?.frameDurationsMs) ? (def.frameDurationsMs as number[]) : [];
+  return frames.map((f) => durs.slice(0, f).reduce((a, b) => a + b, 0));
 }

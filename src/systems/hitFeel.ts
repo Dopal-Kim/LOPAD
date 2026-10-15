@@ -27,7 +27,8 @@ export function isHeavyStrike(p: StrikeShape): boolean {
 export function weaponHitstopMs(feel: Pick<WeaponFeelDef, 'hitstopMs'> | undefined, heavy: boolean): number {
   const H = FEEL.HITSTOP;
   const base = feel && feel.hitstopMs >= 0 ? feel.hitstopMs : H.WEAPON_FALLBACK_MS;
-  if (!heavy) return base;
+  // P19 2단계 조정: 히트스톱 0 무기(단검)는 막타·치명도 0 — 처치 순간만 멈춘다 (killHitstopMs · 히트스톱 비중 ≤ 8%)
+  if (!heavy || base === 0) return base;
   return Math.min(H.MAX_MS, Math.max(H.HEAVY_MIN_MS, Math.round(base * H.HEAVY_MULT)));
 }
 

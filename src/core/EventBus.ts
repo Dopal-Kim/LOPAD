@@ -495,21 +495,47 @@ export type PlayerSecondaryPayload = {
 };
 /** 60라운드: elite = 엘리트였음 (음향 elite_die) */
 export type EnemyDiedPayload = { id: string; elite?: boolean };
-export type EnemyDamagedPayload = { id: string; amount: number; crit: boolean; died: boolean; tick: boolean };
+export type EnemyDamagedPayload = {
+  id: string;
+  amount: number;
+  crit: boolean;
+  died: boolean;
+  tick: boolean;
+  /** P19 (sound §14): 주인공 무기 적중이면 그 무기 — 폭발·벽꽝·볼링·불·낙하 같은 환경 피해는 없음(타격음 없음) */
+  weapon?: string;
+};
 /**
  * 61라운드 단계 2: throw = 독주 행상 화염 술병 · roll = 술통 짐꾼 술통. phase = 음향 구분(계약 sound 61-2 — `enemy:<id>`·`phase:<단계>`):
  * throw 놓음 · burst 착지 폭발 · push 술통 놓음(굴림 루프 시작) · return 되치기 · break 깨짐 · spill 술 퍼짐 · rollEnd 굴러가는 술통 없음(루프 끝)
  */
-export type EnemyAttackPhase = 'throw' | 'burst' | 'push' | 'return' | 'break' | 'spill' | 'rollEnd';
+export type EnemyAttackPhase =
+  | 'throw'
+  | 'burst'
+  | 'push'
+  | 'return'
+  | 'break'
+  | 'spill'
+  | 'rollEnd'
+  /** P19 (sound §14): 고수 북 한 박 · 오라가 처음 켜짐 / 자폭병 달리기 시작·끝(심지 루프) · 폭발 */
+  | 'beat'
+  | 'rally'
+  | 'run'
+  | 'runEnd'
+  | 'blast';
 export type EnemyAttackPayload = {
   id: string;
   /** P19: swing = 징집병 베기·사수 밀치기 · explode = 술배 자폭병 폭발 */
-  kind: 'contact' | 'dash' | 'shot' | 'throw' | 'roll' | 'swing' | 'explode';
+  kind: 'contact' | 'dash' | 'shot' | 'throw' | 'roll' | 'swing' | 'explode' | 'drum';
   phase?: EnemyAttackPhase;
 };
 /** 61라운드 단계 2: throw = 행상 심지 불붙임(놓기 전까지) · roll = 짐꾼 밀기 준비 */
 /** P19: swing = 휘두르기 예고(350ms) · fuse = 자폭병 심지(1초) */
-export type EnemyTelegraphPayload = { id: string; kind: 'dash' | 'shot' | 'throw' | 'roll' | 'swing' | 'fuse' };
+export type EnemyTelegraphPayload = {
+  id: string;
+  kind: 'dash' | 'shot' | 'throw' | 'roll' | 'swing' | 'fuse';
+  /** P19: 예고 길이 (자폭병 심지 — 음향 bomber_swell 재생 속도) */
+  ms?: number;
+};
 /** 35라운드 2단계: reload = 사수 재장전 시작, block = 결사병 방패로 막음, pack = 징집병 집단 돌격 시작 */
 /** P19: drum = 깃발 고수 북 (반경 안 적 공격 속도 ↑) */
 export type EnemyBehaviorPayload = { id: string; kind: 'reload' | 'block' | 'pack' | 'drum' };

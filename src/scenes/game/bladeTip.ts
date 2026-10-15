@@ -60,6 +60,20 @@ function anchorTrack(
   return null;
 }
 
+/** 몸 시트 `weaponOffsetDots[dir][열]` (art §36 — 몸 도트) → 발 피벗 기준 월드 오프셋. 없으면 null */
+export function weaponOffsetAt(
+  body: Parameters<typeof artScale>[0] & { weaponOffsetDots?: unknown },
+  dir: Facing,
+  column: number,
+): Vec | null {
+  const rows = body.weaponOffsetDots as Partial<Record<string, unknown[]>> | undefined;
+  const list = rows?.[dir];
+  const v = Array.isArray(list) ? list[Math.min(Math.max(0, column), list.length - 1)] : null;
+  if (!isPoint(v)) return null;
+  const k = artScale(body) * PLAYER_RENDER_SCALE;
+  return { x: v[0] * k, y: v[1] * k };
+}
+
 /**
  * 칼끝 리본 계획. `shape` = 판정 모양(호 폴백), `tipRadius` = 칼끝 반경(월드, 아트 trailFill — 없으면 판정 반경 × 비율)
  */
@@ -84,7 +98,9 @@ export function planBladeTip(
   if (!shape || shape.kind === 'ring') return null;
   // 55라운드: 새 연격(rotate 무기)은 왼쪽도 회전만 — 판정과 같은 규칙
   const sf = shapeFacing(p, dir);
-  const center = { x: 0, y: -HIT_ORIGIN_UP_PX };
+  // art §36-6: 판정 호 폴백은 몸 그림의 무기 높이(`weaponOffsetDots`, 판정 프레임)만큼 옮긴다 — 칼끝 메모(anchors)는 이미 반영돼 있다
+  const off = body ? weaponOffsetAt(body, dir, (body.activeFrames ?? body.hitFrames ?? [0])[0] ?? 0) : null;
+  const center = { x: off?.x ?? 0, y: -HIT_ORIGIN_UP_PX + (off?.y ?? 0) };
   const base = Math.atan2(p.dirY, p.dirX);
   const span = Math.max(1, win.to - win.from);
   if (shape.kind === 'thrust' || shape.kind === 'wedge') {

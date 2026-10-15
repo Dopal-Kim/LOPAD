@@ -94,6 +94,10 @@
   ],
   "props": ["props_braziers"],
   "lighting": {
+    "ambientByRegion": {
+      "gate": "#ccd1e0",
+      "waste": "#d4d4dc"
+    },
     "ambient": "#d4d4dc",
     "lights": [
       {
@@ -127,6 +131,10 @@
         "kind": "set_gate_brazier"
       }
     ]
+  },
+  "dress": {
+    "stoneRadius": 4,
+    "dropLift": 0.22
   },
   "stage": "battle"
 }

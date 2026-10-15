@@ -2182,3 +2182,107 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 
 ### 검사
 - tsc 0 · eslint 0 · prettier 통과 · vite build 통과 · vitest 172파일 중 169 통과 — 실패 4건은 이 작업 밖(음향 매니페스트 P19 효과음 id 39개 미등록 2파일 · 각성 오버레이 시트 1파일). 새 테스트: `squad.test`(토큰 상한·정예·종류 상한·북 오라) · `offscreen.test` · `enemiesP19.test`(예고 최소·접촉 폐지·새 적) · `route.test`/`loop2D.test` 웨이브 기준 P19 로 갱신.
+
+## P19 2단계 — 통합: 효과음 연결 · 그림 연결(바닥 꾸밈·무대 중심·흉벽·예고 바닥·새 적) · 노드 이름 · 봇 길 찾기 · 수치 조정 (2026-10-15, 전권 위임 · 인터뷰 없음)
+근거: `parts/producer/decisions/2026-10-14-P19-free-combat.md` ⑤·⑥·⑦ 2단계, 계약 `free-combat.md`, `sound-assets.md` §14, `art-assets.md` §34·§35·§36, 이 문서 P19 S1·S2·S3 절의 '남은 것'.
+
+### 열람 고지 (자율 모드 — 읽기만)
+| 읽은 것 | 이유 |
+|---|---|
+| `assets/audio/manifest.json` (P19 항목·mixing.voices.hitLayer·ducking·bgmIntensity·cues) | sound §14 트리거·믹싱 규칙의 실제 값 |
+| `assets/sprites/{enemies,fx,structures,player,weapons}/v3/*.json` (drummer·bomber·tele_*·drum_aura·stage_*·hazard_*·각성 오버레이·몸 weaponOffsetDots) | 시트 필드(beatFrames·detonateFrame·radiusPx·states·footprint)를 JSON 에서만 읽기 |
+| `assets/tiles/v4/stage1_*.json` (v4 블록) | 덮개·데칼·그늘·난간 인덱스 표 |
+| `parts/art/work/p19/lighting_proposal.json` · `mock19.py`(compose) | 지역 주변광 값 · 바닥 합성 규칙 |
+| `parts/story/text-pack-65-p19.json` | 형태별 노드 이름·한 줄 · 지나가는 대사 |
+
+### 1. 테스트 녹색 — 음향 §14 연결 (`systems/audio/audioP19.ts` 새 모듈, audioLoop2 와 같은 꼴)
+- 트리거 = free-combat §1 문자열 그대로: 움찔/버팀 깨짐 · 넉백 2~4단 바람(1단 무음) · 벽꽝 면별 · 볼링(연쇄 둘째부터 1.06 — `EnemyBowledPayload.chain` 추가) · 띄움(첫 띄움만 — 체공 연장은 이벤트 없음) · 착지/내리꽂힘 · 낙하 구역 · 폭발 크기 + 연쇄 겹침(chain>3 속도 2^((n−3)×2/12) 최대 1.26) · 점화(반경 ≥ 3칸 0.9) · 연속 처치 2·4·6↑짝수.
+- 무기 타격: `ENEMY_DAMAGED.weapon`(새 필드 — `GameCombat.hitMob` 가 지금 무기, `env`·`hazard` 피해는 없음) → `hit_<무기>`(없으면 hit_enemy), 치명은 `hit_enemy_crit` 겹침. 무기가 아닌 피해(폭발·벽꽝·볼링·불·낙하·구조물·보스방 위험물 — Game 의 위험물 host 4곳은 `hazard: true`)는 타격음 없음. 옛 'hit_enemy/hit_enemy_crit 택일' 줄 삭제.
+- 새 적: 고수 `ENEMY_ATTACK{drummer, phase rally|beat}`(첫 북 = rally, 이후 시트 `beatFrames` 프레임 시작마다 beat) · 처치 `drummer_death`(enemy_death 대신) / 술독병 `phase run`·`runEnd`(달리는 술독병이 하나라도 있는 동안 `bomber_fuse` 루프, 마지막이 끝나면 80ms 페이드 — 노드 진입 때 초기화) · 예고 `bomber_swell`(속도 clamp(1000/ms, 0.85, 1.2) — `EnemyTelegraphPayload.ms` 추가) · `phase blast` → `bomber_blast`(`GameCombat.blast` 가 냄 — 스스로 터짐·쓰러진 뒤 터짐 둘 다), 술독병 처치음 없음(폭발이 대신).
+- 대체 관계(같은 순간 50ms): 술독병 폭발 ↔ HAZARD_EXPLODED 크기 소리 · hazard_ignite ↔ drunk_ignite(POOL_IGNITED).
+- 믹싱: `voices.hitLayer` — 타격음 층 동시 4(넘치면 층 가장 오래된 것), 40ms 안 둘째부터 −3dB씩(최저 −9), 같은 id 30ms 안 버림(`audioMix.hitStackDb`·`VoiceBank.hitStack`). 덕킹 15규칙(벽꽝·볼링 · 큰 폭발 효과음/BGM 이 기존 '괄호 이름 목록' 해석으로 그대로 읽힘) + **덕킹을 일으킨 소리 자신은 눌리지 않음**(`ActiveDuck.owner` — bomber_blast 우선순위 2).
+- 전투 BGM 강도 2단: `bgmByFloorState["1"].combatLayer`·`mixing.bgmIntensity.layers` — 전투 곡과 같은 재생 위치에서 타악 층을 음량 0 으로 같이 돌리고(`AudioSystem.ensureLayer`), `CombatLayerGate`(살아 있는 적 ≥ 6 켬 · ≤ 3 이 2초 또는 0 → 끔 · 켠 뒤 최소 6초 · 보스 방 끔)로 fadeIn 1.5s / fadeOut 3s. 신호 = 새 시스템 내부 이벤트 `combat:alive{alive, boss}`(Game.update — 수가 바뀔 때만, UI 중계 없음). 지연 로드 1층 6곡(`floorStateBgmIds` 에 combatLayer).
+- 테스트: `audioP19.test`(9) 새로 · `audioDefs.test` used 목록에 `p19SfxIds()` · `audioMix.test` 덕킹 15·지연 로드 6곡.
+- 각성 오버레이(`awakenSheets.test`): 틀 크기 고정 목록 → 'JSON 각성 틀 > 원 틀' (아트 §35·§36 로 원 틀이 계속 바뀜). '오버레이 원점 = 원 + pivotDelta = JSON pivot' 불변식은 그대로.
+
+### 2. 연결 남은 것
+- S1: 대검 판정 순간 줌 펀치 `weapons.json greatsword.weight.impactPunch {amount 0.03, ms 120}` → `GameCamera.punch`(연격만, 대쉬로 끊긴 판정은 없음).
+- S2 밝기: 형태 틀 `lighting.ambientByRegion` = 아트 `lighting_proposal.json` 지역 주변광(외곽 #bdb8c7 · 성문 #ccd1e0 · 양조 #d1c7c2 · 연회장 #b2a8a8 · 황무지 #c2b8b2), 회랑만 황무지 #d4d4dc 유지(S2 값 — 마른 골짜기). 회랑 낭떠러지 채움 밝히기 `dress.dropLift 0.16`(더하기 혼합 흰빛, 조명 아래). 연회장 '검정 27%' 는 측정 때 화면 가운데 '싸우는 법' 판이 덮은 것 — 스크린샷 도구가 메뉴를 닫고 찍게 고침.
+- S2 바닥 꾸밈 (`world/terrainV4.planFloorDress` 순수 · `QuarterView.addDress`): mock19 `compose()` 규칙 — 흙 = 입구·출구 → 무대 중심 BFS 길(85%·흔들림 35%) + 얼룩, 돌 = 중심 반경(형태 `dress.stoneRadius` × 배율) · 테라스 높은 단(`stoneOnHigh`). 덮개 = 재질 매크로를 가면[cfg] 알파로 오린 합성 칸(쓰는 짝만 캔버스 한 장 — 별도 타일맵) + 테. 데칼 16(낮은 바닥 약 11%, 이웃과 같은 것 피함) · 벽 발치 그늘 북 + 서/동(돌기둥 칸 제외) · 난간 남(다섯 칸마다 끊김 s_broken/빈칸)·북(네 칸마다 빈칸). 좌표 해시만(난수 상태 없음).
+- S2 무대 중심: 형태 JSON `centerArt {sheet, x, y, h}` — 광장 `stage_fountain`(분수 덩어리 6×4 → 4×2 로 줄임) · 증류소 `stage_still`(증류기 섬 7×5 → 4×2). 덩어리 벽 칸(`arena.stageCells`)은 벽 그림 대신 바닥, 판정은 벽 그대로, 그림·광원·idle 루프는 StructureView(`WorldSetup.createCenterArt`). 뒤집기 대응(위아래 뒤집으면 덩어리 윗변이 밑변).
+- S2 위험물: 흉벽 자리 = 짐 상자 동작 + `hazard_merlon` 그림(`FixedSlot.sprite` 새 필드 → placement 가 그 시트로) · StructureView 상태 폴백에 `whole`·`cracked`. 부팅 묶음에 `ARENA_ART`(흉벽·무대 중심 2).
+- S2 이름: 스토리 65 팩 형태별 노드 이름(키 매핑 plaza→plaza_fountain · dock→dock_quay · crossroads→crossroad · banquet→banquet_hall) → `route.json stage1.shapeNames` + 새 한 줄 9개 `nodeLines`. `routeArena.namedRoute` = 생성 그래프 + 전투 노드 이름 = 형태 이름(한 판 두 번째는 [1]); 런 그래프(WorldSetup·이어하기 RunExit)가 이것으로. 고정 이름 노드(버려진 길·보스·상점 등) 그대로.
+- S3 예고 바닥: `ENEMY_FX.TIER_IDS` 단계 시트(경고 tele_warn_fan·line / 위험 tele_danger_circle·fan / 원거리 tele_ranged_path·target) — 로드됐으면 그 시트(색이 그림에 있어 틴트 없음, 원·부채꼴 진행도 구동, 그림 반경 = JSON radiusPx, 부채꼴은 회전), 없으면 옛 시트 + 곱 틴트.
+- S3 새 적 그림: 고수 북 = 시트 `beatFrames` 시각(`systems/squad.beatTimesMs`)마다 `drum_aura`(반경 = 북 반경 / JSON radiusPx, 몸을 따라감 — 그림이 없으면 옛 자리표시 원) · 술독병 맞아서 불붙으면 `swell` 루프, 스스로 터지면 쓰러지는 그림 = `explode` 시트(`Mob.corpseAction`).
+- S3 등장 자리: 웨이브 소환 = 마스크 `S` 자리(`arena.enemySpawns`) 둘레 1.5칸(주인공과 최소 거리 · 이번 쪽 우선, 없으면 예전처럼 방 안 아무 곳).
+- S3 지나가는 대사: `enemies.json drummer/bomber.barks`(65 팩) — 고수 첫 북 beat · 도망 flee / 술독병 달리기 charge · 심지 fuse · 맞아 날아감 launched. `GameCombat.bark` → UI `ui:enemy-bark{id,x,y,kind,text,screen(머리 위)}`(같은 적 4초 · 전체 1.5초 — `systems/barks.BarkGate`). 말풍선은 UI 몫.
+- 아트 §36 (메인 알림): 칼 오버레이·스미어는 이미 JSON frameWidth/Height·pivot·playerFrameOffset 을 읽는다(192·(96,186) 하드코딩 없음 확인). 무기 끝 fx: 칼끝 리본의 판정 호 폴백에 몸 `weaponOffsetDots`(판정 프레임) 더함(`bladeTip.weaponOffsetAt`) — 칼끝 메모(bladeTipAnchors)는 새 JSON 에 이미 반영돼 있어 그대로. 눈빛·가슴 앵커는 HeroMotion 이 지금 몸 시트(어느 동작이든)에서 읽는다. 타이틀 glow y 는 UI 쪽(메모만).
+
+### 3. 봇 길 찾기 (`parts/system/tools/bot/bot.js`)
+- 격자 A*(8방향 · 모서리 자르기 금지 · 이진 힙 · `TileWorld.isWalkableAt` 칸 가운데 — 낙하 구역·벽·단단한 구조물 막힘). 목표가 보이면(몸 반폭 ±5px 띠 시선) 직선, 아니면 경로의 보이는 가장 먼 칸으로(줄 당기기), 0.7초 또는 목표 칸이 바뀌면 다시 찾는다. 남은 적이 없으면 무대 중심으로도 같은 방식.
+- 길이 없는 적(낙하 구역 건너편 등)은 3초 목표에서 뺀다 · 이동 입력 중 20프레임 못 움직이면 0.3초 옆으로 비킨다(`sidesteps` 로 센다).
+- 계측 추가: `env`(벽꽝·볼링·낙하·폭발·연쇄·점화 — 시스템 EventBus 를 debug `__lopad.onEvent` 로 구독, 클리어 뒤는 세지 않음) · `react`(반응 이벤트 내역) · `stillBy`(정지 프레임의 주인공 동작별) · `path`(경로 계산·실패 수) · 표에 '환경'·'징집병 타수' 열.
+- 결과: 180초 상한에 걸리던 노드 0 (S3 의 c5r0 '미완' 해소), 경로 실패 0.
+- `parts/system/tools/bot/shots.cjs`(새, `npm run bot:shots`): 형태 8종 스크린샷 + 페이지 안에서 휘도(Rec.709)·L<25 비율 — 화면 가운데 메뉴는 닫고 찍는다.
+
+### 4. 수치 조정 (봇 `parts/system/tools/bot` — 무기 4 × 노드 4(c1r0 버려진 길 · c3r0 단1 · c4r0/r1 단2 · c5r0 단3), HP 400, 가짜 시계, 노드당 게임 180초 상한)
+| 회차 | 바꾼 것 |
+|---|---|
+| 기준 (2단계 시작) | S1~S3 통합 트리 + 이 절 1~2 연결 · A* 봇 |
+| 조정 1 | 징집병 예고 중 버팀 1(`swing.windupPoise` — `Enemy.poiseAgainst`) · 징집병 동시 상한 2 → 3(`ENEMY_SQUAD.KIND_MAX`) · 사수 간격 1200 → 1000 · 단2 둘째 웨이브 결사병 +1 · 단3 둘째 웨이브 자폭병 +1 · 단검 막타·치명 히트스톱 50 → 0(일반 0 무기는 처치만 멈춤 — `weaponHitstopMs`) |
+| 조정 2 (단1 4판만 — 효과 거의 없어 중단) | 징집병 예고 450 → 600ms · 붙는 거리 6 → 9칸 · 물러남 300~500 → 200~350ms · 다시 시도 250 → 150ms |
+| 조정 3 (최종) | **토큰을 휘두르기 시작에 받는다**(다가가는 동안 쥐지 않음 — `MobSquad.available` 로 다가갈지 판단, 사거리에서 `take`) · 웨이브 8~9(단1 징7+사1~2 · 단2 징6~7+결1+사2 · 단3 둘째 웨이브 자폭병 유지) · 버려진 길 7·9 → 8·9 |
+
+전투 노드 12판(c3·c4·c5 × 4무기) 범위 [최소 · 중앙 · 최대]:
+| 지표 | 기준 | 조정 1 | 최종 |
+|---|---|---|---|
+| 클리어 s (35~55 안 판 수) | 27.2 · 40.9 · 63.5 (8/12) | 22.8 · 38.3 · 52.0 (7/12) | 23.9 · 43.1 · 61.2 (8/12) |
+| 활성 평균 / 최대 | 4.57 · 5.43 · 6.21 / 11 | 4.93 · 5.55 · 6.15 / 11 | 5.24 · 5.80 · 6.56 / 11 |
+| 동시 공격 평균 (3+ %) | 0.07 · 0.55 · 0.75 (≤ 7.7) | 0.20 · 0.56 · 0.96 (≤ 7.1) | 0.18 · 0.71 · 1.06 (≤ 12.6 — 단검 c4r0 1판) |
+| 공백 최대 s | 0 | ≤ 0.58 | ≤ 0.59 |
+| 정지 % (≤ 15 판 수) | 1.8 · 18.4 · 53.7 (4/12) | 1.6 · 9.0 · 28.3 (8/12) | 1.7 · 7.3 · 21.4 (9/12) |
+| 히트스톱 % (≤ 8 판 수) | 4.2 · 6.0 · 12.0 (8/12) | 4.1 · 5.6 · 6.9 (12/12) | 4.0 · 5.0 · 6.9 (12/12) |
+| 환경 상호작용 / 노드 (≥ 8 판 수) | 0 · 1 · 6 (0/12) | 0 · 2 · 14 (2/12) | 0 · 1.5 · 8 (2/12) |
+| 징집병 처치 타수 | 칼 2 · 대검 1~2 · 단검 4~5 · 활 2 | 같음 | 같음 |
+- 버려진 길(c1r0, 2웨이브 징집병만 — 교재 노드): 15.6~21.3초 · 활성 4.9~7.0 · 동시 공격 0~0.74. 35~55초 목표는 전투 노드에만 적용(여정 노드는 짧게 둔다).
+- 정지 %의 남은 큰 몫은 대쉬 공격(skill — 칼 일섬·대검 태클) 판정 중 고정(봇이 대쉬 직후 연타 → 대쉬 공격). 캔슬 표(⑤10)는 S1 측정대로 판정 끝 + 2~6ms.
+- 동시 공격이 1.2 에 못 미치는 이유: 징집병(HP 14, 2~4타)이 한 번 휘두르고 죽는다(한 마리 생애 약 7초 중 예고·공격 9~10%). 활은 거리를 둬 징집병이 닿지 못한다(활 판 0.18~0.57). 토큰 상한 3 · 정예 따로는 계약대로 두었다.
+- 환경 상호작용: 봇은 벽·위험물을 노리지 않는다 — 단3(술독병·술통·웅덩이) 판만 6~14. 사람 확인 항목('노리게 되는가')으로 넘긴다.
+
+### 5. P19 ⑤ 16개 지표 (최종)
+| # | 지표 | 목표 | P19 ① 당시 | 2단계 기준 | 최종 | 합격 |
+|---|---|---|---|---|---|---|
+| 1 | 넓이 ÷ 화면 | 1.8~3.0 | 1.1~1.4 | 1.8~3.0 (shape.test 시드 50) | 같음 | O |
+| 2 | 형태 종류 | 6 + 보스 | 1 | 7 + 보스, 판마다 6형태 | 같음 | O |
+| 3 | 전투 화면 휘도 / L<25 | ≥ 55 / ≤ 15% | 22~34 / 30~65% | 회랑 46.4/20.7 · 연회장 55.0/28.0(안내판 덮임) | 8형태 55.5~70.4 / 4.8~14.9% (회랑 63.7/14.9 · 연회장 70.4/5.3) | O |
+| 4 | 활성 평균 / 최대 | 5~7 / 10~12 | 2.1~3.1 / 5~7 | 5.43 / 11 (중앙) | 5.80 / 11 (12판 5.24~6.56) | O |
+| 5 | 동시 공격 평균 | 1.2~2.0 | 0.02~0.72 | 0.55 | 0.71 (최대 1.06) | X |
+| 6 | '적 0' 공백 | ≤ 1.5초 | 5~27초 | 0 | ≤ 0.59 | O |
+| 7 | 전투 노드 길이 | 35~55초 | 36~126 | 40.9 (8/12) | 43.1 (8/12) | O (중앙·과반) |
+| 8 | 징집병 처치 타수 | 칼 2·단검 4·대검 1~2·활 2 | 3~8.9 | 맞음 | 맞음 (단검 4~5) | O |
+| 9 | 칼 / 대검 약공 한 바퀴 | 1.10 / 1.90 | 1.68 / 2.62 | 1.12 / 1.95 (S1) | 같음 | O (±3%) |
+| 10 | 특수 동작 잠금 | 판정 끝까지 | 620~1,200ms | 판정 끝 + 2~6ms (S1) | 같음 | O |
+| 11 | 대쉬 | 2회·900·3.5칸·통과 | 1회 | 맞음 (S1) | 같음 | O |
+| 12 | 공격 중 이동 배율 최저 | ≥ 0.6 | 0.35 | 0.72 (S1) | 같음 | O |
+| 13 | 히트스톱 비중 | ≤ 8% | 5~27% | 4.2~12.0 (단검 8.3~12) | 4.0~6.9 | O |
+| 14 | 일반 타격 경직 | 버팀 넘는 타 200ms | 0% | 맞음 (S1) | 같음 (징집병 예고 중만 버팀 1) | O |
+| 15 | 환경 상호작용 / 노드 | ≥ 8 | 0~1 | 0~6 | 0~8 (중앙 1.5) | X |
+| 16 | 정지 비율 | ≤ 15% | 16~42% | 18.4 (4/12) | 7.3 (9/12) | O (중앙·과반) |
+- 합격 14 / 16. 불합격: 5(동시 공격 — 위 이유), 15(환경 — 봇이 노리지 않음). 7·16 은 12판 중앙값·과반 기준이며 각각 4판·3판이 밖이다(대검 단3 23.9초·단1 61.2초 / 칼·대검 대쉬 공격 고정).
+
+### 검사
+- tsc 0 · eslint 0(바꾼 src) · prettier(바꾼 src·data만) · vite build 통과 · vitest 174파일 1294건 전부 통과(placement '층별 종류' 는 전체 실행·봇과 겹치면 5초를 넘어 20초 한도).
+- 새 테스트: `audioP19.test`(9) · `barks.test` · `squad.test`(+ 박 시각·available) · `terrainV4.test`(+ 바닥 꾸밈 3) · `shape.test`(+ 흉벽 그림·무대 중심 뒤집기·형태 이름). 갱신: `audioDefs`·`audioMix`·`awakenSheets`·`hitFeel`·`placement`.
+
+### 계약 변경 (프로듀서가 계약 문서에 옮길 것)
+- UI (`contract/ui.ts`): `UI_EVENTS.ENEMY_BARK = 'ui:enemy-bark'` + `UiEnemyBark{screen,id,x,y,kind,text}` (말풍선은 UI 몫).
+- 시스템 이벤트 페이로드(선택 필드 추가, 기존 구독자 영향 없음): `ENEMY_DAMAGED.weapon` · `ENEMY_BOWLED.chain` · `ENEMY_TELEGRAPH.ms` · `ENEMY_ATTACK.kind 'drum'`·`phase beat|rally|run|runEnd|blast` · 새 내부 이벤트 `combat:alive{alive,boss}`(UI 중계 없음).
+- 데이터: `data/arenas/*.json` 에 `lighting.ambientByRegion` · `centerArt{sheet,x,y,h}` · `dress{stoneRadius,stoneOnHigh,dropLift}` (free-combat §3 스키마 확장) · `route.json stage1.shapeNames` · `enemies.json barks`·`swing.windupPoise`.
+- 디버그: `window.__lopad.onEvent(event, fn)`(봇 계측).
+
+### 남은 것 · 다음 후보
+- 동시 공격 1.2~2.0: 징집병이 한 번 휘두르고 죽는 구조 — 다음 손잡이 후보는 징집병 사거리(예고 시작 거리 2.6 → 3.2칸 · 내딛기 1.2 → 1.8칸), 사수 조준 중 토큰을 따로 세지 않기, 활 판 별도 기준.
+- 환경 ≥ 8: 봇 기준으로는 단3 만 닿는다. 위험물 배치(문·길 가까이)·칼/대검 2·3타 넉백 단계 상향은 손맛과 같이 봐야 해 이번엔 안 했다.
+- 부두 크레인 `stage_dock_crane`·테라스 계단·술창고 술통 더미·회랑 봉화(stage_*), 술통 줄 `hazard_cask_row`(3×1 — 술통 구조물은 1×1)·`hazard_pool`(미리 깔린 웅덩이는 LiquorPools 그림) 은 연결 안 함 — 자리·크기·동작이 기존 구조물과 달라 새 구조물 종류가 필요.
+- 증류기 무대 중심 `stage_still` 의 warn/vent/broken 동작(증기 3초 피해)은 그림 idle 만.
+- 흉벽은 짐 상자 동작이라 한 번에 부서지고 금(cracked) 단계·낙하 틈 규칙은 없음.

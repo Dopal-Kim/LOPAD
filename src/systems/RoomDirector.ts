@@ -418,8 +418,16 @@ export class RoomDirector {
     const hw = (I.w * TILE) / 2;
     const hh = (I.h * TILE) / 2;
     const min = this.host.stage.trial.spawnMinDistTiles;
+    const spots = this.spawnSpots(side, c, hw, hh, min);
+    let k = 0;
     for (const entry of wave) {
       for (let i = 0; i < entry.count; i++) {
+        // P19 형태 틀: 마스크 S 자리(문·담 너머에서 뛰어드는 곳) 둘레 — 없으면 방 안 아무 곳
+        const near = spots.length > 0 ? this.nearSpot(spots[k++ % spots.length]) : null;
+        if (near) {
+          out.push({ enemy: entry.enemy, x: near.x, y: near.y, scale });
+          continue;
+        }
         let p = this.host.world.randomPointInRoom(room, this.host.rng, this.host.player, min);
         for (let t = 0; t < WAVE_SIDE_TRIES && !inSide(side, p, c, hw, hh, this.host.player); t++)
           p = this.host.world.randomPointInRoom(room, this.host.rng, this.host.player, min);
@@ -427,6 +435,40 @@ export class RoomDirector {
       }
     }
     return out;
+  }
+
+  /**
+   * P19 S2·S3: 형태 틀 적 등장 자리(`arena.enemySpawns` — 마스크 S) 중 주인공과 min 칸 이상 · 이번 쪽 안 (없으면 쪽 무시) — 섞어서
+   */
+  private spawnSpots(
+    side: WaveSide,
+    c: { x: number; y: number },
+    hw: number,
+    hh: number,
+    minTiles: number,
+  ): { x: number; y: number }[] {
+    const pl = this.host.player;
+    const far = (this.host.world.layout.arena?.enemySpawns ?? [])
+      .map((t) => ({ x: t.x * TILE + TILE / 2, y: t.y * TILE + TILE / 2 }))
+      .filter((p) => this.host.world.isWalkableAt(p.x, p.y) && Math.hypot(p.x - pl.x, p.y - pl.y) >= minTiles * TILE);
+    const sided = far.filter((p) => inSide(side, p, c, hw, hh, pl));
+    const list = sided.length > 0 ? sided : far;
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = this.host.rng.int(0, i);
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
+  }
+
+  /** 등장 자리 둘레 SPAWN_SPREAD 칸 안 걸을 수 있는 점 (못 찾으면 그 자리) */
+  private nearSpot(p: { x: number; y: number }): { x: number; y: number } {
+    const r = ENEMY_INCOMING.SPAWN_SPREAD_TILES * TILE;
+    for (let t = 0; t < 8; t++) {
+      const x = p.x + (this.host.rng.next() * 2 - 1) * r;
+      const y = p.y + (this.host.rng.next() * 2 - 1) * r;
+      if (this.host.world.isWalkableAt(x, y)) return { x, y };
+    }
+    return p;
   }
 
   private clearTrial(room: Room): void {

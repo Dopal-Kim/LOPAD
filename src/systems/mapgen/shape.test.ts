@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ARENA_SHAPES } from '../../data/arenas';
 import { ROUTE, generateRoute } from '../route';
-import { SCREEN_TILES, SHAPE_AREA_SCREENS, planNodeArena, shapeAssignments } from '../routeArena';
+import { SCREEN_TILES, SHAPE_AREA_SCREENS, namedRoute, planNodeArena, shapeAssignments } from '../routeArena';
 import { planStructures, solidStructureTiles } from '../structures/placement';
 import { arenaDoors } from '../doors/doorPlan';
 import { buildShape, resizeAxis, validateShape, type ArenaShapeDef } from './shape';
@@ -171,6 +171,43 @@ describe('P19 S2 1층 시드 50개: 형태 배정 · 넓이 · 도달 가능 · 
       const at = new Set(placed.map((s) => `${s.kind}:${s.tx},${s.ty}`));
       expect(fixed.filter((f) => at.has(`${f.kind}:${f.tx},${f.ty}`)).length).toBe(fixed.length);
       for (const d of p.layout.arena!.drops ?? []) expect(p.layout.tiles[d.y][d.x]).toBe(TileId.Void);
+    }
+  });
+
+  it('2단계: 흉벽 자리 = 짐 상자 동작 + hazard_merlon 그림 · 무대 중심 그림은 뒤집어도 덩어리 밑변(벽 칸 바로 아래 바닥)', () => {
+    const def = ARENA_SHAPES.get('rampart')!;
+    const seed = 'p19s2:merlon';
+    const road = generateRoute('stage1', seed).nodes.find((n) => n.kind === 'road')!;
+    const p = planNodeArena(road, 'stage1', seed, ROUTE, { shape: def.id });
+    const merlons = p.setPiece.fixed.filter((f) => f.sprite === 'hazard_merlon');
+    expect(merlons.length).toBe(def.hazards.filter((h) => h.kind === 'parapet').length);
+    expect(merlons.every((f) => f.kind === 'crate')).toBe(true);
+    const plaza = ARENA_SHAPES.get('plaza_fountain')!;
+    for (const flipY of [false, true]) {
+      const g = buildShape(plaza, { scale: 1, flipX: false, flipY });
+      const c = g.centerArt!;
+      const x = Math.floor(c.x);
+      expect(g.cells[Math.round(c.y) - 1][x]).toBe('wall');
+      expect(g.cells[Math.round(c.y)][x]).not.toBe('wall');
+    }
+  });
+
+  it('2단계: 전투 노드 이름 = 형태 이름 (스토리 65 팩 — 같은 형태 두 번째는 다른 이름) · 고정 이름 노드 그대로', () => {
+    for (let i = 0; i < 20; i++) {
+      const seed = `p19:names:${i}`;
+      const g = namedRoute('stage1', seed);
+      const shapes = shapeAssignments('stage1', seed);
+      const names = ROUTE.floors.stage1.shapeNames!;
+      const seen = new Map<string, number>();
+      for (const n of [...g.nodes].sort((a, b) => a.col - b.col || a.row - b.row)) {
+        if (n.kind === 'road') expect(n.name).toBe('버려진 길');
+        if (n.kind !== 'battle') continue;
+        const id = shapes.get(n.id)!;
+        const k = seen.get(id) ?? 0;
+        seen.set(id, k + 1);
+        expect(n.name).toBe(names[id][Math.min(k, names[id].length - 1)]);
+        expect(ROUTE.floors.stage1.nodeLines?.[n.name]).toBeTruthy();
+      }
     }
   });
 });

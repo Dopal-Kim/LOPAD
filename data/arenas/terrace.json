@@ -93,6 +93,7 @@
   ],
   "props": ["props_braziers", "props_lamps"],
   "lighting": {
+    "ambientByRegion": { "gate": "#ccd1e0", "outer": "#bdb8c7" },
     "ambient": "#bcbcc6",
     "lights": [
       {
@@ -122,5 +123,6 @@
       }
     ]
   },
+  "dress": { "stoneOnHigh": true },
   "stage": "battle"
 }

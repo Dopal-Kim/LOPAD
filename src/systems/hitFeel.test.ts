@@ -19,7 +19,8 @@ describe('hitFeel: 55라운드 Q6 히트스톱 · Q10 막타', () => {
     expect(weaponHitstopMs(WEAPONS.greatsword.feel, false)).toBe(30);
     expect(weaponHitstopMs(WEAPONS.bow.feel, false)).toBe(15);
     expect(weaponHitstopMs(WEAPONS.greatsword.feel, true)).toBe(54);
-    expect(weaponHitstopMs(WEAPONS.dagger.feel, true)).toBe(FEEL.HITSTOP.HEAVY_MIN_MS);
+    // 2단계 조정: 단검(일반 0)은 막타·치명도 0 — 처치만 멈춘다
+    expect(weaponHitstopMs(WEAPONS.dagger.feel, true)).toBe(0);
     for (const id of ['dagger', 'katana', 'greatsword', 'bow']) {
       const k = killHitstopMs(WEAPONS[id].feel, false);
       expect(k).toBeGreaterThanOrEqual(FEEL.HITSTOP.HEAVY_MIN_MS);

@@ -21,6 +21,7 @@ import {
   EMPTY_AUDIO_MANIFEST,
   bgmGain,
   bossBgmState,
+  dbToGain,
   indexEntries,
   isBossState,
   loopEndFrames,
@@ -47,6 +48,8 @@ import {
 import { VoiceBank } from './audioVoices';
 import { LazyAudio } from './audioLazy';
 import type { BossPhasePayload, DoorOpenedPayload, NodeEnteredPayload } from '../../core/EventBus';
+import type { CombatAlivePayload } from '../../core/eventsP19';
+import { CombatLayerGate } from './audioP19';
 
 /** 실제 구현체(WebAudio / HTML5 / NoAudio)는 모두 setVolume 을 가진다 */
 type Snd = Phaser.Sound.BaseSound & { setVolume(value: number): unknown };
@@ -61,6 +64,8 @@ export interface AudioSummary {
   loaded: number;
   missing: string[];
   bgm: string | null;
+  /** P19 전투 BGM 강도 층 */
+  combatLayer: { id: string; on: boolean; volume: number } | null;
   bgmVolume: number;
   bgmFading: number;
   floor: number | null;
@@ -111,6 +116,10 @@ export class AudioSystem {
   /** 55라운드 Q14 ②: 지연 효과음 예약기 (게임 씬 시계 — 히트스톱 동안 멈춤). 없으면 WebAudio 지연 */
   private delayScheduler: ((ms: number, fire: () => void) => unknown) | null = null;
   private bgm: BgmTrack | null = null;
+  /** P19 전투 BGM 강도 2단: 지금 곡 위 타악 층 (같은 재생 위치, 음량만 — mixing.bgmIntensity) */
+  private layer: BgmTrack | null = null;
+  private layerOn = false;
+  private readonly layerGate = new CombatLayerGate();
   private dying: BgmTrack[] = [];
   private floor: number | null = null;
   private state: string | null = null;
@@ -153,6 +162,7 @@ export class AudioSystem {
     EventBus.on(Events.PLAYER_DIED, this.onRunEnding, this);
     EventBus.on(Events.ENDING_CHOSEN, this.onRunEnding, this);
     EventBus.on(Events.RUN_ENDED, this.onRunEnded, this);
+    EventBus.on(Events.COMBAT_ALIVE, this.onCombatAlive, this);
     if (typeof document !== 'undefined') {
       // 첫 사용자 입력에서 컨텍스트 재개 (Phaser 의 unlock 과 겹쳐도 무해)
       this.onGesture = () => this.resumeContext();
@@ -194,7 +204,7 @@ export class AudioSystem {
     const fs = this.manifest.bgmByFloorState?.[String(floor)];
     const ids = withBoss
       ? floorStateBgmIds(this.manifest, floor)
-      : [fs?.journey, fs?.combat].filter((x): x is string => typeof x === 'string');
+      : [fs?.journey, fs?.combat, fs?.combatLayer].filter((x): x is string => typeof x === 'string');
     for (const id of ids) {
       if (this.loaded.has(id)) continue;
       void this.lazy.load(id, sm, this.game!).then((ok) => {
@@ -276,6 +286,7 @@ export class AudioSystem {
       snd.setVolume((this.loopBase.get(id) ?? 1) * this.vol.sfx);
     }
     // BGM: 페이드 중이 아니면 새 목표로 바로 (슬라이더를 끄는 동안 늦지 않게)
+    this.refreshLayerTarget(0);
     const t = this.bgm;
     if (t && !t.dying) {
       const target = this.targetVolume(t.id);
@@ -325,11 +336,14 @@ export class AudioSystem {
     if (!this.dedupe.allow(group, now)) return false;
     const priority = entry.priority ?? req.priority ?? (entry.category === 'ui' ? 0 : 2);
     const ui = priority === 0 || entry.category === 'ui';
+    // P19 타격음 층: 같은 id 30ms 안은 버림, 40ms 안에 몰리면 둘째부터 −3dB 씩
+    const stackDb = this.bank.hitStack(group, now);
+    if (stackDb === null) return false;
     if (!this.bank.admit({ group, priority, ui })) return false;
     const jitter = jitterApplies({ ...entry, priority }) ? jitterRate(Math.random(), rateJitterOf(this.mix)) : 1;
     const rate = jitter * (opts.rate ?? 1);
     const delayMs = Math.max(0, opts.delayMs ?? 0);
-    const base = sfxGain(this.mix, entry) * Math.max(0, opts.gain ?? 1);
+    const base = sfxGain(this.mix, entry) * Math.max(0, opts.gain ?? 1) * dbToGain(stackDb);
     const snd = sm.add(pick, {
       volume: base * this.bank.gainFor(priority, now),
       rate,
@@ -456,6 +470,7 @@ export class AudioSystem {
       loaded: this.loaded.size,
       missing: [...this.missing].sort(),
       bgm: this.bgm?.id ?? null,
+      combatLayer: this.layer ? { id: this.layer.id, on: this.layerOn, volume: +this.layer.volume.toFixed(3) } : null,
       bgmVolume: this.bgm ? Number(this.bgm.volume.toFixed(3)) : 0,
       bgmFading: this.dying.length + (this.bgm?.fade ? 1 : 0),
       floor: this.floor,
@@ -583,6 +598,8 @@ export class AudioSystem {
       if (Math.abs(this.bgm.volume - target) > 1e-4 || (this.bgm.fade && this.bgm.fade.to !== target)) {
         this.bgm.fade = { from: this.bgm.volume, to: target, startAt: this.now(), ms: this.mix.bgmCrossfadeMs };
       }
+      this.ensureLayer();
+      this.refreshLayerTarget(this.mix.bgmCrossfadeMs);
       return;
     }
     // 지연 로드 중인 곡이면 지금 곡을 유지하고 도착하면 다시 (prefetchFloor → refreshBgm)
@@ -610,6 +627,51 @@ export class AudioSystem {
       fade: { from: 0, to: target, startAt: this.now(), ms },
       dying: false,
     };
+    this.ensureLayer(pos);
+  }
+
+  // --- P19 전투 BGM 강도 2단 ---
+
+  private onCombatAlive(p: CombatAlivePayload): void {
+    this.layerGate.set(p.alive, p.boss, this.now());
+  }
+
+  /** 지금 곡에 타악 층이 있고 로드됐으면 같은 재생 위치에서 음량 0 으로 같이 돌린다 (seek = 곡 위치) */
+  private ensureLayer(seek?: number): void {
+    const main = this.bgm;
+    const id = main ? this.mix.bgmIntensity?.layers?.[main.id] : undefined;
+    if (this.layer && this.layer.id === id) return;
+    this.retireLayer(0);
+    const sm = this.game?.sound;
+    if (!main || !id || !sm || !this.loaded.has(id)) return;
+    const entry = this.entries.get(id);
+    const dur = (entry?.durationMs ?? 0) / 1000;
+    const pos = seek ?? (main.sound as unknown as { seek: number }).seek ?? 0;
+    const snd = sm.add(id, { loop: true, volume: 0 }) as Snd;
+    if (dur > 0 && pos > 0) snd.play({ seek: pos % dur });
+    else snd.play();
+    this.layer = { id, sound: snd, volume: 0, fade: null, dying: false };
+    this.refreshLayerTarget(0);
+  }
+
+  /** 켬 = 층 자기 음량까지 fadeInMs, 끔 = 0 까지 fadeOutMs (ms 를 주면 그 값 — 음량 설정·덕킹 변화) */
+  private refreshLayerTarget(ms?: number): void {
+    const L = this.layer;
+    if (!L) return;
+    const I = this.mix.bgmIntensity;
+    const target = this.layerOn ? this.targetVolume(L.id) : 0;
+    const dur = ms ?? (this.layerOn ? (I?.fadeInMs ?? 1500) : (I?.fadeOutMs ?? 3000));
+    if (Math.abs(L.volume - target) < 1e-4 && !L.fade) return;
+    L.fade = { from: L.volume, to: target, startAt: this.now(), ms: dur };
+  }
+
+  private retireLayer(ms: number): void {
+    const L = this.layer;
+    if (!L) return;
+    this.layer = null;
+    L.dying = true;
+    L.fade = { from: L.volume, to: 0, startAt: this.now(), ms };
+    this.dying.push(L);
   }
 
   private targetVolume(id: string): number {
@@ -620,6 +682,7 @@ export class AudioSystem {
 
   /** 현재 BGM 을 페이드아웃 목록으로 넘긴다 */
   private retire(ms: number): void {
+    this.retireLayer(ms);
     const cur = this.bgm;
     if (!cur) return;
     this.bgm = null;
@@ -635,6 +698,13 @@ export class AudioSystem {
     const duck = this.bank.update(now);
     if (Math.abs(duck - prevDuck) > 1e-4 && this.bgm && !this.bgm.fade)
       this.bgm.sound.setVolume(this.bgm.volume * duck);
+    if (Math.abs(duck - prevDuck) > 1e-4 && this.layer && !this.layer.fade)
+      this.layer.sound.setVolume(this.layer.volume * duck);
+    const on = this.layerGate.isOn(now);
+    if (on !== this.layerOn) {
+      this.layerOn = on;
+      this.refreshLayerTarget();
+    }
     if (this.fading.length > 0) {
       this.fading = this.fading.filter((f) => {
         const k = Math.min(1, (now - f.at) / f.ms);
@@ -647,6 +717,7 @@ export class AudioSystem {
       });
     }
     if (this.bgm?.fade) this.applyFade(this.bgm, now);
+    if (this.layer?.fade) this.applyFade(this.layer, now);
     if (this.dying.length > 0) {
       const keep: BgmTrack[] = [];
       for (const t of this.dying) {
@@ -712,6 +783,7 @@ export class AudioSystem {
     EventBus.off(Events.PLAYER_DIED, this.onRunEnding, this);
     EventBus.off(Events.ENDING_CHOSEN, this.onRunEnding, this);
     EventBus.off(Events.RUN_ENDED, this.onRunEnded, this);
+    EventBus.off(Events.COMBAT_ALIVE, this.onCombatAlive, this);
     if (typeof document !== 'undefined') {
       if (this.onGesture) {
         document.removeEventListener('pointerdown', this.onGesture);

@@ -246,6 +246,13 @@ export class Enemy extends Mob {
     return super.canStagger(time) && !(this.def.behavior === 'charge' && this.chargeState === 'dash');
   }
 
+  /** P19 2단계: 휘두르기 예고 중 버팀 (data swing.windupPoise — 몸 번쩍임 = 버팀, 약한 타로는 예고가 끊기지 않는다) */
+  override poiseAgainst(dirX: number, dirY: number): number {
+    const base = super.poiseAgainst(dirX, dirY);
+    const w = this.def.swing?.windupPoise;
+    return w && this.windingUp ? Math.max(base, w) : base;
+  }
+
   /** P19 술배 자폭병: 맞으면 불이 붙는다 (날아간 자리에서 터진다) */
   override takeDamage(amount: number, info: Parameters<Mob['takeDamage']>[1] = {}): boolean {
     const died = super.takeDamage(amount, info);

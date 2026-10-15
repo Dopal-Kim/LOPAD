@@ -26,8 +26,10 @@ export function stateFallbacks(state: string): string[] {
   if (state.endsWith('_f2')) out.push(state.slice(0, -3));
   if (state === 'ready') out.push('active');
   if (/^used\d$/.test(state)) out.push('idle');
-  if (/^damaged\d/.test(state)) out.push('idle');
+  if (/^damaged\d/.test(state)) out.push('cracked', 'idle');
   out.push('idle');
+  // P19 art §34 위험물 시트(hazard_merlon whole/cracked/broken)
+  out.push('whole');
   return [...new Set(out)];
 }
 

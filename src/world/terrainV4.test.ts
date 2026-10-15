@@ -3,7 +3,16 @@ import { ARENA_SHAPES } from '../data/arenas';
 import { generateArena } from '../systems/mapgen/arena';
 import { buildShape } from '../systems/mapgen/shape';
 import { TileId } from '../systems/mapgen';
-import { dropFillIndex, floorMacroIndex, groundV4, planTerrainOverlay, terrainCellsOf, terrainV4Of } from './terrainV4';
+import {
+  dressOf,
+  dropFillIndex,
+  floorMacroIndex,
+  groundV4,
+  planFloorDress,
+  planTerrainOverlay,
+  terrainCellsOf,
+  terrainV4Of,
+} from './terrainV4';
 
 const seq = (a: number, n: number) => Array.from({ length: n }, (_, i) => a + i);
 const V4 = {
@@ -82,5 +91,49 @@ describe('P19 1-A 타일셋 v4 지형 (art §34)', () => {
     expect([...c.stairs].some((k) => [476, 477, 478, 479].includes(at.get(k) ?? -1))).toBe(true);
     // 단 끝 칸 바닥은 아래 단 바닥 매크로 (검은 빈 칸 아님)
     expect(groundV4(v, c, TileId.Void, lx, ly, 0)).toBe(floorMacroIndex(v, lx, ly));
+  });
+});
+
+describe('P19 2단계 바닥 꾸밈 (art §34 mock compose)', () => {
+  const D = {
+    ...V4,
+    overlays: {
+      dirt: { macro: seq(160, 64), mask: seq(288, 16), rim: seq(320, 16) },
+      stone: { macro: seq(224, 64), mask: seq(304, 16), rim: seq(336, 16) },
+    },
+    decals: { tiles: seq(352, 16) },
+    floorShadows: { n: 368, w: 369, e: 370 },
+    drop: { ...V4.drop, railing: { s: 444, n: 445, w: 446, e: 447, s_broken: 448, post: 449 } },
+  };
+  const dress = dressOf({ v4: D })!;
+
+  it('표가 모자라면 꾸밈 없음', () => {
+    expect(dressOf({ v4: V4 })).toBeNull();
+    expect(dress.railing?.s).toBe(444);
+  });
+
+  it('광장: 돌 덮개(중심 반경) · 흙 길 · 데칼 약 11% · 벽 그늘 · cfg 0 칸 없음 — 칸은 바닥만', () => {
+    const layout = layoutOf('plaza_fountain');
+    const c = terrainCellsOf(layout);
+    const plan = planFloorDress(dress, c, layout);
+    const floor = (x: number, y: number) => layout.tiles[y][x] === TileId.Floor;
+    expect(plan.cover.every((q) => floor(q.x, q.y))).toBe(true);
+    expect(plan.cover.some((q) => q.material === 'stone')).toBe(true);
+    expect(plan.cover.some((q) => q.material === 'dirt')).toBe(true);
+    expect(plan.cover.every((q) => q.mask >= 288 && q.mask !== 288 && q.mask !== 304)).toBe(true);
+    const floors = layout.tiles.flat().filter((t) => t === TileId.Floor).length;
+    expect(plan.decals.length / floors).toBeGreaterThan(0.06);
+    expect(plan.decals.length / floors).toBeLessThan(0.16);
+    expect(plan.shadows.some((q) => q.index === 368)).toBe(true);
+    // 같은 입력 = 같은 결과
+    expect(planFloorDress(dress, c, layout)).toEqual(plan);
+  });
+
+  it('부두: 수로 둑 남·북 난간 (일부 끊김)', () => {
+    const layout = layoutOf('dock_quay');
+    const plan = planFloorDress(dress, terrainCellsOf(layout), layout);
+    const idx = new Set(plan.railings.map((r) => r.index));
+    expect(idx.has(444)).toBe(true);
+    expect(idx.has(445)).toBe(true);
   });
 });

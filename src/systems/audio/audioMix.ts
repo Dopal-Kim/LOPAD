@@ -45,7 +45,11 @@ export function resolveBgmFor(
 export function floorStateBgmIds(m: AudioManifest, floor: number): string[] {
   const fs = m.bgmByFloorState?.[String(floor)];
   if (!fs) return [];
-  return [...new Set([fs.journey, fs.combat, fs.boss, ...(fs.bossPhases ?? [])].filter((x): x is string => !!x))];
+  return [
+    ...new Set(
+      [fs.journey, fs.combat, fs.combatLayer, fs.boss, ...(fs.bossPhases ?? [])].filter((x): x is string => !!x),
+    ),
+  ];
 }
 
 /** 부팅 때 읽지 않는 BGM (`use.floor` 가 있는 층 전용 곡 — 그 층에 들어갈 때 지연 로드) */
@@ -101,6 +105,34 @@ export interface VoiceLimits {
   perGroupOverrides: Record<string, number>;
   /** 개성 발동 특색 층(sound §11 layerMax) — 이 층 전체 동시 상한 */
   traitLayer?: { ids: ReadonlySet<string>; max: number };
+  /** P19 타격음 층(sound §14 hitLayer) — 층 전체 동시 상한 · 몰림 감쇠 · 같은 id 간격 */
+  hitLayer?: HitLayer;
+}
+
+export interface HitLayer {
+  ids: ReadonlySet<string>;
+  max: number;
+  windowMs: number;
+  stackDb: number;
+  minGapMs: number;
+}
+
+/** 몰림 감쇠 최저 (sound §14 '최저 −9') */
+const HIT_STACK_MIN_DB = -9;
+
+/**
+ * P19 타격음 층의 새 소리: 같은 id 가 minGapMs 안이면 버림(null), 아니면 windowMs 안에 먼저 울린 층 소리 수 × stackDb (최저 −9).
+ * starts = 최근 층 소리 시작(그룹·시각)
+ */
+export function hitStackDb(
+  starts: readonly { group: string; at: number }[],
+  group: string,
+  now: number,
+  layer: HitLayer,
+): number | null {
+  if (starts.some((s) => s.group === group && now - s.at < layer.minGapMs)) return null;
+  const n = starts.filter((s) => now - s.at < layer.windowMs).length;
+  return n === 0 ? 0 : Math.max(HIT_STACK_MIN_DB, layer.stackDb * n);
 }
 
 /** 개성 발동 특색 층에 드는 그룹인가 (manifest ids 또는 `sfx/trait_` 접두어 — trait_manifest 는 메뉴 소리라 제외) */
@@ -117,6 +149,15 @@ export function voiceLimitsOf(mix: AudioMixing): VoiceLimits {
     perGroupMax: v.perGroupMax ?? 3,
     perGroupOverrides: v.perGroupOverrides ?? {},
     traitLayer: { ids: new Set(v.layerMax?.ids ?? []), max: v.layerMax?.max ?? Infinity },
+    hitLayer: v.hitLayer
+      ? {
+          ids: new Set(v.hitLayer.ids ?? []),
+          max: v.hitLayer.max ?? Infinity,
+          windowMs: v.hitLayer.windowMs ?? 0,
+          stackDb: v.hitLayer.stackDb ?? 0,
+          minGapMs: v.hitLayer.minGapMs ?? 0,
+        }
+      : undefined,
   };
 }
 
@@ -142,6 +183,14 @@ export function allocateVoice(
   if (lim.traitLayer && inTraitLayer(incoming.group, lim.traitLayer)) {
     const layer = alive().filter((x) => inTraitLayer(x.v.group, lim.traitLayer));
     if (layer.length >= lim.traitLayer.max) {
+      const o = oldest(layer);
+      if (o) steal.add(o.i);
+    }
+  }
+  const hit = lim.hitLayer;
+  if (hit?.ids.has(incoming.group)) {
+    const layer = alive().filter((x) => hit.ids.has(x.v.group));
+    if (layer.length >= hit.max) {
       const o = oldest(layer);
       if (o) steal.add(o.i);
     }
@@ -234,10 +283,12 @@ export interface ActiveDuck {
   rule: DuckRule;
   start: number;
   holdEnd: number;
+  /** P19: 덕킹을 일으킨 소리 — 자기 자신은 눌리지 않는다 (bomber_blast 우선순위 2 · sound §14) */
+  owner?: unknown;
 }
 
-export function startDuck(rule: DuckRule, now: number, soundMs: number): ActiveDuck {
-  return { rule, start: now, holdEnd: now + rule.attackMs + (rule.holdMs ?? soundMs) };
+export function startDuck(rule: DuckRule, now: number, soundMs: number, owner?: unknown): ActiveDuck {
+  return { rule, start: now, holdEnd: now + rule.attackMs + (rule.holdMs ?? soundMs), owner };
 }
 
 /** 봉투 0..1 (공격 → 유지 → 해제) */
@@ -259,9 +310,11 @@ export function duckDbAt(
   active: readonly ActiveDuck[],
   now: number,
   target: { bus: 'bgm' } | { bus: 'sfx'; priority: number },
+  self?: unknown,
 ): number {
   let db = 0;
   for (const d of active) {
+    if (self !== undefined && d.owner === self) continue;
     const t = d.rule.target;
     if (t.bus !== target.bus) continue;
     if (t.bus === 'sfx' && target.bus === 'sfx' && target.priority > t.maxPriority) continue;

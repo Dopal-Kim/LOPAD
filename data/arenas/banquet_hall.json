@@ -60,8 +60,10 @@
   "hazards": [],
   "props": [],
   "lighting": {
+    "ambientByRegion": { "hall": "#b2a8a8" },
     "ambient": "#bcbcc6",
     "lights": []
   },
+  "dress": { "stoneRadius": 8 },
   "stage": "boss"
 }

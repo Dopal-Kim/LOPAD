@@ -20,12 +20,13 @@
     "intro": "떼로 몰려와 둘러싼다. 몸이 번쩍이면 곧 벤다 — 먼저 치거나 빠져라.",
     "swing": {
       "triggerTiles": 2.6,
-      "telegraphMs": 450,
+      "telegraphMs": 600,
       "rangeTiles": 1.4,
       "arcDeg": 100,
       "attack": 7,
       "strikeMs": 200,
-      "lungeTiles": 1.2
+      "lungeTiles": 1.2,
+      "windupPoise": 1
     }
   },
   "archer": {
@@ -33,7 +34,7 @@
     "hp": 16,
     "attack": 6,
     "speedTiles": 2.7,
-    "attackIntervalMs": 1200,
+    "attackIntervalMs": 1000,
     "behavior": "ranged",
     "size": [14, 14],
     "color": "#c08a30",
@@ -195,7 +196,11 @@
     },
     "poise": 0,
     "personalityValue": 12,
-    "gold": 6
+    "gold": 6,
+    "barks": {
+      "beat": ["한 잔에 한 걸음!", "북 맞춰 마셔라, 북 맞춰 나가라!", "장단 늦으면 외상 는다!"],
+      "flee": ["고수는 원래 맨 뒤다!", "북은 안 된다, 북은 빌린 거다!"]
+    }
   },
   "bomber": {
     "name": "술독병",
@@ -216,6 +221,11 @@
     },
     "poise": 0,
     "personalityValue": 10,
-    "gold": 5
+    "gold": 5,
+    "barks": {
+      "charge": ["외상, 오늘 다 갚는다!", "비켜! 아니, 비키지 마!"],
+      "fuse": ["어… 이거 원래 이렇게 빨리 타나?"],
+      "launched": ["어어, 거긴 우리 편—!"]
+    }
   }
 }

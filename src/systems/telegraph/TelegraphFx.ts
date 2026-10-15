@@ -80,6 +80,9 @@ interface Marker {
   final: boolean;
   /** P19 예고 색 (opts.tier) — 시트는 곱 틴트, 플레이스홀더는 선 색 */
   color?: number;
+  /** P19 단계 시트(tele_*): 색이 그림에 들어 있어 틴트하지 않음 · 회전 시트(drawnFacing right) */
+  baked?: boolean;
+  rotates?: boolean;
 }
 
 export class TelegraphFx {
@@ -128,7 +131,8 @@ export class TelegraphFx {
     durationMs: number,
     opts: TelegraphOptions = {},
   ): TelegraphHandle {
-    const id = this.idOf('line');
+    const tierId = this.tierId('line', opts);
+    const id = tierId ?? this.idOf('line');
     const def = spriteLibrary.sheet(id, FX_ACTION);
     const texture = spriteLibrary.textureKey(id, FX_ACTION);
     let m: Marker;
@@ -138,10 +142,12 @@ export class TelegraphFx {
       const ts = this.scene.add
         .tileSprite(x, y, Math.max(1, Math.round(lengthPx / k)), def.frameHeight, texture, 0)
         .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
-        .setScale(k, ENEMY_FX.BOLD.LINE_SCALE_Y * k)
+        .setScale(k, (tierId ? 1 : ENEMY_FX.BOLD.LINE_SCALE_Y) * k)
         .setRotation(angle)
         .setDepth(DEPTH.FX_GROUND);
-      m = this.make('line', ts, durationMs, frameDurations(def)[0], texture);
+      // 한 장짜리 단계 시트는 프레임을 번갈지 않는다 (깜빡임은 알파)
+      m = this.make('line', ts, durationMs, frameDurations(def)[0], def.frames > 1 ? texture : undefined);
+      m.baked = Boolean(tierId);
     } else {
       const g = this.scene.add.graphics().setDepth(DEPTH.FX_GROUND).setPosition(x, y).setRotation(angle);
       m = this.make('line', g, durationMs, ENEMY_FX.PLACEHOLDER.BLINK_MS);
@@ -159,7 +165,7 @@ export class TelegraphFx {
 
   /** 원: 중심 (x, y), 반지름 radiusPx */
   circle(x: number, y: number, radiusPx: number, durationMs: number, opts: TelegraphOptions = {}): TelegraphHandle {
-    const m = this.roundMarker('circle', x, y, radiusPx, durationMs, 0, 'down');
+    const m = this.roundMarker('circle', x, y, radiusPx, durationMs, 0, 'down', opts);
     this.paintTier(m, opts);
     if (!m.progress) {
       // 플레이스홀더 닫히는 원: 남은 시간 비율로 반지름이 줄어드는 안쪽 원 (시트는 그림에 들어 있다)
@@ -189,10 +195,10 @@ export class TelegraphFx {
     if (Phaser.Math.RadToDeg(halfAngleRad) * 2 > ENEMY_FX.CONE_MAX_SPREAD_DEG)
       return this.circle(x, y, radiusPx, durationMs, opts);
     const dir = facingOf(Math.cos(angle), Math.sin(angle), 'down');
-    const m = this.roundMarker('cone', x, y, radiusPx, durationMs, halfAngleRad, dir);
+    const m = this.roundMarker('cone', x, y, radiusPx, durationMs, halfAngleRad, dir, opts);
     m.angle = angle;
     this.paintTier(m, opts);
-    if (m.obj instanceof Phaser.GameObjects.Graphics) m.obj.setRotation(angle);
+    if (m.obj instanceof Phaser.GameObjects.Graphics || m.rotates) m.obj.setRotation(angle);
     this.attachAura(m, x, y, opts);
     return this.handle(m);
   }
@@ -352,7 +358,14 @@ export class TelegraphFx {
     if (!opts.tier) return;
     m.color = TELEGRAPH_TIER[opts.tier];
     if (m.obj instanceof Phaser.GameObjects.Graphics) this.redraw(m);
-    else m.obj.setTint(m.color);
+    else if (!m.baked) m.obj.setTint(m.color);
+  }
+
+  /** P19 단계 시트 id (로드됐을 때만) */
+  private tierId(kind: TelegraphKind, opts: TelegraphOptions): string | null {
+    const id = opts.tier ? ENEMY_FX.TIER_IDS[opts.tier]?.[kind] : undefined;
+    const tex = id ? spriteLibrary.textureKey(id, FX_ACTION) : null;
+    return id && tex && this.scene.textures.exists(tex) ? id : null;
   }
 
   private idOf(kind: TelegraphKind): string {
@@ -392,20 +405,27 @@ export class TelegraphFx {
     durationMs: number,
     halfAngle: number,
     dir: Facing,
+    opts: TelegraphOptions = {},
   ): Marker {
     const B = ENEMY_FX.BOLD;
-    const id = this.idOf(kind);
+    const tierId = this.tierId(kind, opts);
+    const id = tierId ?? this.idOf(kind);
     const def = spriteLibrary.sheet(id, FX_ACTION);
     const texture = spriteLibrary.textureKey(id, FX_ACTION);
     let m: Marker;
     if (def && texture && this.scene.textures.exists(texture)) {
       const base = kind === 'circle' ? B.CIRCLE_BASE_RADIUS : B.CONE_BASE_RADIUS;
+      // P19 단계 시트: 그림 반경 = JSON radiusPx 도트 → 도트 배율 = R / radiusPx
+      const artR = (def as { radiusPx?: number }).radiusPx;
+      const scale = tierId && artR ? radiusPx / artR : (radiusPx / base) * fxDrawScale(def);
       const s = this.scene.add
         .sprite(x, y, texture, frameIndices(def, dir)[0] ?? 0)
         .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
-        .setScale((radiusPx / base) * fxDrawScale(def))
+        .setScale(scale)
         .setDepth(DEPTH.FX_GROUND);
       m = this.make(kind, s, durationMs, ENEMY_FX.PLACEHOLDER.BLINK_MS, texture);
+      m.baked = Boolean(tierId);
+      m.rotates = Boolean(tierId && def.rotate);
       if (def.progressDriven) m.progress = { id, frames: def.frames, dir };
       else {
         // 진행도 필드가 없는 옛 시트: 루프 애니
@@ -473,7 +493,7 @@ export class TelegraphFx {
         if (!m.auraDetached) m.aura?.setPosition(x, y);
         if (angle !== undefined && m.kind !== 'circle') {
           m.angle = angle;
-          if (m.kind === 'line') m.obj.setRotation(angle);
+          if (m.kind === 'line' || m.rotates) m.obj.setRotation(angle);
           else if (m.progress) {
             // 4방향 시트: 지배 축이 바뀌면 행을 바꾼다 (프레임은 다음 update 에서 진행도로)
             m.progress.dir = facingOf(Math.cos(angle), Math.sin(angle), 'down');

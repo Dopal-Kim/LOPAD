@@ -14,6 +14,7 @@ import {
 } from '../core/Constants';
 import { screenFixed, worldZoom } from '../systems/display';
 import { EventBus, Events } from '../core/EventBus';
+import type { CombatAlivePayload } from '../core/eventsP19';
 import { gameState } from '../core/GameState';
 import { floorText } from '../systems/story';
 import type { Mob } from '../objects/Mob';
@@ -177,6 +178,8 @@ export class Game extends Phaser.Scene {
   /** 개성 3지선다·엔딩 선택·시험장 메뉴 중: 게임 진행(이동·적·물리) 정지 */
   frozen = false;
   hitStopped = false;
+  /** P19: 마지막으로 알린 살아 있는 적 수 (음향 전투 BGM 강도 — COMBAT_ALIVE) */
+  private lastAlive = -1;
   transitioning = false;
   visitedRooms = new Set<string>();
   clearedRooms = new Set<string>();
@@ -292,6 +295,7 @@ export class Game extends Phaser.Scene {
     this.training = this.isTraining ? new TrainingMode(this, this.initData.trainingRoom) : null;
     this.frozen = false;
     this.hitStopped = false;
+    this.lastAlive = -1;
     this.time.paused = false;
     this.playClock.reset();
 
@@ -337,7 +341,7 @@ export class Game extends Phaser.Scene {
       player: this.player,
       mobs: this.mobs,
       fx: this.fx,
-      hitMob: (m, dmg, o) => this.combat.hitMob(m, dmg, o),
+      hitMob: (m, dmg, o) => this.combat.hitMob(m, dmg, { ...o, hazard: true }),
       onKill: (m, kind) => this.progress.onKill(m, kind),
     });
     this.hazards = new EnemyHazards({
@@ -348,7 +352,7 @@ export class Game extends Phaser.Scene {
       fx: this.fx,
       pools: this.pools,
       telegraph: this.telegraph,
-      hitMob: (m, dmg, o) => this.combat.hitMob(m, dmg, o),
+      hitMob: (m, dmg, o) => this.combat.hitMob(m, dmg, { ...o, hazard: true }),
       onKill: (m, kind) => this.progress.onKill(m, kind),
       shake: (px, ms) => this.shake.add(this.time.now, px, ms),
     });
@@ -497,7 +501,7 @@ export class Game extends Phaser.Scene {
         spawnPickup: (x, y, kind, value) => this.economy.spawnPickup(x, y, kind, value),
         gainGrowth: (n) => this.progress.gainGrowth(n),
         heal: (n) => this.player.heal(n),
-        hitMob: (m, dmg, o) => this.combat.hitMob(m, dmg, o),
+        hitMob: (m, dmg, o) => this.combat.hitMob(m, dmg, { ...o, hazard: true }),
         onKill: (m, kind) => this.progress.onKill(m, kind),
         potionCarry: () => this.economy.potionCarry,
         isBusy: () =>
@@ -544,7 +548,7 @@ export class Game extends Phaser.Scene {
         fx: this.fx,
         pools: this.pools,
         lighting: () => this.lighting ?? null,
-        hitMob: (m, dmg, o) => this.combat.hitMob(m, dmg, o),
+        hitMob: (m, dmg, o) => this.combat.hitMob(m, dmg, { ...o, hazard: true }),
         onKill: (m, kind) => this.progress.onKill(m, kind),
         shake: (px, ms) => this.shake.add(this.time.now, px, ms),
         propSkin: propSkinFor(this.nodeArena.tileset),
@@ -695,9 +699,18 @@ export class Game extends Phaser.Scene {
     if (this.route.checkFloorExit()) return;
 
     this.updateActors(time, delta);
+    this.emitAlive();
     this.economy.updateShop(input.interactPressed);
     this.ui.emitState();
     this.updateDebugText();
+  }
+
+  /** P19: 살아 있는 적 수가 바뀌면 COMBAT_ALIVE (음향 전투 BGM 강도 2단) */
+  private emitAlive(): void {
+    const alive = this.mobs.countActive(true);
+    if (alive === this.lastAlive) return;
+    this.lastAlive = alive;
+    EventBus.emit(Events.COMBAT_ALIVE, { alive, boss: this.nodeKind === 'boss' } satisfies CombatAlivePayload);
   }
 
   /** 적 AI · 투사체 · 드랍 · 플레이어 공격 부가 효과 · 연출 */
@@ -718,6 +731,7 @@ export class Game extends Phaser.Scene {
       squad: this.squad,
       meleeHit: c.meleeHit,
       blast: c.blast,
+      bark: c.bark,
       arena: this.bossArena,
       hazards: this.hazards,
     };

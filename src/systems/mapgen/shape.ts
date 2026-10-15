@@ -5,6 +5,7 @@
  * 크기 변형은 '이음매' 방식: 줄(열)을 늘릴 때는 이웃과 같은 줄을 복제하고, 줄일 때는 이웃과 같은 줄만 지운다 →
  * 다리·난간·문 같은 한 칸짜리 지형이 사라지지 않고 바닥 연결(BFS)이 그대로 유지된다. 지울 줄이 모자라면 그만큼 덜 줄인다.
  */
+import type { ArenaDress } from './types';
 export type ShapeToken =
   | 'floor'
   | 'wall'
@@ -43,8 +44,17 @@ export interface ArenaShapeDef {
   /** 소품 세트 후보 (route.json setPieces id) — 노드마다 하나 */
   props: string[];
   /** 주변광 덮어쓰기 · 고정 광원 (x, y = 마스크 칸, kind = data/lighting.json fallback 키) */
-  lighting: { ambient: string | null; lights: { x: number; y: number; kind: string }[] };
+  lighting: {
+    ambient: string | null;
+    /** P19 2단계 지역별 주변광 (아트 p19 lighting_proposal — 노드 지역이 있으면 ambient 대신) */
+    ambientByRegion?: Record<string, string>;
+    lights: { x: number; y: number; kind: string }[];
+  };
   stage: ShapeStage;
+  /** P19 2단계 무대 중심 그림 (art §34 stage_* — 내부 벽 덩어리 위 장식). x, y = 마스크 칸 좌표의 발 자리(덩어리 밑변 가운데) · h = 덩어리 높이 칸 */
+  centerArt?: { sheet: string; x: number; y: number; h: number };
+  /** P19 2단계 바닥 덮개 (art §34 mock compose): 돌 덮개 = 무대 중심 반경 stoneRadius 칸(배율 반영) · stoneOnHigh = 높은 단 위 */
+  dress?: { stoneRadius?: number; stoneOnHigh?: boolean; dropLift?: number };
 }
 
 export const DEFAULT_LEGEND: Readonly<Record<string, ShapeToken>> = {
@@ -101,6 +111,11 @@ export interface ShapeGrid {
   spawns: { x: number; y: number }[];
   /** 광원 (내부 칸 좌표, 칸 가운데 = +0.5 소수) */
   lights: { x: number; y: number; kind: string }[];
+  /** 무대 중심 그림 발 자리 (내부 칸 좌표, 소수) */
+  centerArt: { sheet: string; x: number; y: number } | null;
+  /** 무대 중심 그림이 덮는 벽 덩어리 (내부 칸 — 벽 그림을 그리지 않고 바닥 위에 그림만, 판정은 벽 그대로) */
+  centerCells: { x: number; y: number }[];
+  dress: ArenaDress;
   flipX: boolean;
   flipY: boolean;
   scale: number;
@@ -270,6 +285,10 @@ export function buildShape(def: ArenaShapeDef, v: ShapeVariant): ShapeGrid {
   }
   w = grid[0].length;
   h = grid.length;
+  const art = def.centerArt
+    ? { x: fx(def.centerArt.x), y: fy(v.flipY ? def.centerArt.y - def.centerArt.h : def.centerArt.y) }
+    : null;
+  const centerCells = art ? wallBlock(grid, Math.floor(art.x), Math.round(art.y) - 1) : [];
   const hzBySlot = new Map(def.hazards.map((hz) => [hz.slot, hz.kind]));
   const hazards: ShapeGrid['hazards'] = [];
   const spawns: ShapeGrid['spawns'] = [];
@@ -295,8 +314,32 @@ export function buildShape(def: ArenaShapeDef, v: ShapeVariant): ShapeGrid {
     hazards,
     spawns,
     lights: def.lighting.lights.map((l) => ({ x: fx(l.x + 0.5), y: fy(l.y + 0.5), kind: l.kind })),
+    // 발 자리는 덩어리 밑변 — 위아래로 뒤집으면 덩어리 윗변이 밑변이 된다 (dy = 덩어리 높이 칸)
+    centerArt: def.centerArt && art ? { sheet: def.centerArt.sheet, ...art } : null,
+    centerCells,
+    dress: {
+      stoneRadius: (def.dress?.stoneRadius ?? 0) * v.scale,
+      stoneOnHigh: Boolean(def.dress?.stoneOnHigh),
+      dropLift: Math.max(0, Math.min(1, def.dress?.dropLift ?? 0)),
+    },
     flipX: v.flipX,
     flipY: v.flipY,
     scale: v.scale,
   };
+}
+
+/** (x, y) 에서 4방향으로 이어진 벽 칸 (무대 중심 덩어리 — 최대 64칸) */
+function wallBlock(grid: ShapeToken[][], x: number, y: number): { x: number; y: number }[] {
+  const out: { x: number; y: number }[] = [];
+  const seen = new Set<string>();
+  const q = [{ x, y }];
+  while (q.length > 0 && out.length < 64) {
+    const c = q.pop()!;
+    const key = `${c.x},${c.y}`;
+    if (seen.has(key) || grid[c.y]?.[c.x] !== 'wall') continue;
+    seen.add(key);
+    out.push(c);
+    q.push({ x: c.x + 1, y: c.y }, { x: c.x - 1, y: c.y }, { x: c.x, y: c.y + 1 }, { x: c.x, y: c.y - 1 });
+  }
+  return out;
 }

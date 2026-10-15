@@ -1835,7 +1835,24 @@ function p19S1Events() {
     HAZARD_IGNITED: 'ui:hazard-ignited',
     /** 연속 처치 (`UiComboStreak`) — 처치 사이 ≤ 1.5초, 2 이상일 때마다 */
     COMBO_STREAK: 'ui:combo-streak',
+    /**
+     * P19 2단계: 적의 지나가는 대사 (`UiEnemyBark` — 스토리 65 팩 barks, kind speech). 머리 위 말풍선은 UI 가 나중에 —
+     * 시스템은 내보내기만 (같은 적 4초 · 전체 1.5초 간격)
+     */
+    ENEMY_BARK: 'ui:enemy-bark',
   } as const;
+}
+
+export interface UiEnemyBark {
+  /** 논리 화면 좌표 (머리 위 — 그림 위끝, 960×540, 카메라 반영) */
+  screen: { x: number; y: number };
+  /** 적 종류 id (drummer · bomber) */
+  id: string;
+  x: number;
+  y: number;
+  /** 대사 갈래 (drummer: beat·flee / bomber: charge·fuse·launched) */
+  kind: string;
+  text: string;
 }
 
 export interface UiEnemyStaggered {

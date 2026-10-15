@@ -61,7 +61,7 @@ export interface PlanOptions {
      * 49라운드 7 세트 배치: 정해진 자리(왼쪽 위 타일)에 먼저 놓는 구조물 (setpiece.ts `fixed`). 놓인 종류(filler 밖)는
      * 예산에서 빼고 나머지만 무작위로 보충한다 (세트 우선, 무작위는 보조). 예약 칸 검사는 하지 않는다(템플릿이 이미 고름)
      */
-    fixed?: readonly { kind: UiStructureKind; tx: number; ty: number }[];
+    fixed?: readonly { kind: UiStructureKind; tx: number; ty: number; sprite?: string }[];
     /** 49라운드: filler(짐·술통)를 이 앵커들 반경 안에 먼저 시도 (엄폐 담 둘레) */
     fillerNear?: { anchors: readonly { x: number; y: number }[]; radius: number } | null;
   };
@@ -351,7 +351,16 @@ export function planStructures(
   const gap = rules.clear.gapTiles;
   const forceAll = Boolean(opts.forceAll);
 
-  const push = (def: StructureDef, occ: RoomOcc, x: number, y: number, w: number, h: number, cellar?: CellarPlan) => {
+  const push = (
+    def: StructureDef,
+    occ: RoomOcc,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    cellar?: CellarPlan,
+    sprite?: string,
+  ) => {
     const n = serial.get(def.id) ?? 0;
     serial.set(def.id, n + 1);
     out.push({
@@ -363,7 +372,7 @@ export function planStructures(
       w,
       h,
       solid: def.solid,
-      sprite: spriteFor(def, stageId),
+      sprite: sprite ?? spriteFor(def, stageId),
       cellar,
     });
     occ.perKind.set(def.id, (occ.perKind.get(def.id) ?? 0) + 1);
@@ -460,7 +469,7 @@ export function planStructures(
         for (let tx = f.tx; tx < f.tx + w; tx++)
           if (layout.tiles[ty]?.[tx] !== TileId.Floor || out.some((p) => covers(p, tx, ty))) ok = false;
       if (!ok) continue;
-      push(def, occ, f.tx, f.ty, w, h);
+      push(def, occ, f.tx, f.ty, w, h, undefined, f.sprite);
       occupy(occ, f.tx, f.ty, w, h, gap);
       if (def.group !== 'filler') fixedKinds.add(def.id);
     }

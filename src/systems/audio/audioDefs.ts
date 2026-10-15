@@ -51,6 +51,13 @@ export interface AudioMixing {
   masterLimiter?: { thresholdDb: number; kneeDb: number; ratio: number; attackMs: number; releaseMs: number };
   bgmPhaseCrossfadeMs?: number;
   bgmPhaseSyncPosition?: boolean;
+  /** P19 (sound §14): 전투 BGM 강도 2단 — 곡 id → 같은 격자 타악 층 id, 켜고 끄는 시간 */
+  bgmIntensity?: {
+    layers?: Record<string, string>;
+    fadeInMs?: number;
+    fadeOutMs?: number;
+    minOnMs?: number;
+  };
 }
 
 /** §9 동시 재생 상한 (그룹 = 원본 id — 변주 포함) */
@@ -61,6 +68,10 @@ export interface AudioVoiceLimits {
   perGroupOverrides?: Record<string, number>;
   /** 61 단계 5 (sound §11): 개성 발동 특색 층 전체 동시 상한 — ids + 접두어 `sfx/trait_`(trait_manifest 제외) */
   layerMax?: { ids?: string[]; max?: number };
+  /**
+   * P19 (sound §14): 타격음 층 — 동시 max, windowMs 안 둘째부터 stackDb 씩(최저 −9 dB), 같은 id minGapMs 안 다시 울리지 않음
+   */
+  hitLayer?: { ids?: string[]; max?: number; windowMs?: number; stackDb?: number; minGapMs?: number };
 }
 
 /** §9 덕킹 규칙 (매니페스트 문장형 when/target 을 audioMix.parseDucking 이 해석) */
@@ -79,6 +90,8 @@ export interface FloorStateBgm {
   combat?: string;
   boss?: string;
   bossPhases?: string[];
+  /** P19: 전투 곡 위 타악 층 (같은 재생 위치에서 음량만 — mixing.bgmIntensity) */
+  combatLayer?: string;
 }
 
 export interface AudioManifest {

@@ -3,7 +3,7 @@
  * Phaser 의존 없음 · 시드 결정적. Game 은 `planNodeArena` 결과로 TileWorld·구조물·소품 그림·튜토리얼을 만든다.
  * P19 S2: 전투·여정 전투·보스 노드(`arena.shapeKinds`)는 형태 틀(data/arenas) — 노드 → 형태 배정은 `shapeAssignments`.
  */
-import { CAMERA, GAME, TILE } from '../core/Constants';
+import { ARENA_ART, CAMERA, GAME, TILE } from '../core/Constants';
 import { ARENA_SHAPES } from '../data/arenas';
 import { Rng, hashSeed } from './rng';
 import { generateArena } from './mapgen/arena';
@@ -18,6 +18,7 @@ import {
   regionIdOf,
   type RegionDef,
   type RouteFile,
+  type RouteGraph,
   type RouteKind,
   type RouteNode,
 } from './route';
@@ -51,6 +52,8 @@ export interface NodeArenaPlan {
     ambient: string | null;
     lights: { x: number; y: number; kind: string }[];
     pools: { x: number; y: number }[];
+    /** 무대 중심 그림 (타일, 소수 — 발 자리) */
+    centerArt: { sheet: string; x: number; y: number } | null;
   } | null;
 }
 
@@ -151,6 +154,27 @@ export function shapeAssignments(
   return out;
 }
 
+/**
+ * P19 2단계: 노드 그래프 + 전투 노드 이름 = 그 노드 형태 틀의 이름 (`shapeNames` — 같은 형태 두 번째는 [1]).
+ * 고정 이름 노드(여정·보스·상점 등)는 그대로. 런의 노드 지도는 이것으로 만든다
+ */
+export function namedRoute(stageId: string, floorSeed: number | string, file: RouteFile = ROUTE): RouteGraph {
+  const graph = generateRoute(stageId, floorSeed, file);
+  const names = file.floors[stageId]?.shapeNames;
+  if (!names) return graph;
+  const shapes = shapeAssignments(stageId, floorSeed, file);
+  const used = new Map<string, number>();
+  for (const n of [...graph.nodes].sort((a, b) => a.col - b.col || a.row - b.row)) {
+    const id = n.kind === 'battle' ? shapes.get(n.id) : undefined;
+    const list = id ? names[id] : undefined;
+    if (!id || !list?.length) continue;
+    const i = used.get(id) ?? 0;
+    used.set(id, i + 1);
+    n.name = list[Math.min(i, list.length - 1)];
+  }
+  return graph;
+}
+
 /** 화면 하나에 보이는 칸 (탐색 배율 기준 — CAMERA.ZOOM 1.75 → 34.3 × 19.3) */
 export const SCREEN_TILES = { w: GAME.WIDTH / CAMERA.ZOOM / TILE, h: GAME.HEIGHT / CAMERA.ZOOM / TILE } as const;
 /** 형태 틀 전투장 넓이 ÷ 화면 목표 (P19 ⑤-1) */
@@ -170,13 +194,16 @@ export function shapeVariant(def: ArenaShapeDef, seed: string): { scale: number;
   return { scale, flipX: def.variants.flipX && rng.chance(0.5), flipY: def.variants.flipY && rng.chance(0.5) };
 }
 
-/** 위험물 자리 → 구조물 종류 (pool 은 구조물이 아니라 미리 깔린 웅덩이 · parapet 은 부서지는 짐 상자로 임시) */
+/**
+ * 위험물 자리 → 구조물 종류 (pool 은 구조물이 아니라 미리 깔린 웅덩이 · parapet = 부서지는 흉벽 — 동작은 짐 상자, 그림은 art §34 hazard_merlon)
+ */
 const HAZARD_STRUCTURE: Readonly<Record<string, UiStructureKind | null>> = {
   cask: 'cask',
   still: 'still',
   parapet: 'crate',
   pool: null,
 };
+const HAZARD_SPRITE: Readonly<Record<string, string>> = { parapet: ARENA_ART.MERLON };
 
 /**
  * 노드 전투장 설계. node 가 null 이면(2층 진입 갈림 선택 대기) 비전투 빈 전투장 (세트 배치 없음, 지역 = 0단계).
@@ -277,7 +304,7 @@ export function planNodeArena(
       const sk = HAZARD_STRUCTURE[hz.kind];
       if (sk === null) pools.push(at);
       else if (sk && availableOn(STRUCTURE_DEFS.get(sk) ?? { floors: [] }, stageId))
-        setPiece.fixed.push({ kind: sk, tx: at.x, ty: at.y, function: false });
+        setPiece.fixed.push({ kind: sk, tx: at.x, ty: at.y, function: false, sprite: HAZARD_SPRITE[hz.kind] });
     }
   }
   const all = [...reserve, ...setPiece.reserve];
@@ -302,13 +329,20 @@ export function planNodeArena(
       ? {
           id: grid.id,
           scale: grid.scale,
-          ambient: shapeDef!.lighting.ambient,
+          ambient: (regionId && shapeDef!.lighting.ambientByRegion?.[regionId]) || shapeDef!.lighting.ambient,
           lights: grid.lights.map((l) => ({
             x: layout.rooms[0].interior.x + l.x,
             y: layout.rooms[0].interior.y + l.y,
             kind: l.kind,
           })),
           pools,
+          centerArt: grid.centerArt
+            ? {
+                ...grid.centerArt,
+                x: layout.rooms[0].interior.x + grid.centerArt.x,
+                y: layout.rooms[0].interior.y + grid.centerArt.y,
+              }
+            : null,
         }
       : null,
   };

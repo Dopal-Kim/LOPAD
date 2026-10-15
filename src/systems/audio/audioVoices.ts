@@ -10,6 +10,7 @@ import {
   duckDbAt,
   duckFinished,
   ducksFor,
+  hitStackDb,
   parseDucking,
   startDuck,
   voiceLimitsOf,
@@ -38,6 +39,8 @@ export class VoiceBank {
   private limits: VoiceLimits = voiceLimitsOf({} as AudioMixing);
   private sfxMult = 1;
   private bgmDuck = 1;
+  /** P19 타격음 층 최근 시작 (몰림 감쇠·같은 id 간격) */
+  private hitStarts: { group: string; at: number }[] = [];
 
   constructor(private readonly kill: (snd: Snd) => void) {}
 
@@ -52,6 +55,19 @@ export class VoiceBank {
     this.applyVolumes(now);
   }
 
+  /**
+   * P19 타격음 층(sound §14): 층 소리가 아니면 0, 같은 id 가 간격 안이면 null(버림), 아니면 몰림 감쇠 dB. 통과하면 시작으로 적는다
+   */
+  hitStack(group: string, now: number): number | null {
+    const layer = this.limits.hitLayer;
+    if (!layer?.ids.has(group)) return 0;
+    const keepMs = Math.max(layer.windowMs, layer.minGapMs);
+    this.hitStarts = this.hitStarts.filter((s) => now - s.at < keepMs);
+    const db = hitStackDb(this.hitStarts, group, now, layer);
+    if (db !== null) this.hitStarts.push({ group, at: now });
+    return db;
+  }
+
   /** 새 소리 자리: 끊을 것은 끊고 true, 자리가 없으면 false */
   admit(v: { group: string; priority: number; ui: boolean }): boolean {
     this.prune();
@@ -64,13 +80,13 @@ export class VoiceBank {
   }
 
   /** 지금 이 우선순위 소리에 곱할 음량 (버스 × 덕킹) */
-  gainFor(priority: number, now: number): number {
-    return this.sfxMult * dbToGain(duckDbAt(this.ducks, now, { bus: 'sfx', priority }));
+  gainFor(priority: number, now: number, self?: Snd): number {
+    return this.sfxMult * dbToGain(duckDbAt(this.ducks, now, { bus: 'sfx', priority }, self));
   }
 
   add(v: Voice, durationMs: number, now: number): void {
     this.voices.push(v);
-    for (const r of ducksFor(this.rules, v)) this.ducks.push(startDuck(r, now, durationMs));
+    for (const r of ducksFor(this.rules, v)) this.ducks.push(startDuck(r, now, durationMs, v.snd));
   }
 
   /** 매 프레임: 덕킹 봉투 적용 · 끝난 덕킹 제거. 반환 = BGM 덕킹 게인 */
@@ -106,7 +122,8 @@ export class VoiceBank {
   }
 
   private applyVolumes(now: number): void {
-    for (const v of this.voices) if (!v.snd.pendingRemove) v.snd.setVolume(v.base * this.gainFor(v.priority, now));
+    for (const v of this.voices)
+      if (!v.snd.pendingRemove) v.snd.setVolume(v.base * this.gainFor(v.priority, now, v.snd));
   }
 
   private prune(): void {

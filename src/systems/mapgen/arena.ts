@@ -138,6 +138,8 @@ export function generateArena(spec: ArenaSpec): FloorLayout {
             stairs,
             cover,
             enemySpawns: S.spawns.map((p) => ({ x: ix + p.x, y: iy + p.y })),
+            dress: S.dress,
+            stageCells: S.centerCells.map((p) => ({ x: ix + p.x, y: iy + p.y })),
           }
         : {}),
     },

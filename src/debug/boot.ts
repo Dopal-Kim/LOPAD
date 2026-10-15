@@ -9,6 +9,7 @@
 import type Phaser from 'phaser';
 import { uiCommands, type UiSettings, type UiTrainingStart } from '../contract/ui';
 import { SCENES } from '../core/Constants';
+import { EventBus } from '../core/EventBus';
 import { transitionGate } from '../systems/transition/transitionGate';
 import { runLogRecorder, type RunLogDebug } from '../systems/runlog/runLogRecorder';
 import { settings } from '../systems/settings';
@@ -34,6 +35,8 @@ export interface BootDebugApi {
   sceneObj: (key: string) => unknown;
   /** 62 D: 계약 명령 (uiCommands) */
   cmd: () => typeof uiCommands;
+  /** P19 봇 계측: 시스템 EventBus 구독 (끄는 함수를 돌려준다) */
+  onEvent: (event: string, fn: (p: unknown) => void) => () => void;
 }
 
 type TrainingDebug = { debug(): Record<string, unknown>; debugComplete(id: string): boolean };
@@ -50,6 +53,10 @@ function debugOn(): boolean {
 export function bootDebugApi(): BootDebugApi {
   return {
     runlog: { dump: () => runLogRecorder.dump(), clear: () => runLogRecorder.clearSaved() },
+    onEvent: (event, fn) => {
+      EventBus.on(event, fn);
+      return () => EventBus.off(event, fn);
+    },
     vram: (opts) => (bootGame ? vramOfTextures(bootGame.textures, opts) : null),
     settings: () => settings.current(),
     setSettings: (s) => {

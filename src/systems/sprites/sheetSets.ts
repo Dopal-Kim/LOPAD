@@ -6,7 +6,7 @@
  * 부팅 묶음 + 모든 무기 묶음 = 57라운드 전 부팅 목록 (sheetSets.test 가 확인).
  * 61라운드 P9: 보스 시트는 로드 범위(`data/scope` — stages.json run.loadFloors) 안 층의 보스만. 범위 밖 보스는 Preloader 의 폴백 별칭.
  */
-import { BUILD_ART, ENEMY_HAZARD } from '../../core/Constants';
+import { ARENA_ART, BUILD_ART, ENEMY_HAZARD } from '../../core/Constants';
 import { ENEMIES, WEAPONS } from '../../data';
 import { bossIdsInScope } from '../../data/scope';
 import { BUILD } from '../../data/build';
@@ -141,7 +141,13 @@ export function floorGatedFxIds(): Set<string> {
  */
 export function bootSheetRequests(): SheetRequest[] {
   bootCache ??= dedupe([
-    ...requestsFor(Object.keys(ENEMIES), [], {}, [], [...allStructureSprites(), ...enemyStructureSheets()]),
+    ...requestsFor(
+      Object.keys(ENEMIES),
+      [],
+      {},
+      [],
+      [...allStructureSprites(), ...enemyStructureSheets(), ARENA_ART.MERLON, ...ARENA_ART.STAGE_SHEETS],
+    ),
     // 60라운드 2차 묶음 (계약 art §22): 소품 · 월드 소모품 · 엘리트 외곽선
     ...bundleSheetRequests(),
   ]);
@@ -258,6 +264,8 @@ export function allSheetRequests(): SheetRequest[] {
       ...allStructureSprites(),
       ...bossStructureSheets(),
       ...enemyStructureSheets(),
+      ARENA_ART.MERLON,
+      ...ARENA_ART.STAGE_SHEETS,
     ]),
     ...bundleSheetRequests(),
   ]);

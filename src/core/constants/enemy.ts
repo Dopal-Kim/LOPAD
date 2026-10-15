@@ -15,6 +15,8 @@ export const ENEMY_INCOMING = {
   /** P19 ④D 겹치는 웨이브: 살아 있는 적이 이번 웨이브 수의 이 비율 이하가 되면 다음 웨이브를 바로 예고 (마지막만 전멸 = 클리어) */
   WAVE_OVERLAP: 0.3,
   FIRST_WAVE_EXTRA_MS: 500,
+  /** P19 형태 틀: 적 등장 자리(마스크 S) 둘레 흩어짐 반경 칸 */
+  SPAWN_SPREAD_TILES: 1.5,
   ARRIVE_MS: 350,
   /** 바닥 문양 (SpawnMarks): 먹 번짐 반경(월드 px)·불씨 고리 색·광원 */
   MARK: {
@@ -61,13 +63,15 @@ export const ENEMY_READABILITY = {
 export const ENEMY_SQUAD = {
   TOKENS: 3,
   ELITE_TOKENS: 1,
-  KIND_MAX: { dummy: 2 } as Record<string, number>,
+  /** P19 2단계 조정 1: 징집병 동시 2 → 3 (동시 공격 1.2~2.0 — parts/system/CHANGELOG P19 2단계) */
+  KIND_MAX: { dummy: 3 } as Record<string, number>,
   RING_TILES: [2, 3.5] as [number, number],
   ORBIT_RAD_PER_S: 0.6,
-  RETREAT_MS: [300, 500] as [number, number],
+  /** 2단계 조정 2: 300~500 → 200~350 · 붙는 거리 6 → 9칸 · 다시 시도 250 → 150 (동시 공격 1.2~2.0) */
+  RETREAT_MS: [200, 350] as [number, number],
   COMMIT_MS: 1600,
-  ENGAGE_TILES: 6,
-  RETRY_MS: 250,
+  ENGAGE_TILES: 9,
+  RETRY_MS: 150,
 };
 
 /**
@@ -96,6 +100,15 @@ export const ENEMY_FX = {
   DARK_LIFT: 1.07,
   /** 예고 마커 시트 (계약 §3, anchor hitbox_center). 없으면 Graphics 점선/원 플레이스홀더 */
   TELEGRAPH_IDS: { LINE: 'telegraph_line', CIRCLE: 'telegraph_circle', CONE: 'telegraph_cone' },
+  /**
+   * P19 예고 색 언어 시트 (art §34 `fx/v3/tele_*` — 색이 그림에 들어 있다, 원·부채꼴은 진행도 구동 · 반경 = JSON radiusPx 도트).
+   * 단계별로 없으면 위 옛 시트 + 곱 틴트
+   */
+  TIER_IDS: {
+    warn: { line: 'tele_warn_line', cone: 'tele_warn_fan' },
+    danger: { circle: 'tele_danger_circle', cone: 'tele_danger_fan' },
+    ranged: { line: 'tele_ranged_path', circle: 'tele_ranged_target' },
+  } as Record<TelegraphTier, Partial<Record<'line' | 'circle' | 'cone', string>>>,
   /** 적 탄·보스 탄·총구 화염 시트 */
   BULLET: 'enemy_bullet',
   FAN_SHOT: 'boss_fan_shot',

@@ -207,6 +207,8 @@ export interface EnemyDef {
   bomb?: BombParams;
   /** 61라운드 단계 2: 이번 런에 처음 나올 때 띄우는 짧은 소개 (STORY notice) */
   intro?: string;
+  /** P19 2단계 (스토리 65 팩): 지나가는 대사 — 갈래(beat·flee·charge·fuse·launched) → 문장 후보 */
+  barks?: Record<string, string[]>;
   /** P19 버팀 (없으면 0 — 모든 타에 움찔). 힘(넉백 단계 + 버팀 무시)이 이보다 커야 움찔. 정예 ×3 */
   poise?: number;
   /** 처치 시 얻는 개성 수치 (임시, 11라운드) */
@@ -685,6 +687,8 @@ export interface WeaponWeightDef {
   finisherMoveMult?: number;
   /** P19 판정 순간 카메라 무게 (아래 방향 짧은 흔들림 px · ms) */
   impactShake?: { px: number; ms: number };
+  /** P19 판정 순간 줌 펀치 (배율 가산 비율 · ms 동안 0 으로) */
+  impactPunch?: { amount: number; ms: number };
 }
 
 /** 49라운드 Q4: 대검 내리찍기 (충격파 계열 개성 발현 후 마지막 타). 시트 메모가 있으면 시간은 시트 */

@@ -204,7 +204,7 @@ export class HitReactions {
       const x = (c.x + oc.x) / 2;
       const y = (c.y + oc.y) / 2;
       this.count('bowl');
-      const p: EnemyBowledPayload = { hitter: mob.spriteId, target: o.spriteId, x, y, damage: dmg };
+      const p: EnemyBowledPayload = { hitter: mob.spriteId, target: o.spriteId, x, y, damage: dmg, chain: f.chain };
       EventBus.emit(Events.ENEMY_BOWLED, p);
       this.g.shake.add(this.g.time.now, FEEL.SHAKE.HIT.PX, FEEL.SHAKE.HIT.MS, u);
       const chain = f.chain + 1;

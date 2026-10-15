@@ -3,6 +3,7 @@
  * 노드 지도 진입 · 전투장 설계 · 타일 월드 · 외벽 테두리 · 지역 조명 연결.
  * create() 마다 새로 만들어진다 (상태 없음 — 결과는 Game 의 공유 필드에 둔다).
  */
+import Phaser from 'phaser';
 import { LAB, TILE } from '../../core/Constants';
 import { gameState } from '../../core/GameState';
 import { BOSSES, LIGHTING } from '../../data';
@@ -14,8 +15,10 @@ import { lightRegistryOf } from '../../systems/lighting/lightRegistry';
 import { lightingAmbientFor } from '../../systems/lighting/lightMath';
 import { Rng, hashSeed } from '../../systems/rng';
 import { decorateRoute, generateExtras } from '../../systems/bundle2/routeExtras';
-import { pickPropScene, planNodeArena, setPieceTiles } from '../../systems/routeArena';
+import { namedRoute, pickPropScene, planNodeArena, setPieceTiles } from '../../systems/routeArena';
 import { spriteLibrary } from '../../systems/sprites/sprites';
+import { STRUCTURE_ACTION } from '../../systems/sprites/spriteDefs';
+import { StructureView } from '../../world/StructureView';
 import { planStructures, structureTiles, type StructurePlacement } from '../../systems/structures/placement';
 import { BorderView, releaseBorderTextures } from '../../world/BorderView';
 import { borderFor, borderGaps, doorsOnlyDefs, floorRectOf, type BorderDef } from '../../world/border';
@@ -42,7 +45,7 @@ export class WorldSetup {
     const g = this.g;
     g.routeMode = !g.lab && routeEnabled(gameState.stageId);
     if (g.routeMode && !gameState.route) {
-      gameState.route = new RouteState(generateRoute(gameState.stageId, gameState.floorSeed), floor);
+      gameState.route = new RouteState(namedRoute(gameState.stageId, gameState.floorSeed), floor);
       this.createFloorExtras(gameState.route);
     }
     const route = g.routeMode ? gameState.route : null;
@@ -250,7 +253,24 @@ export class WorldSetup {
       const def = LIGHTING.fallback[l.kind];
       if (def) reg.add(def, { x: l.x * TILE, y: l.y * TILE });
     }
+    this.createCenterArt();
     return lighting;
+  }
+
+  /**
+   * P19 2단계 무대 중심 그림 (art §34 stage_* — 형태 틀 내부 벽 덩어리 위 장식, 칸·판정은 마스크 그대로). 시트 광원·idle 루프는
+   * StructureView 가 (그림이 없으면 아무것도 두지 않는다)
+   */
+  private createCenterArt(): void {
+    const g = this.g;
+    const c = g.nodeArena?.shape?.centerArt;
+    const def = c ? spriteLibrary.sheet(c.sheet, STRUCTURE_ACTION) : undefined;
+    if (!c || !def) return;
+    const [fw, fh] = (def as { footprint?: [number, number] }).footprint ?? [1, 1];
+    const rect = new Phaser.Geom.Rectangle(c.x * TILE - (fw * TILE) / 2, c.y * TILE - fh * TILE, fw * TILE, fh * TILE);
+    const view = new StructureView(g, { sheet: c.sheet, rect, color: '#000000', label: '', floor: false });
+    // 첫 상태 'idle' 은 같은 상태라 재생을 다시 걸지 않는다 — 'active'(없으면 idle 로 풀림)로 루프 시작
+    view.setState('active');
   }
 
   /**

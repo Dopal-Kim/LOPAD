@@ -241,3 +241,12 @@ export const COVER_PILLAR = {
   /** 열 0 whole · 1 cracked · 2 broken */
   STATE_WEIGHTS: [6, 3, 1] as readonly number[],
 } as const;
+
+/**
+ * P19 2단계 형태 틀 그림 (계약 art §34 `structures/v3/` — 부팅 묶음). 흉벽 = 부서지는 짐 상자 동작 + hazard_merlon 그림.
+ * 무대 중심(stage_*)은 형태 틀 JSON `centerArt` 가 고른다 (내부 벽 덩어리 위 장식 — 칸·판정은 마스크 그대로)
+ */
+export const ARENA_ART = {
+  MERLON: 'hazard_merlon',
+  STAGE_SHEETS: ['stage_fountain', 'stage_still'],
+} as const;

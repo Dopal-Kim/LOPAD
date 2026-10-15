@@ -80,6 +80,8 @@ export interface SwingParams {
   backstepTiles?: number;
   /** 베는 동안 앞으로 내딛는 거리 (칸) — 주인공 손 밖에서 예고하고 들어와 벤다 (징집병) */
   lungeTiles?: number;
+  /** P19 2단계: 예고(windup) 동안 버팀 — 이보다 약한 타는 예고를 끊지 못한다 (없으면 0) */
+  windupPoise?: number;
 }
 
 /** P19 깃발 고수: 거리를 두고 beatMs 마다 북 — 반경 radiusTiles 안 적의 공격 속도 × rateMult. fleeTiles 안이면 도망 */
@@ -150,6 +152,7 @@ export function validateSwing(w: SwingParams, path: string): void {
     num(w[k], `${path}.${k}`);
   if (w.backstepTiles !== undefined) num(w.backstepTiles, `${path}.backstepTiles`);
   if (w.lungeTiles !== undefined) num(w.lungeTiles, `${path}.lungeTiles`);
+  if (w.windupPoise !== undefined) num(w.windupPoise, `${path}.windupPoise`);
 }
 
 export function validateLiquorPool(p: LiquorPoolParams, path: string): void {

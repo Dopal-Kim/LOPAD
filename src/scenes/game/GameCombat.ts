@@ -8,12 +8,15 @@ import {
   EventBus,
   Events,
   type BossWallHitPayload,
+  type EnemyAttackPayload,
   type HazardExplodedPayload,
   type PlayerDamagedPayload,
 } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { ECONOMY, PLAYER_DATA } from '../../data';
-import { UI_EVENTS, __system } from '../../contract/ui';
+import { UI_EVENTS, __system, type UiEnemyBark } from '../../contract/ui';
+import { BarkGate } from '../../systems/barks';
+import { worldToLogicalScreen } from '../../systems/display';
 import type { Mob, MobContext, ProjectileSpec } from '../../objects/Mob';
 import type { Projectile } from '../../objects/Projectile';
 import { rollCrit } from '../../systems/economy';
@@ -53,6 +56,8 @@ export interface HitOptions {
   reaction?: StrikeReaction;
   /** P19 환경 피해 (벽꽝·볼링·낙하 — HitReactions): 반응·히트스톱 없이 피해·숫자·섬광만 */
   env?: boolean;
+  /** P19 무기가 아닌 피해 (폭발·불·위험물·구조물 — 반응은 그대로, 무기 타격음만 없음 · sound §14) */
+  hazard?: boolean;
 }
 
 export class GameCombat {
@@ -175,18 +180,45 @@ export class GameCombat {
    * 다른 자폭병이 맞으면 그쪽도 불이 붙는다 (연쇄)
    */
   readonly blast = (x: number, y: number, radiusPx: number, attack: number, mobDamage: number, source: Mob): void => {
+    // 음향 bomber_blast (같은 순간 HAZARD_EXPLODED 크기 소리는 쉰다 — sound §14)
+    EventBus.emit(Events.ENEMY_ATTACK, {
+      id: source.spriteId,
+      kind: 'explode',
+      phase: 'blast',
+    } satisfies EnemyAttackPayload);
     this.areaHit(x, y, radiusPx, attack);
     for (const child of [...this.g.mobs.getChildren()]) {
       const m = child as Mob;
       if (!m.active || m === source) continue;
       const c = m.body.center;
       if (Phaser.Math.Distance.Between(x, y, c.x, c.y) > radiusPx + m.body.halfWidth) continue;
-      if (this.hitMob(m, mobDamage, { crit: false, dirX: c.x - x, dirY: c.y - y, heavy: true }))
+      if (this.hitMob(m, mobDamage, { crit: false, dirX: c.x - x, dirY: c.y - y, heavy: true, hazard: true }))
         this.g.progress.onKill(m, 'environment');
     }
     // 스스로 터진 자폭병은 함께 쓰러진다 (쓰러진 뒤 터진 것이면 이미 없다)
     if (source.active && source.takeDamage(Math.max(1, source.hp))) this.g.progress.onKill(source, 'environment');
     EventBus.emit(Events.HAZARD_EXPLODED, { x, y, kind: 'cask', chain: 0 } satisfies HazardExplodedPayload);
+  };
+
+  private readonly barks = new BarkGate();
+
+  /** P19 2단계 지나가는 대사 → UI `ui:enemy-bark` (머리 위 화면 좌표) */
+  readonly bark = (mob: Mob, kind: string, lines: readonly string[] | undefined): void => {
+    const g = this.g;
+    if (!mob.active) return;
+    const text = this.barks.pick(mob, lines, g.time.now, g.rng.next());
+    if (!text) return;
+    const x = mob.x;
+    const y = mob.y;
+    const payload: UiEnemyBark = {
+      id: mob.spriteId,
+      x,
+      y,
+      kind,
+      text,
+      screen: worldToLogicalScreen(g.cameras.main, x, y - mob.visual.headTopPx),
+    };
+    __system.emit(UI_EVENTS.ENEMY_BARK, payload);
   };
 
   // --- 피해 계산 · 적 피격 ---
@@ -265,7 +297,14 @@ export class GameCombat {
       if (mob.damageTakenMult < 1 && !opts.tick) g.bundle?.elites.onArmorBlock(mob);
     }
     if (mob.elite && opts.heavy && !opts.tick) g.bundle?.elites.onHeavyHit(mob);
-    const died = mob.takeDamage(dmg, { crit: opts.crit, tick: opts.tick, dirX: nx, dirY: ny, heavy: opts.heavy });
+    const died = mob.takeDamage(dmg, {
+      crit: opts.crit,
+      tick: opts.tick,
+      dirX: nx,
+      dirY: ny,
+      heavy: opts.heavy,
+      weapon: opts.env || opts.hazard ? undefined : gameState.weapon.id,
+    });
     if (opts.tick) {
       g.numbers.show(hitX, hitY, dmg, 'tick');
       return died;

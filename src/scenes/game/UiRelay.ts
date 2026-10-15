@@ -163,7 +163,8 @@ export class UiRelay {
    */
   p19Relays(): [event: string, fn: (p: never) => void, ctx: object][] {
     const keys = (Object.keys(P19_EVENTS) as (keyof typeof P19_EVENTS)[]).filter(
-      (k): k is Exclude<keyof typeof P19_EVENTS, 'PLAYER_MOTION'> => k !== 'PLAYER_MOTION',
+      (k): k is Exclude<keyof typeof P19_EVENTS, 'PLAYER_MOTION' | 'COMBAT_ALIVE'> =>
+        k !== 'PLAYER_MOTION' && k !== 'COMBAT_ALIVE',
     );
     return keys.map((k) => [
       P19_EVENTS[k],

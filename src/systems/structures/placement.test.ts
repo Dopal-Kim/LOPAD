@@ -53,7 +53,8 @@ describe('planStructures (47라운드 배치)', () => {
         }
       }
     }
-  });
+    // 층 4개 × 시드 — 단독 1~2초, 전체 실행·봇 측정과 겹치면 5초를 넘는다
+  }, 20_000);
 
   it('예산: 공통·테마 종류 수가 [min, max] 안 (filler 제외), 공통 C2·C3·C5 는 매 층', () => {
     const B = STRUCTURE_RULES.budget;

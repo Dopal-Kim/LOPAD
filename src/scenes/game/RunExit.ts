@@ -9,7 +9,8 @@
 import { EventBus, Events } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { readSuspend, type SaveData, type SuspendData } from '../../systems/save';
-import { RouteState, generateRoute } from '../../systems/route';
+import { RouteState } from '../../systems/route';
+import { namedRoute } from '../../systems/routeArena';
 import { decorateRoute, type FloorExtras } from '../../systems/bundle2/routeExtras';
 import type { ShopStock } from '../../systems/bundle2/BundleState';
 import type { StructureFloorCarry } from '../../systems/structures/core';
@@ -98,7 +99,7 @@ export class RunExit {
 export function restoreSuspend(raw: unknown): boolean {
   const s = readSuspend(raw);
   if (!s) return false;
-  const graph = generateRoute(gameState.stageId, gameState.floorSeed);
+  const graph = namedRoute(gameState.stageId, gameState.floorSeed);
   const has = (id: string) => graph.nodes.some((n) => n.id === id);
   if ((s.currentId !== null && !has(s.currentId)) || !s.path.every(has)) return false;
   const route = new RouteState(graph, s.floor);

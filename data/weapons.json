@@ -409,7 +409,8 @@
         "leanMs": 120,
         "leanMoveMult": 0.3,
         "finisherMoveMult": 0.3,
-        "impactShake": { "px": 2, "ms": 90 }
+        "impactShake": { "px": 2, "ms": 90 },
+        "impactPunch": { "amount": 0.03, "ms": 120 }
       },
       "slam": {
         "leapMs": 260,

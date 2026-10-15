@@ -99,6 +99,9 @@
   ],
   "props": ["props_lamps", "props_stalls"],
   "lighting": {
+    "ambientByRegion": {
+      "brewery": "#d1c7c2"
+    },
     "ambient": "#bcbcc6",
     "lights": [
       {

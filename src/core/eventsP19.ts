@@ -28,7 +28,15 @@ export const P19_EVENTS = {
    * skid = 반대 방향 전환 미끄럼 · stop = 급정지 · dashStart · dashEnd(착지)
    */
   PLAYER_MOTION: 'player:motion',
+  /** P19 시스템 내부: 살아 있는 적 수가 바뀜 (`CombatAlivePayload` — 음향 전투 BGM 강도 2단). UI 계약 밖 */
+  COMBAT_ALIVE: 'combat:alive',
 } as const;
+
+export interface CombatAlivePayload {
+  alive: number;
+  /** 보스 노드 (강도 층 끔) */
+  boss: boolean;
+}
 
 export interface PlayerMotionPayload {
   kind: 'skid' | 'stop' | 'dashStart' | 'dashEnd';
@@ -76,6 +84,8 @@ export interface EnemyBowledPayload {
   x: number;
   y: number;
   damage: number;
+  /** 연쇄 몇 번째 (0 = 첫 부딪힘 — 음향 둘째부터 재생 속도 1.06) */
+  chain?: number;
 }
 
 export interface EnemyLaunchedPayload {

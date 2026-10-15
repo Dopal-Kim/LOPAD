@@ -13,6 +13,7 @@ import type { PackCharge } from '../systems/packCharge';
 import type { MobSquad } from '../systems/squad';
 import type { TelegraphTier } from '../core/Constants';
 import type { TelegraphFx } from '../systems/telegraph';
+import type { FxPlayOptions } from '../systems/fx/fxTypes';
 import type { BossArenaApi } from './boss/types';
 import type { EnemyHazardApi } from '../systems/hazards/enemyHazardTypes';
 import { EntityVisual, placeholderTexture } from './EntityVisual';
@@ -31,7 +32,12 @@ export interface MobContext {
   /** 공격 예고 마커 (35라운드 2단계) */
   telegraph: TelegraphFx;
   /** 시트 이펙트 1회 재생 (총구 화염 등). 시트가 없으면 무시 */
-  playFx: (id: string, x: number, y: number, opts: { dir?: Facing; depth?: number; angle?: number }) => void;
+  playFx: (
+    id: string,
+    x: number,
+    y: number,
+    opts: Pick<FxPlayOptions, 'depth' | 'angle' | 'scaleMult' | 'durationMs' | 'follow'> & { dir?: Facing },
+  ) => void;
   /** 같은 id 의 살아 있는 적 수 (집단 돌격 머릿수·소환 상한) */
   countMobs: (id: string) => number;
   /** 범위 피해 + 충격파 연출 (보스 내리찍기): 중심·반경 안의 플레이어에게 attack */
@@ -50,6 +56,8 @@ export interface MobContext {
   meleeHit?: (mob: Mob, x: number, y: number, angle: number, half: number, radiusPx: number, attack: number) => boolean;
   /** P19 자폭 폭발 (GameCombat.blast) */
   blast?: (x: number, y: number, radiusPx: number, attack: number, mobDamage: number, source: Mob) => void;
+  /** P19 2단계 지나가는 대사 (GameCombat.bark — UI ui:enemy-bark, 간격은 BarkGate) */
+  bark?: (mob: Mob, kind: string, lines: readonly string[] | undefined) => void;
 }
 
 export interface ProjectileSpec {
@@ -69,6 +77,8 @@ export interface DamageInfo {
   dirX?: number;
   dirY?: number;
   heavy?: boolean;
+  /** P19 (sound §14): 주인공 무기 적중의 무기 id — 환경 피해면 없음 */
+  weapon?: string;
 }
 
 /** 전투 개체 공통부. 시트(`<id>_*`)가 있으면 애니메이션 스프라이트, 없으면 단색 사각형. */
@@ -78,6 +88,8 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   /** 60라운드: 엘리트 HP ×2.5 로 늘릴 수 있다 (`scaleMaxHp`) */
   maxHp: number;
   readonly visual: EntityVisual;
+  /** P19: 쓰러질 때 남기는 그림 동작 (술독병이 스스로 터지면 explode) */
+  corpseAction = 'death';
   /** 적·보스 id (= 시트 이름). 이벤트 페이로드에 쓴다 */
   readonly spriteId: string;
   /** 47라운드: 이동 속도 배율 (독주 웅덩이 등 환경). 일반 적만, AI 가 정한 속도에 곱한다 */
@@ -520,11 +532,12 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
       crit: Boolean(info.crit),
       died,
       tick: Boolean(info.tick),
+      weapon: info.weapon,
     };
     EventBus.emit(Events.ENEMY_DAMAGED, payload);
     if (died) {
       this.onDeath();
-      this.visual.spawnCorpse(this.corpsePop(info));
+      this.visual.spawnCorpse(this.corpsePop(info), this.corpseAction);
       this.destroy();
       return true;
     }

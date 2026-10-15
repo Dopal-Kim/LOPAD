@@ -601,12 +601,14 @@ export class EntityVisual {
    * 사망 시체: 호스트는 바로 파괴되므로 별도 스프라이트가 death 를 재생하고 유지 후 사라진다.
    * 시트가 없으면 아무것도 남기지 않는다
    */
-  spawnCorpse(pop?: { dirX: number; dirY: number; px: number }): void {
+  spawnCorpse(pop?: { dirX: number; dirY: number; px: number }, action0 = 'death'): void {
     if (!this.animated) return;
     const scene = this.host.scene;
-    const def = spriteLibrary.sheet(this.name, 'death');
-    const key = spriteLibrary.animKey(this.name, 'death', this.facing);
-    const texture = spriteLibrary.textureKey(this.name, 'death');
+    // P19: 술독병 폭발은 explode 시트 (없으면 death)
+    const action = action0 !== 'death' && spriteLibrary.sheet(this.name, action0) ? action0 : 'death';
+    const def = spriteLibrary.sheet(this.name, action);
+    const key = spriteLibrary.animKey(this.name, action, this.facing);
+    const texture = spriteLibrary.textureKey(this.name, action);
     if (!def || !key || !texture) return;
     const corpse = scene.add
       .sprite(this.host.x, this.host.y, texture, 0)

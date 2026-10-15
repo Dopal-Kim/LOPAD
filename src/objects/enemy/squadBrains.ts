@@ -18,6 +18,9 @@ import type { BombParams, DrumParams, SwingParams } from '../../data/enemyTypes'
 import { unit } from '../../systems/hazards/hazardMath';
 import type { TelegraphHandle } from '../../systems/telegraph';
 import type { MobContext } from '../Mob';
+import { beatTimesMs } from '../../systems/squad';
+import { spriteLibrary } from '../../systems/sprites/sprites';
+import { FX_ACTION, fxDrawScale } from '../../systems/sprites/spriteDefs';
 import { takeToken, type BrainBody } from './hazardBrains';
 
 /** 위치에서 뽑은 0..1 (같은 자리면 같은 값 — 난수 상태를 건드리지 않는 개체별 변주) */
@@ -154,9 +157,12 @@ export class SwarmBrain {
         return;
       }
       case 'commit':
+        // P19 2단계: 토큰은 휘두르기를 시작할 때 받는다 (다가가는 동안 쥐고 있지 않는다 — 토큰 = 예고·공격 중)
         if (this.swing.inReach(ctx)) {
-          this.phase = 'swing';
-          this.swing.start(ctx);
+          if (takeToken(b, ctx)) {
+            this.phase = 'swing';
+            this.swing.start(ctx);
+          } else this.toRing(ctx, ENEMY_SQUAD.RETRY_MS);
         } else if (ctx.time >= this.until) {
           ctx.squad?.release(b.self);
           this.toRing(ctx, ENEMY_SQUAD.RETRY_MS);
@@ -164,7 +170,7 @@ export class SwarmBrain {
         return;
       case 'ring':
         if (ctx.time >= this.nextAt && dist <= ENEMY_SQUAD.ENGAGE_TILES * TILE) {
-          if (takeToken(b, ctx)) {
+          if (ctx.squad?.available(b.id, b.elite) ?? true) {
             this.phase = 'commit';
             this.until = ctx.time + ENEMY_SQUAD.COMMIT_MS;
             b.moveTo(ctx.player.x, ctx.player.y, speed);
@@ -224,10 +230,15 @@ export class SwarmBrain {
   }
 }
 
+/** 오라 그림 (art §34 drum_aura — 반경 radiusPx 도트) */
+const DRUM_AURA_FX = 'drum_aura';
+
 /** 깃발 고수 (공격 없음 — 토큰을 쓰지 않는다) */
 export class DrumBrain {
   private nextBeat = 0;
   private aura: Phaser.GameObjects.Graphics | null = null;
+  /** 첫 북(오라가 처음 켜짐 = 사기 고양)을 쳤다 */
+  private rallied = false;
 
   constructor(
     private readonly b: BrainBody,
@@ -251,20 +262,58 @@ export class DrumBrain {
     const dist = Math.hypot(dx, dy) / TILE;
     const away = unit(dx, dy);
     const speed = b.def.speedTiles * TILE;
-    if (dist < p.fleeTiles) b.body.setVelocity(away.x * speed * 1.2, away.y * speed * 1.2);
-    else if (dist < p.keepMinTiles) b.body.setVelocity(away.x * speed, away.y * speed);
+    if (dist < p.fleeTiles) {
+      b.body.setVelocity(away.x * speed * 1.2, away.y * speed * 1.2);
+      ctx.bark?.(b.self, 'flee', b.def.barks?.flee);
+    } else if (dist < p.keepMinTiles) b.body.setVelocity(away.x * speed, away.y * speed);
     else if (dist > p.keepMaxTiles) b.moveTo(ctx.player.x, ctx.player.y, speed);
     else b.body.setVelocity(0, 0);
     const r = p.radiusTiles * TILE;
-    const aura = (this.aura ??= this.scene.add.graphics().setDepth(DEPTH.FX_GROUND));
-    aura.setPosition(b.x, b.y).setAlpha(Math.max(0.2, aura.alpha - ctx.delta / 1000));
+    const auraDef = spriteLibrary.sheet(DRUM_AURA_FX, FX_ACTION);
+    // 그림이 없으면 자리표시 원
+    const aura = auraDef ? null : (this.aura ??= this.scene.add.graphics().setDepth(DEPTH.FX_GROUND));
+    aura?.setPosition(b.x, b.y).setAlpha(Math.max(0.2, aura.alpha - ctx.delta / 1000));
     if (ctx.time < this.nextBeat) return;
     this.nextBeat = ctx.time + p.beatMs;
     ctx.squad?.drum(b.x, b.y, r, ctx.time + p.beatMs + 100, p.rateMult);
-    aura.clear().lineStyle(1, Phaser.Display.Color.HexStringToColor(b.def.color).color, 1).strokeCircle(0, 0, r);
-    aura.setAlpha(0.8);
+    aura?.clear().lineStyle(1, Phaser.Display.Color.HexStringToColor(b.def.color).color, 1).strokeCircle(0, 0, r);
+    aura?.setAlpha(0.8);
     b.attackAnim(ctx.time);
     EventBus.emit(Events.ENEMY_BEHAVIOR, { id: b.id, kind: 'drum' } satisfies EnemyBehaviorPayload);
+    this.beats(ctx, r, auraDef);
+  }
+
+  /**
+   * 북채가 닿는 프레임마다(시트 beatFrames) 북소리(ENEMY_ATTACK beat — 처음 한 번은 rally)와 오라 그림을 0 프레임부터 다시.
+   * 시트가 없으면 북 순간 한 번
+   */
+  private beats(ctx: MobContext, r: number, auraDef: ReturnType<typeof spriteLibrary.sheet>): void {
+    const b = this.b;
+    const first = !this.rallied;
+    this.rallied = true;
+    if (first)
+      EventBus.emit(Events.ENEMY_ATTACK, { id: b.id, kind: 'drum', phase: 'rally' } satisfies EnemyAttackPayload);
+    ctx.bark?.(b.self, 'beat', b.def.barks?.beat);
+    const t0 = beatTimesMs(b.visual.sheet('attack'));
+    const times = t0.length > 0 ? t0 : [0];
+    const artR = (auraDef as { radiusPx?: number } | undefined)?.radiusPx;
+    const scaleMult = auraDef && artR ? r / (artR * fxDrawScale(auraDef)) : 1;
+    times.forEach((ms, i) => {
+      const hit = () => {
+        if (!b.active) return;
+        if (!first)
+          EventBus.emit(Events.ENEMY_ATTACK, { id: b.id, kind: 'drum', phase: 'beat' } satisfies EnemyAttackPayload);
+        if (auraDef)
+          ctx.playFx(DRUM_AURA_FX, b.x, b.y, {
+            depth: DEPTH.FX_GROUND,
+            scaleMult,
+            durationMs: (times[i + 1] ?? this.p.beatMs) - ms,
+            follow: b.self,
+          });
+      };
+      if (ms > 0) this.scene.time.delayedCall(ms, hit);
+      else hit();
+    });
   }
 
   interrupt(_time: number): void {}
@@ -280,6 +329,8 @@ export class BombBrain {
   phase: 'run' | 'fuse' = 'run';
   /** 터졌다 (쓰러질 때 다시 터지지 않게) */
   exploded = false;
+  /** 달리는 중이라고 알렸다 (음향 bomber_fuse 루프 — run/runEnd 짝) */
+  private running = false;
   private until = 0;
   private marker: TelegraphHandle | null = null;
   /** 마지막으로 받은 컨텍스트 (맞아서 불붙음 · 쓰러진 뒤 폭발) */
@@ -307,6 +358,11 @@ export class BombBrain {
       if (ctx.time >= this.until) this.explode(ctx);
       return;
     }
+    if (!this.running) {
+      this.running = true;
+      EventBus.emit(Events.ENEMY_ATTACK, { id: b.id, kind: 'explode', phase: 'run' } satisfies EnemyAttackPayload);
+      ctx.bark?.(b.self, 'charge', b.def.barks?.charge);
+    }
     b.moveTo(ctx.player.x, ctx.player.y, b.def.speedTiles * TILE);
     const d = Math.hypot(ctx.player.x - b.x, ctx.player.y - b.y);
     if (d <= this.p.triggerTiles * TILE && takeToken(b, ctx)) this.light(ctx);
@@ -314,11 +370,24 @@ export class BombBrain {
 
   /** 맞음: 불이 붙는다 (토큰과 무관 — 날아간 자리에서 터진다) */
   onHit(): void {
-    if (this.phase === 'run' && this.ctx && this.b.active) this.light(this.ctx);
+    if (this.phase !== 'run' || !this.ctx || !this.b.active) return;
+    this.light(this.ctx, true);
+    this.ctx.bark?.(this.b.self, 'launched', this.b.def.barks?.launched);
+  }
+
+  private endRun(): void {
+    if (!this.running) return;
+    this.running = false;
+    EventBus.emit(Events.ENEMY_ATTACK, {
+      id: this.b.id,
+      kind: 'explode',
+      phase: 'runEnd',
+    } satisfies EnemyAttackPayload);
   }
 
   /** 쓰러짐: deathFuseMs 뒤 그 자리에서 터진다 (이미 터졌으면 없음) */
   onDeath(scene: Phaser.Scene): void {
+    this.endRun();
     this.marker?.end();
     this.marker = null;
     const ctx = this.ctx;
@@ -333,16 +402,33 @@ export class BombBrain {
     scene.time.delayedCall(this.p.deathFuseMs, () => blast(c.x, c.y, r, attack, this.p.mobDamage, self));
   }
 
-  private light(ctx: MobContext): void {
+  /** 심지: 제자리면 attack(1초 예고 시트), 맞아서 불붙었으면 swell 루프(날아가는 동안 — art §34) */
+  private light(ctx: MobContext, byHit = false): void {
     const b = this.b;
+    this.endRun();
     this.phase = 'fuse';
     this.until = ctx.time + this.p.fuseMs;
     b.body.setVelocity(0, 0);
     b.paint(COLORS.TELEGRAPH);
-    b.attackAnim(ctx.time, this.p.fuseMs);
+    const swell = byHit ? b.visual.sheet('swell') : undefined;
+    if (swell)
+      b.visual.loopFrames(
+        'swell',
+        b.visual.facing,
+        Array.from({ length: swell.frames }, (_, i) => i),
+        swell.frameDurationsMs?.[0] ?? 80,
+      );
+    else {
+      b.attackAnim(ctx.time, this.p.fuseMs);
+      ctx.bark?.(b.self, 'fuse', b.def.barks?.fuse);
+    }
     const c = b.body.center;
     this.marker = ctx.telegraph.circle(c.x, c.y, this.p.radiusTiles * TILE, this.p.fuseMs, { tier: 'danger' });
-    EventBus.emit(Events.ENEMY_TELEGRAPH, { id: b.id, kind: 'fuse' } satisfies EnemyTelegraphPayload);
+    EventBus.emit(Events.ENEMY_TELEGRAPH, {
+      id: b.id,
+      kind: 'fuse',
+      ms: this.p.fuseMs,
+    } satisfies EnemyTelegraphPayload);
   }
 
   private explode(ctx: MobContext): void {
@@ -351,7 +437,8 @@ export class BombBrain {
     this.marker = null;
     this.exploded = true;
     ctx.squad?.release(b.self);
-    EventBus.emit(Events.ENEMY_ATTACK, { id: b.id, kind: 'explode' } satisfies EnemyAttackPayload);
+    // 스스로 터짐: 쓰러지는 그림 = explode 시트 (폭발 이벤트는 GameCombat.blast)
+    b.self.corpseAction = 'explode';
     const c = b.body.center;
     ctx.blast?.(
       c.x,

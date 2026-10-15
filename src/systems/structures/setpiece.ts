@@ -113,6 +113,8 @@ export interface FixedSlot {
   tx: number;
   ty: number;
   function: boolean;
+  /** P19: 이 자리만 다른 시트 (형태 틀 흉벽 = hazard_merlon — 동작은 kind 그대로) */
+  sprite?: string;
 }
 
 export interface SetPiecePlan {

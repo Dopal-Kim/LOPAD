@@ -39,6 +39,7 @@ import { MOVE_AUDIO_TRIGGERS } from './audioMoves';
 import { DROP_AUDIO_TRIGGERS } from './audioDrops';
 import { TRAINING_AUDIO_TRIGGERS } from './audioTraining';
 import { LOOP2_AUDIO_TRIGGERS, routeFloorActive } from './audioLoop2';
+import { P19_AUDIO_TRIGGERS, P19_SFX, swellRate } from './audioP19';
 import { BUILD_AUDIO_TRIGGERS, BUILD_SFX, hasBranch, isRapidVolley, katanaThrustSfx } from './audioBuild';
 export type { AudioTrigger } from './audioTrigger';
 
@@ -46,7 +47,12 @@ export type { AudioTrigger } from './audioTrigger';
 export const ENEMY_OWN_SFX: Record<string, { hurt?: string; death?: string; telegraph?: string }> = {
   peddler: { hurt: 'sfx/peddler_hurt', death: 'sfx/peddler_death', telegraph: 'sfx/peddler_wick' },
   porter: { hurt: 'sfx/porter_hurt', death: 'sfx/porter_death', telegraph: 'sfx/porter_windup' },
+  // P19 sound §14: 고수 처치 · 자폭병 1초 예고 (자폭병 처치음은 bomber_blast 가 대신 — ENEMY_DIED 에서 뺀다)
+  drummer: { death: P19_SFX.drummerDeath },
+  bomber: { telegraph: P19_SFX.bomberSwell },
 };
+/** P19: 쓰러지면 터지는 적 — enemy_death 대신 폭발음 (sound §14) */
+const DEATH_BY_BLAST = new Set(['bomber']);
 /** 61 단계 2: ENEMY_ATTACK phase → 효과음 (행상 착탄은 화염 술병 소모품과 같은 bottle_burst) */
 export const ENEMY_PHASE_SFX: Record<string, string> = {
   throw: 'sfx/peddler_throw',
@@ -355,6 +361,8 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   ...TRAINING_AUDIO_TRIGGERS,
   // --- 62 루프 2 (P16 sound §13): 메뉴·설정 · 적 예고 · 슬로모 · 사망 · 노드 등급 · 층 끝 · 유품 · 기억 · 말 걸기 · 외벽 문 (audioLoop2) ---
   ...LOOP2_AUDIO_TRIGGERS,
+  // --- P19 (sound §14): 무기 타격 · 타격 반응 · 위험물 · 연속 처치 · 새 적 2종 (audioP19) ---
+  ...P19_AUDIO_TRIGGERS,
   // --- 주인공 공격·보조 동작 ---
   t<PlayerAttackPayload>({
     event: Events.PLAYER_ATTACKED,
@@ -534,12 +542,6 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   // --- 타격·적 ---
   t<EnemyDamagedPayload>({
     event: Events.ENEMY_DAMAGED,
-    note: '적 피격: 치명이면 hit_enemy_crit, 아니면 hit_enemy (출혈·잔월 틱은 제외)',
-    when: (p) => !p.tick,
-    sfx: (p) => (p.crit ? SFX.hitEnemyCrit : SFX.hitEnemy),
-  }),
-  t<EnemyDamagedPayload>({
-    event: Events.ENEMY_DAMAGED,
     note: '적 피격 보조음 enemy_hurt (틱 포함, 피격음과 겹침) · 61 단계 2: 행상·짐꾼은 전용 <id>_hurt 로 대체',
     sfx: (p) => ENEMY_OWN_SFX[p.id]?.hurt ?? SFX.enemyHurt,
   }),
@@ -547,6 +549,7 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     event: Events.ENEMY_DIED,
     note: '일반 적 사망 (60라운드 엘리트 = elite_die)',
     sfx: (p) => {
+      if (DEATH_BY_BLAST.has(p?.id ?? '')) return null;
       const own = ENEMY_OWN_SFX[p?.id ?? '']?.death ?? SFX.enemyDeath;
       return p?.elite ? [BUILD_SFX.eliteDie, own] : own;
     },
@@ -562,6 +565,8 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     event: Events.ENEMY_TELEGRAPH,
     note: '적 돌진 예고 → sfx/<적id>_telegraph (결사병 charger_telegraph) · 61 단계 2: 행상 심지 peddler_wick · 짐꾼 porter_windup',
     sfx: (p) => ENEMY_OWN_SFX[p.id]?.telegraph ?? SFX.enemyTelegraph(p.id),
+    // P19: 자폭병 부풂은 예고 길이에 맞춤 (1000ms 기준)
+    rate: (p) => (p.kind === 'fuse' ? swellRate(p.ms) : 1),
   }),
   t<EnemyAttackPayload>({
     event: Events.ENEMY_ATTACK,

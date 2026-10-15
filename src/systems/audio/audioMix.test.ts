@@ -44,13 +44,14 @@ describe('61라운드 계약 sound §9 믹싱', () => {
     expect(resolveBgmFor(manifest, 1, 'emperor', 'combat', 1)).toBe('bgm/f1_boss_p1');
   });
 
-  it('지연 로드 대상 = 층 전용 곡(use.floor), 1층 5곡', () => {
+  it('지연 로드 대상 = 층 전용 곡(use.floor), 1층 6곡 (P19 전투 타악 층 포함)', () => {
     const lazy = manifest.entries
       .filter(isLazyBgm)
       .map((e) => e.id)
       .sort();
     expect(lazy).toEqual([...floorStateBgmIds(manifest, 1)].sort());
-    expect(lazy).toHaveLength(5);
+    expect(lazy).toHaveLength(6);
+    expect(lazy).toContain('bgm/f1_jan_perc');
     expect(
       manifest.entries.find((e) => e.id === 'bgm/title') &&
         isLazyBgm(manifest.entries.find((e) => e.id === 'bgm/title')!),
@@ -84,14 +85,30 @@ describe('61라운드 계약 sound §9 믹싱', () => {
     });
   });
 
-  it('실제 매니페스트 믹싱: 상한 12·UI 2 · 덕킹 3규칙(보스 예고 → 효과음 −6·BGM −3, 피격 → 효과음 −3 150ms)', () => {
+  it('실제 매니페스트 믹싱: 상한 12·UI 2 · 덕킹 15규칙(보스 예고 → 효과음 −6·BGM −3, 피격 → 효과음 −3 150ms)', () => {
     const mix = mixingOf(manifest);
     expect(voiceLimitsOf(mix)).toMatchObject({ maxSfx: 12, maxUi: 2, perGroupMax: 3 });
     const rules = parseDucking(mix.ducking);
     // 61라운드 단계 3: 파훼·결정타 → 효과음 우선순위 2 이하 −4dB 300ms (이름 목록 규칙)
     // 61 단계 6: 전환음 → 효과음 −8·BGM −4, 도장 → 효과음(1 이하) −4 (줍기류 대상 규칙은 그룹 대상이라 아직 해석 안 함)
     // 62 루프 2 (sound §13): 막타 슬로모 → 효과음 −5·BGM −4 280ms · 사망 슬로모 → 효과음 −10·BGM −12 · 층 끝 → BGM −6
-    expect(rules).toHaveLength(12);
+    // P19 (sound §14): 벽꽝·볼링 → 효과음 −3 120ms · 큰 폭발 → 효과음 −4 200ms · BGM −3 300ms
+    expect(rules).toHaveLength(15);
+    for (const g of ['sfx/wall_slam_wall', 'sfx/wall_slam_prop', 'sfx/wall_slam_pillar', 'sfx/enemy_bowl'])
+      expect(
+        ducksFor(rules, { group: g, priority: 3 }).map((r) => [r.target.bus, r.db, r.holdMs]),
+        g,
+      ).toEqual([['sfx', -3, 120]]);
+    for (const g of ['sfx/explode_large', 'sfx/bomber_blast'])
+      expect(
+        ducksFor(rules, { group: g, priority: 2 })
+          .map((r) => [r.target.bus, r.db, r.holdMs])
+          .sort(),
+        g,
+      ).toEqual([
+        ['bgm', -3, 300],
+        ['sfx', -4, 200],
+      ]);
     const lk = ducksFor(rules, { group: 'sfx/last_kill_slow', priority: 3 });
     expect(lk.map((r) => [r.target.bus, r.db, r.holdMs]).sort()).toEqual([
       ['bgm', -4, 280],
