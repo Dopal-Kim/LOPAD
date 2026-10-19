@@ -304,7 +304,7 @@ JAN_TENSE_MEL = [(0, 74, 2), (2, 72, 2), (4, 70, 2), (6, 68, 2), (8, 69, 2), (10
                  (14, 76, 2)]   # (마디, midi, 마디 수) — 활 떨기로 길게
 
 
-@bgm('f1_jan', "1층 잔 거리(전투 노드). 96 s 루프(80마디), 44.1 kHz 스테레오, A 단조 3/4 150 BPM. 술집 골목의 비틀린 왈츠: 콘트라베이스 1박 + 손풍금 2·3박(빈 왈츠처럼 2박이 살짝 이르고 3박이 늦음), 취한 바이올린 주제(아래에서 미끄러져 들어가는 음, 끝이 처지는 음), 손북·숟가락·탬버린·술병. 구성 A(골목) → B(주제) → C(긴장: 삼전음 드론, 활 떨기, 타악 증가) → B'(주제 + 류트 대선율 + 옥타브 아래 바이올린) → D(쉼·쌓기: 낮은 반복음 → 반음계 상승 + 롤). 권장 음량 +3.5 dB = RMS 약 -21 dBFS", 3.5, floors=[1], sr=SR2, use=dict(floor=1, state='combat'))
+@bgm('f1_jan', "1층 잔 거리(전투 노드). 96 s 루프(80마디), 44.1 kHz 스테레오, A 단조 3/4 150 BPM. **P21 어둡게 다시(같은 키 — f1_jan_perc 겹·bgmIntensity·bgmByFloor 그대로)**: 술집 골목의 비틀린 왈츠가 밤의 젖은 골목으로 — 콘트라베이스 1박 + 손풍금 2·3박(낮게·작게, 빈 왈츠처럼 2박이 살짝 이르고 3박이 늦음), 취한 현 주제를 한 옥타브 아래(비올라·첼로 음역, 아래에서 미끄러져 들어가는 음·끝이 처지는 음), 손북 + 숟가락 대신 둔한 나무 '톡'(탬버린·술병 뺌). 바닥 불협 층: A1 드론 + B♭1 반음(내내 맥놀이) + E♭2 삼전음(내내 희미, C 에서 부풂) + C 구간 낮은 현 떨기. 구성 A(골목) → B(주제) → C(긴장: 삼전음·반음 드론, 활 떨기, 손북 증가) → B'(주제 + 낮은 류트 대선율 + 두 옥타브 아래 현) → D(쉼·쌓기: 낮은 반복음 → 반음계 상승 + 둔한 롤). 리버브를 넓고 어둡게, 마지막에 3.6 kHz 위를 덮음(고역 줄임). 권장 음량 +3.2 dB = 통합 -19.1 LUFS(P21 전과 같은 자리 — 파일 -22.3 LUFS. 겹 f1_jan_perc 를 켜면 -17.8)", 3.2, floors=[1], sr=SR2, use=dict(floor=1, state='combat'))
 def _bgm_f1_jan(sr, rng):
     bpm = 150.0
     beat = 60.0 / bpm
@@ -329,13 +329,13 @@ def _bgm_f1_jan(sr, rng):
         if sect == 2:      # 긴장: 화음을 길게, 바람통 떨림
             if b % 2 == 0:
                 for m in chord:
-                    r = reed(sr, bar * 2 + 0.1, midi(m) * 0.9995, fc=1100)
+                    r = reed(sr, bar * 2 + 0.1, midi(m) * 0.9995, fc=750)
                     r = mul(r, [0.75 + 0.25 * math.sin(TAU * 6.5 * i / sr) for i in range(len(r))])
-                    bus.put(r, t0, sr, 0.09, -0.35, width=0.01)
+                    bus.put(r, t0, sr, 0.07, -0.35, width=0.01)
         elif not (sect == 4 and b < 72):
-            for off, g in ((1.0 - 0.06, 0.12), (2.0 + 0.03, 0.1)):
+            for off, g in ((1.0 - 0.06, 0.08), (2.0 + 0.03, 0.065)):   # P21: 낮고 작게(fc 800)
                 for m in chord:
-                    bus.put(reed(sr, 0.28, midi(m) * 0.9995), t0 + off * beat + jit(), sr, g, -0.35, width=0.008)
+                    bus.put(reed(sr, 0.28, midi(m - 12) * 0.9995, fc=800), t0 + off * beat + jit(), sr, g, -0.35, width=0.008)
         # 손북 1박(+ 긴장·B' 에 3박 뒤)
         bus.put(frame_drum(sr, rng), t0, sr, 0.7)
         if sect in (2, 3):
@@ -343,60 +343,61 @@ def _bgm_f1_jan(sr, rng):
         if sect == 4 and b >= 72:      # 쌓기: 8분음 손북이 점점 세게
             for k in range(6):
                 bus.put(frame_drum(sr, rng, 1.0, 165, 90), t0 + k * 0.5 * beat, sr, 0.12 + 0.3 * (b - 72) / 8 + 0.02 * k, 0.1)
-        # 숟가락 2·3박, 가끔 2박 뒤 유령음
+        # 2·3박 둔한 나무 '톡'(P21: 숟가락·탬버린·술병 대신 — 고역 줄임), 가끔 2박 뒤 유령음
         if sect != 4 or b >= 70:
             for off in (1.0, 2.0):
-                bus.put(spoons(sr, rng), t0 + off * beat + jit(), sr, 0.28, 0.45)
+                bus.put(lowpass(spoons(sr, rng), sr, 1500), t0 + off * beat + jit(), sr, 0.3, 0.45)
             if rng.random() < 0.5:
-                bus.put(spoons(sr, rng), t0 + 1.5 * beat + jit(), sr, 0.13, 0.5)
-        # 탬버린(긴장·B')
-        if sect in (2, 3):
-            for k, off in enumerate((1.0, 1.5, 2.0, 2.5)):
-                bus.put(tambourine(sr, rng), t0 + off * beat + jit(), sr, 0.12 if k % 2 == 0 else 0.07, -0.45)
-        # 술병 부딪힘: 네 마디에 한 번쯤
-        if sect in (0, 1, 3) and rng.random() < 0.25:
-            bus.put(bottle(sr, rng), t0 + rng.choice((0.5, 1.5, 2.5)) * beat, sr, 0.07, rng.uniform(-0.7, 0.7))
+                bus.put(lowpass(spoons(sr, rng), sr, 1500), t0 + 1.5 * beat + jit(), sr, 0.14, 0.5)
     # 쌓기 끝 스네어 롤(마지막 마디 16분음, 점점 세게)
     for k in range(12):
-        bus.put(snare(sr, rng, 0.1, 0.25), 79 * bar + k * 0.25 * beat, sr, 0.08 + 0.022 * k, -0.1)
+        bus.put(lowpass(snare(sr, rng, 0.1, 0.25), sr, 2200), 79 * bar + k * 0.25 * beat, sr, 0.1 + 0.025 * k, -0.1)
     # 바이올린
     def play(notes, g, pan, trem=0.0, bend_p=0.25, octave=0):
         for t, m, d in notes:
             f = midi(m + octave) * 2 ** (rng.uniform(-0.12, 0.12) / 12.0)
             bend = rng.uniform(0.3, 0.8) if rng.random() < bend_p else 0.0
-            fd = fiddle(sr, d * 0.97 + 0.04, f, rng, scoop=rng.uniform(0.3, 0.9), trem=trem, bend=bend)
+            fd = fiddle(sr, d * 0.97 + 0.04, f, rng, scoop=rng.uniform(0.3, 0.9), trem=trem, bend=bend, bright=0.35)
             bus.put(fd, t + rng.uniform(0.0, 0.018), sr, g, pan, width=0.006)
     theme = bar_notes([(b, JAN_MEL[b]) for b in range(16)], bar, beat)
-    play([(16 * bar + t, m, d) for t, m, d in theme], 0.2, 0.3)
-    play([(48 * bar + t, m, d) for t, m, d in theme], 0.2, 0.3)
-    play([(48 * bar + t, m, d) for t, m, d in theme], 0.08, -0.2, octave=-12, bend_p=0.0)
-    play([(15 * bar + 2 * beat, 71, 1)], 0.16, 0.3)                             # A → B 못갖춘마디
-    play([((32 + b) * bar, m, d * 3) for b, m, d in JAN_TENSE_MEL], 0.16, 0.3, trem=0.45, bend_p=0.0)
+    # P21: 주제를 한 옥타브 아래(비올라·첼로 음역)로, B' 는 두 옥타브 아래 현을 겹침
+    play([(16 * bar + t, m, d) for t, m, d in theme], 0.24, 0.3, octave=-12)
+    play([(48 * bar + t, m, d) for t, m, d in theme], 0.24, 0.3, octave=-12)
+    play([(48 * bar + t, m, d) for t, m, d in theme], 0.1, -0.2, octave=-24, bend_p=0.0)
+    play([(15 * bar + 2 * beat, 71, 1)], 0.18, 0.3, octave=-12)                 # A → B 못갖춘마디
+    play([((32 + b) * bar, m, d * 3) for b, m, d in JAN_TENSE_MEL], 0.2, 0.3, trem=0.45, bend_p=0.0, octave=-12)
     low = [[(0, 57, 1), (1, 60, 1), (2, 59, 1)], [(0, 57, 1), (1, 56, 1), (2, 57, 1)]]
     for b in range(64, 80):
         row = low[b % 2]
         play([(b * bar + o * beat, m, d) for o, m, d in row], 0.13, 0.25, bend_p=0.15)
         if b >= 72:
-            play([(b * bar + o * beat, m + 12, d) for o, m, d in row], 0.07 + 0.01 * (b - 72), 0.4, bend_p=0.0)
+            play([(b * bar + o * beat, m, d) for o, m, d in row], 0.06 + 0.01 * (b - 72), 0.4, bend_p=0.0, octave=-12)
     # 류트 대선율(B'): 8분음 화음 분산
     for b in range(48, 64):
         chord = CH_JAN[prog[b]][0]
         for k in range(6):
-            m = chord[[0, 1, 2, 1, 2, 1][k]] + 12
-            p = mul(pluck(sr, 0.6, midi(m) * (1 + rng.uniform(-0.004, 0.004)), rng, damp=0.993, bright=0.5),
+            m = chord[[0, 1, 2, 1, 2, 1][k]]                                      # P21: 한 옥타브 낮게·어둡게
+            p = mul(pluck(sr, 0.6, midi(m) * (1 + rng.uniform(-0.004, 0.004)), rng, damp=0.993, bright=0.3),
                     env_exp(sr, 0.6, 0.18))
             bus.put(p, b * bar + k * 0.5 * beat + jit(), sr, 0.1 if k % 2 == 0 else 0.07, -0.55)
-    # 바닥 긴장: A1 낮은 드론 + C 구간에만 E♭2(삼전음)가 스며듦
+    # 바닥 불협 층(P21): A1 드론 + B♭1 반음(내내 맥놀이) + E♭2 삼전음(내내 희미, C 구간에 부풂) + C 낮은 현 떨기
     dr = lp_loop(tone_loop(sr, n, 55.0, 'saw'), sr, 120)
-    bus.layer(dr, None, 0.1)
+    bus.layer(dr, None, 0.13)
+    bus.layer(lp_loop(tone_loop(sr, n, 58.27, 'saw'), sr, 105), None, 0.06)
     eb = lp_loop(tone_loop(sr, n, 77.78, 'saw'), sr, 150)
     c0, c1 = sec(sr, 32 * bar), sec(sr, 48 * bar)
-    env = [0.0] * n
+    env = [0.35] * n
     for i in range(c0, c1):
         x = (i - c0) / (c1 - c0)
-        env[i] = math.sin(math.pi * x) ** 0.7
-    bus.layer([a * e for a, e in zip(eb, env)], None, 0.09)
-    out = reverb2(bus, sr, size=0.9, decay=0.65, wet=0.22)
+        env[i] = 0.35 + 0.65 * math.sin(math.pi * x) ** 0.7
+    bus.layer([a * e for a, e in zip(eb, env)], None, 0.1)
+    for b in range(32, 48, 2):                                               # C: 낮은 현 떨기(E2·F2 반음 문지름)
+        for m, pan in ((40, -0.3), (41, 0.3)):
+            fd = fiddle(sr, bar * 2 + 0.1, midi(m), rng, vib=0.003, scoop=0.1, trem=0.55, bright=0.2)
+            bus.put(lowpass(fd, sr, 900), b * bar, sr, 0.07, pan, width=0.008)
+    out = reverb2(bus, sr, size=1.2, decay=0.72, wet=0.3, damp=0.55)
+    out.L = lp_loop(out.L, sr, 3600)   # P21: 고역 줄임
+    out.R = lp_loop(out.R, sr, 3600)
     return _out(out)
 
 

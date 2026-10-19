@@ -2837,7 +2837,8 @@ import sfx_passive  # noqa: E402,F401  패시브 9종 → 10 파일
 import sfx_core61  # noqa: E402,F401  61라운드 P11 핵심 20종 품질 패스(같은 키 다시 등록 — 순서·시드 유지) + 새 2종 + 변주
 import sfx_stage61  # noqa: E402,F401  61라운드 단계 2·3: 신규 적 2종 · 보스 '만취' 패스(P6) · 발도 검기 단수 · 가드 다듬기
 import sfx_p14  # noqa: E402,F401  61라운드 단계 6(P14): 그림 속 입구 전환 3 · 수련장 과제·도장 2 + 변주 2
-import sfx_p16  # noqa: E402,F401  62라운드 루프 2(P16): 메뉴 공통 · 등장 예고 · 슬로모 · 시련 · 결산 · 기억 · 상점 · NPC · 유품 · 토글 — 새 효과음은 이 모듈 끝에만
+import sfx_p16  # noqa: E402,F401  62라운드 루프 2(P16): 메뉴 공통 · 등장 예고 · 슬로모 · 시련 · 결산 · 기억 · 상점 · NPC · 유품 · 토글 · P19 자유 전투
+import sfx_p21  # noqa: E402,F401  P21 어둠·잔혹: 살·뼈 타격 층 · 처형 · 주인공 상흔 · 저HP 심장 · 신음 — 새 효과음은 이 모듈 끝에만
 import listen_index  # noqa: E402  들어보기 페이지용 목록(listen_index.json)
 
 
@@ -3099,6 +3100,7 @@ def _bgm_emperor(sr, rng):
 import bgm_floor1  # noqa: E402,F401  61라운드 P11 1층 전용 3곡(벽 밖 · 잔 거리 · 만취 3국면) — 44.1 kHz 스테레오
 import bgm_training  # noqa: E402,F401  61라운드 단계 6(P14) 수련장 곡(bgmByState.training) — 44.1 kHz 스테레오
 import bgm_p19  # noqa: E402,F401  P19 전투 강도 겹 f1_jan_perc(f1_jan 위 타악 층, mixing.bgmIntensity) — 44.1 kHz 스테레오
+import bgm_p21  # noqa: E402,F401  P21 타이틀 title_dark(bgmByState.title) — 44.1 kHz 스테레오
 
 
 # ---------------------------------------------------------------------------
@@ -3327,7 +3329,7 @@ def write_manifest():
                     **mixing.settings(_variant_groups())),
         bgmByFloor=dict(sorted(((str(f), 'bgm/' + name) for name, spec in BGM.items() for f in spec['floors']),
                                key=lambda kv: int(kv[0]))),
-        bgmByState=dict(title='bgm/title', boss='bgm/boss', emperor='bgm/emperor',
+        bgmByState=dict(dict(title='bgm/title', boss='bgm/boss', emperor='bgm/emperor'),   # spec state 가 기본값을 덮음(P21 title)
                         **{spec['state']: 'bgm/' + name for name, spec in BGM.items() if spec.get('state')}),
         bgmByFloorState=_bgm_floor_state(),
         bgmByFloorStateNote='층별 상태 곡(61라운드). 찾는 순서: bgmByFloorState[층][상태] → 없으면 bgmByFloor[층](전투) · '

@@ -149,7 +149,21 @@
         "sfx/drummer_death": 1,
         "sfx/bomber_fuse": 2,
         "sfx/bomber_swell": 2,
-        "sfx/bomber_blast": 2
+        "sfx/bomber_blast": 2,
+        "sfx/flesh_slash": 2,
+        "sfx/flesh_stab": 2,
+        "sfx/bone_crush": 2,
+        "sfx/arrow_stick": 2,
+        "sfx/blood_splat": 3,
+        "sfx/dismember": 2,
+        "sfx/body_fall": 3,
+        "sfx/body_fall_armor": 2,
+        "sfx/execute_hit": 1,
+        "sfx/hero_crack": 1,
+        "sfx/hero_ember_hiss": 1,
+        "sfx/heartbeat_loop": 1,
+        "sfx/enemy_groan_1": 2,
+        "sfx/enemy_groan_2": 2
       },
       "layerMax": {
         "ids": [
@@ -212,7 +226,7 @@
         {
           "level": 3,
           "name": "hurt",
-          "label": "주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)·기둥 무너짐·포물선 술병(61-5)·그림 속 입구 전환·수련장 도장(61-6)·적 등장 예고·마지막 처치 슬로모·노드 시련 성공/실패·1층 끝 결산(62-2)·버팀 깨짐·벽꽝·볼링·낙하·위험물 폭발·연속 처치(P19 — 판단·보상 순간)",
+          "label": "주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)·기둥 무너짐·포물선 술병(61-5)·그림 속 입구 전환·수련장 도장(61-6)·적 등장 예고·마지막 처치 슬로모·노드 시련 성공/실패·1층 끝 결산(62-2)·버팀 깨짐·벽꽝·볼링·낙하·위험물 폭발·연속 처치(P19 — 판단·보상 순간)·처형·주인공 상흔·저HP 심장(P21)",
           "events": [
             "PLAYER_DAMAGED",
             "PARRY_SUCCESS",
@@ -238,7 +252,10 @@
             "enemy:bowled",
             "enemy:fell",
             "hazard:exploded",
-            "combo:streak"
+            "combo:streak",
+            "player:execute",
+            "player:wounded",
+            "player:low-hp"
           ]
         },
         {
@@ -256,7 +273,7 @@
         {
           "level": 1,
           "name": "ambient",
-          "label": "환경·획득(바닥 줍기 61-5 포함)·이벤트·패시브·상태 부가음·개성 발동 특색 층(61-5)·움찔·넉백 바람(P19 — 타격음 위 꼬리 층, 빼앗기 1순위)",
+          "label": "환경·획득(바닥 줍기 61-5 포함)·이벤트·패시브·상태 부가음·개성 발동 특색 층(61-5)·움찔·넉백 바람(P19 — 타격음 위 꼬리 층, 빼앗기 1순위)·살·뼈·피 층과 적 신음(P21)",
           "events": [
             "PASSIVE_PROC",
             "STATUS_CHANGED",
@@ -268,6 +285,8 @@
             "SHOP_TALK",
             "enemy:staggered{kind:flinch}",
             "enemy:knocked",
+            "enemy:gore",
+            "enemy:wounded",
             "(world·pickup·event 분류 — 상점 사기·다시 진열 포함)"
           ]
         },
@@ -421,6 +440,33 @@
         "note": "P19: 큰 폭발 때 곡이 잠깐 물러남(연쇄로 0.3초마다 이어지면 hold 가 이어져 한 번 눌린 채 유지)"
       },
       {
+        "when": "처형 일격 재생(execute_hit)",
+        "target": "sfx priority ≤ 2",
+        "db": -9.0,
+        "attackMs": 5,
+        "releaseMs": 350,
+        "hold": "300 ms",
+        "note": "P21: 처형 결정타 순간 남은 타격·휘두름·살 층을 크게 눌러 '짧은 정적' — 낮은 충격과 먹먹한 꼬리만 남는다. 처형으로 이어지는 사망 변형 소리(dismember·body_fall, priority 2)도 함께 눌려 뒤로 물러난다"
+      },
+      {
+        "when": "처형 일격 재생(execute_hit) — BGM",
+        "target": "bgm",
+        "db": -6.0,
+        "attackMs": 10,
+        "releaseMs": 600,
+        "hold": "300 ms",
+        "note": "P21: 곡도 슬로(0.3배 120 ms)와 함께 물러났다가 0.6 s 에 걸쳐 돌아온다"
+      },
+      {
+        "when": "저HP 심장 박동 재생(heartbeat_loop) — BGM",
+        "target": "bgm",
+        "db": -2.5,
+        "attackMs": 400,
+        "releaseMs": 600,
+        "hold": "그 소리가 도는 동안",
+        "note": "P21: HP ≤ 25% 동안 곡을 살짝 물려 심장 박동이 바닥에 깔리게(저역끼리 부딪히지 않게). 루프가 멈추면 풀림"
+      },
+      {
         "when": "1층 끝 결산 열림 재생(floor_end_sting) — BGM",
         "target": "bgm",
         "db": -6.0,
@@ -545,9 +591,62 @@
       "sfx/fall_drop": {
         "peakMs": 1050,
         "note": "P19: 1.05 s 먼 바닥 '쿵'(화면 밖)"
+      },
+      "sfx/blood_splat": {
+        "peakMs": 0,
+        "delayMs": 110,
+        "note": "P21: 적중(enemy:gore)에서 110 ms 늦게 시작 — 분출한 피가 바닥에 떨어지는 순간. 시체 밑 웅덩이(1.5 s 퍼짐) 시작에도 한 번 쓸 수 있다(gainDb −4 더)"
+      },
+      "sfx/dismember": {
+        "peakMs": 420,
+        "note": "P21: 0 s 찢김(사망 변형과 같은 순간), 0.42 s 떨어져 나간 조각이 바닥에 '퍽' — 조각 비행(0.5~0.9 s)의 착지가 늦으면 재생 위치가 아니라 시작을 (착지 − 420) ms 늦춘다. 변주 _v2 는 0.50 s"
+      },
+      "sfx/body_fall": {
+        "peakMs": 340,
+        "note": "P21: 0.14 s 무릎 · 0.34 s 몸통 '쿵'(변주 _v2 0.30 s, body_fall_armor 0.36 s) — 아트 쓰러짐 시트의 몸통 착지 프레임이 크게 다르면 시작을 옮긴다(음향에 알림)"
+      },
+      "sfx/execute_hit": {
+        "peakMs": 0,
+        "alignTo": "player:execute 의 결정타 프레임",
+        "note": "P21: 0 s = 결정타(슬로 0.3배 120 ms 시작과 같은 순간). PLAYER_EXECUTE 가 처형 시작에 오면 결정타 프레임까지 늦춰 재생한다(무기 처형 동작의 타격 프레임)"
+      },
+      "sfx/heartbeat_loop": {
+        "peakMs": 30,
+        "note": "P21: player:low-hp{on:true} 에서 fadeIn 400 ms, {on:false} 에서 fadeOut 600 ms. 재생 속도 = ratio 0.25 → 1.0, ≤ 0.10 → 1.15(선형). 사망(PLAYER_DIED)이면 death_slow 와 함께 1.1 s 에 걸쳐 끔"
       }
     },
     "cuesNote": "62-2: 시간 축이 연출에 맞춰진 효과음의 정점(peakMs, 파일 0 기준). 시스템·UI 연출 시각을 이 값에 맞추거나, 연출이 늦으면 재생을 그만큼 늦춘다. 계약 필드가 아니라 권장값.",
+    "gore": {
+      "levels": {
+        "2": {
+          "note": "전체 — 모든 P21 소리"
+        },
+        "1": {
+          "mute": [
+            "sfx/dismember"
+          ],
+          "gainDb": {
+            "sfx/flesh_slash": -3.0,
+            "sfx/flesh_stab": -3.0,
+            "sfx/bone_crush": -2.0,
+            "sfx/blood_splat": -4.0,
+            "sfx/arrow_stick": -2.0
+          },
+          "note": "줄임 — 절단 없음(behead·bisect → collapse 라 dismember 는 원래 오지 않지만 안전하게 끔), 살·피 층 낮춤"
+        },
+        "0": {
+          "mute": [
+            "sfx/flesh_slash",
+            "sfx/flesh_stab",
+            "sfx/bone_crush",
+            "sfx/blood_splat",
+            "sfx/dismember"
+          ],
+          "note": "끔 — 살·피 층 없음(무기 타격음만). body_fall·execute_hit·hero_*·heartbeat_loop·enemy_groan_* 은 그대로(잔혹 묘사가 아님)"
+        }
+      },
+      "note": "P21: settings.gore(2 전체 · 1 줄임 · 0 끔, contracts/dark-brutal.md §1)에 따라 효과음을 끄거나(mute) 낮춘다(gainDb, 항목 gainDb 위에 더함). 변주(variants)도 원본과 같이 적용"
+    },
     "variantGroups": {
       "sfx/hit_enemy": [
         "sfx/hit_enemy",
@@ -657,6 +756,59 @@
       "sfx/drummer_beat": [
         "sfx/drummer_beat",
         "sfx/drummer_beat_v2"
+      ],
+      "sfx/flesh_slash": [
+        "sfx/flesh_slash",
+        "sfx/flesh_slash_v2",
+        "sfx/flesh_slash_v3"
+      ],
+      "sfx/flesh_stab": [
+        "sfx/flesh_stab",
+        "sfx/flesh_stab_v2",
+        "sfx/flesh_stab_v3"
+      ],
+      "sfx/bone_crush": [
+        "sfx/bone_crush",
+        "sfx/bone_crush_v2",
+        "sfx/bone_crush_v3"
+      ],
+      "sfx/arrow_stick": [
+        "sfx/arrow_stick",
+        "sfx/arrow_stick_v2"
+      ],
+      "sfx/blood_splat": [
+        "sfx/blood_splat",
+        "sfx/blood_splat_v2",
+        "sfx/blood_splat_v3"
+      ],
+      "sfx/dismember": [
+        "sfx/dismember",
+        "sfx/dismember_v2"
+      ],
+      "sfx/body_fall": [
+        "sfx/body_fall",
+        "sfx/body_fall_v2"
+      ],
+      "sfx/execute_hit": [
+        "sfx/execute_hit",
+        "sfx/execute_hit_v2"
+      ],
+      "sfx/hero_crack": [
+        "sfx/hero_crack",
+        "sfx/hero_crack_v2",
+        "sfx/hero_crack_v3"
+      ],
+      "sfx/hero_ember_hiss": [
+        "sfx/hero_ember_hiss",
+        "sfx/hero_ember_hiss_v2"
+      ],
+      "sfx/enemy_groan_1": [
+        "sfx/enemy_groan_1",
+        "sfx/enemy_groan_1_v2"
+      ],
+      "sfx/enemy_groan_2": [
+        "sfx/enemy_groan_2",
+        "sfx/enemy_groan_2_v2"
       ]
     }
   },
@@ -671,7 +823,7 @@
     "8": "bgm/floor_high"
   },
   "bgmByState": {
-    "title": "bgm/title",
+    "title": "bgm/title_dark",
     "boss": "bgm/boss",
     "emperor": "bgm/emperor",
     "training": "bgm/training"
@@ -9721,6 +9873,735 @@
       "note": "P19 새 — 술배 자폭병 폭발(제자리에서 또는 쳐서 날아간 자리에서). 0 s 흙 술독이 깨지는 '와장'(질그릇 조각 — 둔탁한 '딱' 여럿) + 깊은 '쾅'(115→34 Hz) + 술이 흩뿌려지는 '촤악' + 불 '화르르' → 타닥. 1.25 s. enemy_death 를 대신(터져 죽음). 볼링·연쇄로 위험물을 터뜨리면 hazard:exploded{chain} 이 이어진다"
     },
     {
+      "id": "sfx/flesh_slash",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/flesh_slash.ogg",
+      "files": [
+        "assets/audio/sfx/flesh_slash.ogg",
+        "assets/audio/sfx/flesh_slash.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 10584,
+      "durationMs": 240,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "enemy:gore",
+        "when": [
+          "cut:slash"
+        ]
+      },
+      "priority": 1,
+      "variants": [
+        "sfx/flesh_slash",
+        "sfx/flesh_slash_v2",
+        "sfx/flesh_slash_v3"
+      ],
+      "note": "P21 새 — 젖은 베임(칼·대검 베기 적중마다, hit_<무기> 위에 겹치는 살 층). 0 s 천·살을 가르는 낮은 '슥'(3.2k→700 Hz) + 젖은 살 '철퍽'(650 Hz 좁은 대역, 떨리는 진폭) + 얕은 몸통(180→80 Hz). 0.24 s, 5 kHz 위 없음 — 쇠·바람은 기존 타격음이 맡는다. 변주 _v2·_v3"
+    },
+    {
+      "id": "sfx/flesh_slash_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/flesh_slash_v2.ogg",
+      "files": [
+        "assets/audio/sfx/flesh_slash_v2.ogg",
+        "assets/audio/sfx/flesh_slash_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 10584,
+      "durationMs": 240,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/flesh_slash",
+      "note": "젖은 베임 변주 2 — 살 560 Hz, 가름 2.8k→600"
+    },
+    {
+      "id": "sfx/flesh_slash_v3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/flesh_slash_v3.ogg",
+      "files": [
+        "assets/audio/sfx/flesh_slash_v3.ogg",
+        "assets/audio/sfx/flesh_slash_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 10584,
+      "durationMs": 240,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/flesh_slash",
+      "note": "젖은 베임 변주 3 — 살 760 Hz, 가름 3.6k→800"
+    },
+    {
+      "id": "sfx/flesh_stab",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/flesh_stab.ogg",
+      "files": [
+        "assets/audio/sfx/flesh_stab.ogg",
+        "assets/audio/sfx/flesh_stab.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14994,
+      "durationMs": 340,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "enemy:gore",
+        "when": [
+          "cut:stab"
+        ]
+      },
+      "priority": 1,
+      "variants": [
+        "sfx/flesh_stab",
+        "sfx/flesh_stab_v2",
+        "sfx/flesh_stab_v3"
+      ],
+      "note": "P21 새 — 찌름·뿜음(단검·칼 찌르기 적중마다, hit_<무기> 위 살 층). 0 s 날이 들어가는 '푹'(140→60 Hz) + 진한 살(450 Hz) → 45·105·175 ms 맥박처럼 끊기며 뿜는 피(1.4 kHz 젖은 분사, 점점 약하게). 0.34 s. 변주 _v2·_v3"
+    },
+    {
+      "id": "sfx/flesh_stab_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/flesh_stab_v2.ogg",
+      "files": [
+        "assets/audio/sfx/flesh_stab_v2.ogg",
+        "assets/audio/sfx/flesh_stab_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14994,
+      "durationMs": 340,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/flesh_stab",
+      "note": "찌름 변주 2 — 살 400 Hz, 뿜음 40·95·160 ms(1.25 kHz)"
+    },
+    {
+      "id": "sfx/flesh_stab_v3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/flesh_stab_v3.ogg",
+      "files": [
+        "assets/audio/sfx/flesh_stab_v3.ogg",
+        "assets/audio/sfx/flesh_stab_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14994,
+      "durationMs": 340,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/flesh_stab",
+      "note": "찌름 변주 3 — 살 520 Hz, 뿜음 두 번(50·120 ms, 1.6 kHz)"
+    },
+    {
+      "id": "sfx/bone_crush",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bone_crush.ogg",
+      "files": [
+        "assets/audio/sfx/bone_crush.ogg",
+        "assets/audio/sfx/bone_crush.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": -4.5,
+      "trigger": {
+        "event": "enemy:gore",
+        "when": [
+          "cut:crush"
+        ]
+      },
+      "priority": 1,
+      "variants": [
+        "sfx/bone_crush",
+        "sfx/bone_crush_v2",
+        "sfx/bone_crush_v3"
+      ],
+      "note": "P21 새 — 뼈 부러짐(대검 내려치기·강타 적중마다, hit_greatsword 위 뼈 층). 0 s 내려친 무게(90→40 Hz) + 뼈가 꺾이는 '우두둑'(1~2.6 kHz 짧은 딱 7개를 35 ms 안에, 거칠게) → 55 ms 쪼개진 뼈 한 번 더 + 젖은 살(380 Hz). 0.32 s. 변주 _v2·_v3"
+    },
+    {
+      "id": "sfx/bone_crush_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bone_crush_v2.ogg",
+      "files": [
+        "assets/audio/sfx/bone_crush_v2.ogg",
+        "assets/audio/sfx/bone_crush_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": -4.5,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/bone_crush",
+      "note": "뼈 부러짐 변주 2 — 몸통 82→36 Hz, 딱 9개(더 잘게)"
+    },
+    {
+      "id": "sfx/bone_crush_v3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bone_crush_v3.ogg",
+      "files": [
+        "assets/audio/sfx/bone_crush_v3.ogg",
+        "assets/audio/sfx/bone_crush_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": -4.5,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/bone_crush",
+      "note": "뼈 부러짐 변주 3 — 몸통 98→44 Hz, 딱 5개(굵게)"
+    },
+    {
+      "id": "sfx/arrow_stick",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/arrow_stick.ogg",
+      "files": [
+        "assets/audio/sfx/arrow_stick.ogg",
+        "assets/audio/sfx/arrow_stick.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 10584,
+      "durationMs": 240,
+      "loop": false,
+      "gainDb": -0.5,
+      "trigger": {
+        "event": "enemy:gore",
+        "when": [
+          "cut:pierce"
+        ]
+      },
+      "priority": 1,
+      "variants": [
+        "sfx/arrow_stick",
+        "sfx/arrow_stick_v2"
+      ],
+      "note": "P21 새 — 화살이 살에 박힘(활 적중마다 hit_bow 위 살 층 · 주인공 몸에 화살이 박힐 때 player:wounded{arrows 증가} · 꿰어 고정 enemy:death-variant{pinned} 의 몸 쪽). 0 s 촉이 살을 뚫는 '툭'(1.8 kHz, 3.5 kHz 아래) + 박히는 몸통(220→90 Hz) + 젖은 살(700 Hz) + 화살대가 멈추는 나무 '톡'. 0.24 s. 화살대 떨림은 hit_bow 가 맡으므로 없음. 변주 _v2"
+    },
+    {
+      "id": "sfx/arrow_stick_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/arrow_stick_v2.ogg",
+      "files": [
+        "assets/audio/sfx/arrow_stick_v2.ogg",
+        "assets/audio/sfx/arrow_stick_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 10584,
+      "durationMs": 240,
+      "loop": false,
+      "gainDb": -0.5,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/arrow_stick",
+      "note": "박힘 변주 2 — 몸통 200→82 Hz, 살 620 Hz"
+    },
+    {
+      "id": "sfx/blood_splat",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/blood_splat.ogg",
+      "files": [
+        "assets/audio/sfx/blood_splat.ogg",
+        "assets/audio/sfx/blood_splat.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "enemy:gore",
+        "when": [
+          "amount:2+"
+        ]
+      },
+      "priority": 1,
+      "variants": [
+        "sfx/blood_splat",
+        "sfx/blood_splat_v2",
+        "sfx/blood_splat_v3"
+      ],
+      "note": "P21 새 — 피가 바닥에 튐(분출 amount ≥ 2 인 적중 · 시체 밑 웅덩이 시작). 낮은 액체 때림 '철썩'(520 Hz 저역) + 짧은 '착' + 뒤따르는 방울 5. 0.32 s. 적중보다 늦게(피가 떨어지는 순간 — 권장 +110 ms, mixing.cues). 변주 _v2·_v3"
+    },
+    {
+      "id": "sfx/blood_splat_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/blood_splat_v2.ogg",
+      "files": [
+        "assets/audio/sfx/blood_splat_v2.ogg",
+        "assets/audio/sfx/blood_splat_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/blood_splat",
+      "note": "피 튐 변주 2 — 440 Hz, 방울 4"
+    },
+    {
+      "id": "sfx/blood_splat_v3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/blood_splat_v3.ogg",
+      "files": [
+        "assets/audio/sfx/blood_splat_v3.ogg",
+        "assets/audio/sfx/blood_splat_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/blood_splat",
+      "note": "피 튐 변주 3 — 600 Hz, 방울 7(넓게 흩뿌림)"
+    },
+    {
+      "id": "sfx/dismember",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/dismember.ogg",
+      "files": [
+        "assets/audio/sfx/dismember.ogg",
+        "assets/audio/sfx/dismember.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 37485,
+      "durationMs": 850,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "enemy:death-variant",
+        "when": [
+          "variant:behead|bisect"
+        ]
+      },
+      "priority": 2,
+      "variants": [
+        "sfx/dismember",
+        "sfx/dismember_v2"
+      ],
+      "note": "P21 새 — 찢김 + 둔탁한 떨어짐(목 베기·두 동강 사망 변형 — 처형 칼·대검 포함). 0 s 힘줄이 찢기는 '찌익'(1.8k→500 Hz 떨리는 찢김) + 젖은 살 + 뼈가 끊기는 딱 셋 + 맥박처럼 뿜는 피 넷(30~240 ms) → **0.42 s** 떨어져 나간 머리·윗몸이 바닥에 둔탁한 '퍽' + 피 철썩 → 0.53 s 한 번 구름 + 흙. 0.85 s. body_fall 과 함께 재생(남은 몸이 쓰러짐). 잘린 조각 비행 0.5~0.9 s 중 착지가 0.42 s 보다 크게 늦으면 시작을 늦춘다(mixing.cues). 변주 _v2"
+    },
+    {
+      "id": "sfx/dismember_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/dismember_v2.ogg",
+      "files": [
+        "assets/audio/sfx/dismember_v2.ogg",
+        "assets/audio/sfx/dismember_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 37485,
+      "durationMs": 850,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/dismember",
+      "note": "찢김 변주 2 — 떨어짐 0.50 s · 구름 0.62 s(더 멀리 날아감)"
+    },
+    {
+      "id": "sfx/body_fall",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/body_fall.ogg",
+      "files": [
+        "assets/audio/sfx/body_fall.ogg",
+        "assets/audio/sfx/body_fall.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 39690,
+      "durationMs": 900,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "enemy:death-variant",
+        "when": [
+          "variant:collapse|behead|bisect|pinned|burn"
+        ]
+      },
+      "priority": 2,
+      "variants": [
+        "sfx/body_fall",
+        "sfx/body_fall_v2"
+      ],
+      "note": "P21 새 — 몸 쓰러짐(사망 변형이 오는 일반 적 — enemy_death 를 대신). 0 s 숨이 빠짐(목소리 없음) + 옷이 접힘 → 0.14 s 무릎이 꺾여 닿음 → **0.34 s** 몸통이 무겁게 '쿵'(100→34 Hz) + 흙 + 피 젖은 몸 → 0.46 s 머리·팔이 뒤따라 닿음 + 장비 덜그럭. 0.90 s. 현실의 무너짐(무릎 → 몸통 → 머리) 순서. drown 은 fall_water 가 맡아 없음. 변주 _v2"
+    },
+    {
+      "id": "sfx/body_fall_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/body_fall_v2.ogg",
+      "files": [
+        "assets/audio/sfx/body_fall_v2.ogg",
+        "assets/audio/sfx/body_fall_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 39690,
+      "durationMs": 900,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/body_fall",
+      "note": "쓰러짐 변주 2 — 무릎 0.12 s · 몸통 0.30 s(앞으로 고꾸라짐), 110→38 Hz"
+    },
+    {
+      "id": "sfx/body_fall_armor",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/body_fall_armor.ogg",
+      "files": [
+        "assets/audio/sfx/body_fall_armor.ogg",
+        "assets/audio/sfx/body_fall_armor.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 44100,
+      "durationMs": 1000,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "enemy:death-variant",
+        "when": [
+          "armored:true"
+        ]
+      },
+      "priority": 2,
+      "note": "P21 새 — 갑옷 입은 몸 쓰러짐(body_fall 의 갑옷 판 — 같은 자리에 이것만). body_fall 뼈대 + 무릎에 사슬 '짤그락' 셋 → 0.34 s 몸통과 함께 사슬·판갑 쇳조각 아홉이 0.28 s 동안 흩어지며 '짤그락'(1.1~2.1 kHz, 울림 짧게) + 판 '텅'(430 Hz, 2.5 kHz 아래). 1.00 s. 조건 armored 는 제안 — 시스템이 갑옷 적(엘리트·근위 등)을 표시하거나 kind 목록으로 고른다"
+    },
+    {
+      "id": "sfx/execute_hit",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/execute_hit.ogg",
+      "files": [
+        "assets/audio/sfx/execute_hit.ogg",
+        "assets/audio/sfx/execute_hit.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 57330,
+      "durationMs": 1300,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "player:execute",
+        "when": []
+      },
+      "priority": 3,
+      "variants": [
+        "sfx/execute_hit",
+        "sfx/execute_hit_v2"
+      ],
+      "note": "P21 새 — 처형 일격(무기별 마무리의 결정타 순간 — 무기 소리·사망 변형 소리 위). 0 s 아주 낮은 충격(70→30 Hz, 0.6 s) + 아래 무게(48→26 Hz) + 살·뼈 + 젖음 → 저역만 남는 넓고 어두운 방 꼬리 + 0.14 s 부터 아주 작은 먹먹한 '삐'(1.9 kHz, 피크 대비 −40 dB) — 순간 다른 소리가 빠진 '정적'(mixing.ducking 처형 규칙과 함께 — 효과음 −9 dB·BGM −6 dB 300 ms). 1.30 s. 슬로 0.3배 120 ms 와 같은 순간. 변주 _v2"
+    },
+    {
+      "id": "sfx/execute_hit_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/execute_hit_v2.ogg",
+      "files": [
+        "assets/audio/sfx/execute_hit_v2.ogg",
+        "assets/audio/sfx/execute_hit_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 57330,
+      "durationMs": 1300,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": null,
+      "priority": 3,
+      "variantOf": "sfx/execute_hit",
+      "note": "처형 일격 변주 2 — 충격 62→28 Hz, 아래 44→24 Hz(더 깊게)"
+    },
+    {
+      "id": "sfx/hero_crack",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hero_crack.ogg",
+      "files": [
+        "assets/audio/sfx/hero_crack.ogg",
+        "assets/audio/sfx/hero_crack.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PLAYER_DAMAGED",
+        "when": [
+          "guarded:false"
+        ]
+      },
+      "priority": 3,
+      "variants": [
+        "sfx/hero_crack",
+        "sfx/hero_crack_v2",
+        "sfx/hero_crack_v3"
+      ],
+      "note": "P21 새 — 숯 몸 갈라짐(주인공 피격마다 hit_player 위 층 — 숯빛 망령은 살이 아니라 숯). 0~50 ms 숯이 갈라지는 굵은 '빠직' 여섯(0.6~1.8 kHz, 거칠게) + 속 빈 몸통(130→60 Hz) + 탄 나무 속 울림(300 Hz) → 재가 부스러져 흘러내림. 0.32 s. 상처 단계가 오를 때(player:wounded{stage 상승})는 재생 속도 0.85 로 한 번 더. 변주 _v2·_v3"
+    },
+    {
+      "id": "sfx/hero_crack_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hero_crack_v2.ogg",
+      "files": [
+        "assets/audio/sfx/hero_crack_v2.ogg",
+        "assets/audio/sfx/hero_crack_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": null,
+      "priority": 3,
+      "variantOf": "sfx/hero_crack",
+      "note": "갈라짐 변주 2 — 몸통 120→55 Hz, 속 울림 260 Hz"
+    },
+    {
+      "id": "sfx/hero_crack_v3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hero_crack_v3.ogg",
+      "files": [
+        "assets/audio/sfx/hero_crack_v3.ogg",
+        "assets/audio/sfx/hero_crack_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": null,
+      "priority": 3,
+      "variantOf": "sfx/hero_crack",
+      "note": "갈라짐 변주 3 — 몸통 140→64 Hz, 속 울림 340 Hz, 더 잘게"
+    },
+    {
+      "id": "sfx/hero_ember_hiss",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hero_ember_hiss.ogg",
+      "files": [
+        "assets/audio/sfx/hero_ember_hiss.ogg",
+        "assets/audio/sfx/hero_ember_hiss.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 30870,
+      "durationMs": 700,
+      "loop": false,
+      "gainDb": -5,
+      "trigger": {
+        "event": "PLAYER_DAMAGED",
+        "when": [
+          "woundStage:2+"
+        ]
+      },
+      "priority": 3,
+      "variants": [
+        "sfx/hero_ember_hiss",
+        "sfx/hero_ember_hiss_v2"
+      ],
+      "note": "P21 새 — 불씨 쉿(상처 2단 이상 — HP ≤ 50% — 에서 맞을 때마다 hero_crack 위, 상처 단계가 2·3 으로 오를 때 한 번). 0 s 불씨가 확 일어나는 낮은 '훅' + 갈라진 틈으로 불씨가 새는 '쉬이'(2.8 kHz 대역, 0.6 s 에 걸쳐 잦아듦) + 불씨 톡톡. 0.70 s. 귀가 따갑지 않게 6 kHz 위 없음·작게. 조건 woundStage 는 제안(UiSnapshot.player.wound.stage 와 같은 값). 변주 _v2"
+    },
+    {
+      "id": "sfx/hero_ember_hiss_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hero_ember_hiss_v2.ogg",
+      "files": [
+        "assets/audio/sfx/hero_ember_hiss_v2.ogg",
+        "assets/audio/sfx/hero_ember_hiss_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 35280,
+      "durationMs": 800,
+      "loop": false,
+      "gainDb": -5,
+      "trigger": null,
+      "priority": 3,
+      "variantOf": "sfx/hero_ember_hiss",
+      "note": "불씨 쉿 변주 2 — 2.4 kHz, 0.8 s"
+    },
+    {
+      "id": "sfx/heartbeat_loop",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/heartbeat_loop.ogg",
+      "files": [
+        "assets/audio/sfx/heartbeat_loop.ogg",
+        "assets/audio/sfx/heartbeat_loop.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 120273,
+      "durationMs": 2727,
+      "loop": true,
+      "loopStartSample": 0,
+      "loopEndSample": 120273,
+      "gainDb": -4,
+      "trigger": {
+        "event": "player:low-hp",
+        "when": [
+          "on:true"
+        ]
+      },
+      "priority": 3,
+      "note": "P21 새 — 저HP 심장 박동 루프(HP ≤ 25% 동안 — on:true 에서 400 ms 페이드인, on:false 에서 600 ms 페이드아웃). 88 BPM 네 박(2.73 s 루프): 박마다 '쿵-쿵'(62→38 · 56→36 Hz, 160 Hz 아래) + 피가 귀에서 밀려가는 낮은 '쉬익'(120 Hz 아래, 박 뒤에 부풂). 넷째 박은 조금 약하게(불규칙한 심장). 위치 없음(2D). 권장 재생 속도: ratio 0.25 → 1.0, 0.10 이하 → 1.15(가빠짐 — 0.25~0.10 사이는 선형)"
+    },
+    {
+      "id": "sfx/enemy_groan_1",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_groan_1.ogg",
+      "files": [
+        "assets/audio/sfx/enemy_groan_1.ogg",
+        "assets/audio/sfx/enemy_groan_1.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 27342,
+      "durationMs": 620,
+      "loop": false,
+      "gainDb": -5,
+      "trigger": {
+        "event": "enemy:wounded",
+        "when": [
+          "stage:1"
+        ]
+      },
+      "priority": 1,
+      "variants": [
+        "sfx/enemy_groan_1",
+        "sfx/enemy_groan_1_v2"
+      ],
+      "note": "P21 새 — 적 신음 1단(HP ≤ 66% — 처음 크게 다침). 목소리 아닌 숨: 숨을 '헙' 들이킴(0.09 s) → 이를 악문 낮은 '끙'(포먼트 420·950 Hz 노이즈 + 가슴 저역, 거칠게 떨림). 0.62 s. 위치 감쇠 권장, 같은 적 한 번(단계가 바뀔 때만). 변주 _v2"
+    },
+    {
+      "id": "sfx/enemy_groan_1_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_groan_1_v2.ogg",
+      "files": [
+        "assets/audio/sfx/enemy_groan_1_v2.ogg",
+        "assets/audio/sfx/enemy_groan_1_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 29988,
+      "durationMs": 680,
+      "loop": false,
+      "gainDb": -5,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/enemy_groan_1",
+      "note": "신음 1단 변주 2 — 포먼트 380·880 Hz(더 낮은 몸), 0.48 s"
+    },
+    {
+      "id": "sfx/enemy_groan_2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_groan_2.ogg",
+      "files": [
+        "assets/audio/sfx/enemy_groan_2.ogg",
+        "assets/audio/sfx/enemy_groan_2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 46305,
+      "durationMs": 1050,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "enemy:wounded",
+        "when": [
+          "stage:2"
+        ]
+      },
+      "priority": 1,
+      "variants": [
+        "sfx/enemy_groan_2",
+        "sfx/enemy_groan_2_v2"
+      ],
+      "note": "P21 새 — 적 신음 2단(HP ≤ 33% — 절뚝임과 함께). 목소리 아닌 숨: 거칠게 끊기는 젖은 숨 '크흐… 흐… 흐'(셋, 점점 약하게 — 0·0.42·0.78 s) + 목에 고인 피가 그르렁(340 Hz 젖은 떨림). 1.05 s. 위치 감쇠 권장, 같은 적 한 번. 변주 _v2"
+    },
+    {
+      "id": "sfx/enemy_groan_2_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_groan_2_v2.ogg",
+      "files": [
+        "assets/audio/sfx/enemy_groan_2_v2.ogg",
+        "assets/audio/sfx/enemy_groan_2_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 46305,
+      "durationMs": 1050,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/enemy_groan_2",
+      "note": "신음 2단 변주 2 — 숨 둘(0·0.5 s), 그르렁 300 Hz"
+    },
+    {
       "id": "bgm/title",
       "kind": "bgm",
       "category": "bgm",
@@ -9738,7 +10619,7 @@
       "loopEndSample": 705600,
       "gainDb": 1.0,
       "floors": [],
-      "note": "타이틀. 어둡고 느린 드론, 멀리서 북, 드문 종. A 단조"
+      "note": "[폴백 — P21 bgm/title_dark 로 대체] 타이틀. 어둡고 느린 드론, 멀리서 북, 드문 종. A 단조"
     },
     {
       "id": "bgm/floor_low",
@@ -9890,7 +10771,7 @@
       "loop": true,
       "loopStartSample": 0,
       "loopEndSample": 4233600,
-      "gainDb": 3.5,
+      "gainDb": 3.2,
       "floors": [
         1
       ],
@@ -9898,7 +10779,7 @@
         "floor": 1,
         "state": "combat"
       },
-      "note": "1층 잔 거리(전투 노드). 96 s 루프(80마디), 44.1 kHz 스테레오, A 단조 3/4 150 BPM. 술집 골목의 비틀린 왈츠: 콘트라베이스 1박 + 손풍금 2·3박(빈 왈츠처럼 2박이 살짝 이르고 3박이 늦음), 취한 바이올린 주제(아래에서 미끄러져 들어가는 음, 끝이 처지는 음), 손북·숟가락·탬버린·술병. 구성 A(골목) → B(주제) → C(긴장: 삼전음 드론, 활 떨기, 타악 증가) → B'(주제 + 류트 대선율 + 옥타브 아래 바이올린) → D(쉼·쌓기: 낮은 반복음 → 반음계 상승 + 롤). 권장 음량 +3.5 dB = RMS 약 -21 dBFS"
+      "note": "1층 잔 거리(전투 노드). 96 s 루프(80마디), 44.1 kHz 스테레오, A 단조 3/4 150 BPM. **P21 어둡게 다시(같은 키 — f1_jan_perc 겹·bgmIntensity·bgmByFloor 그대로)**: 술집 골목의 비틀린 왈츠가 밤의 젖은 골목으로 — 콘트라베이스 1박 + 손풍금 2·3박(낮게·작게, 빈 왈츠처럼 2박이 살짝 이르고 3박이 늦음), 취한 현 주제를 한 옥타브 아래(비올라·첼로 음역, 아래에서 미끄러져 들어가는 음·끝이 처지는 음), 손북 + 숟가락 대신 둔한 나무 '톡'(탬버린·술병 뺌). 바닥 불협 층: A1 드론 + B♭1 반음(내내 맥놀이) + E♭2 삼전음(내내 희미, C 에서 부풂) + C 구간 낮은 현 떨기. 구성 A(골목) → B(주제) → C(긴장: 삼전음·반음 드론, 활 떨기, 손북 증가) → B'(주제 + 낮은 류트 대선율 + 두 옥타브 아래 현) → D(쉼·쌓기: 낮은 반복음 → 반음계 상승 + 둔한 롤). 리버브를 넓고 어둡게, 마지막에 3.6 kHz 위를 덮음(고역 줄임). 권장 음량 +3.2 dB = 통합 -19.1 LUFS(P21 전과 같은 자리 — 파일 -22.3 LUFS. 겹 f1_jan_perc 를 켜면 -17.8)"
     },
     {
       "id": "bgm/f1_boss_p1",
@@ -10011,13 +10892,33 @@
       "loop": true,
       "loopStartSample": 0,
       "loopEndSample": 4233600,
-      "gainDb": -2.0,
+      "gainDb": -0.8,
       "floors": [],
       "use": {
         "floor": 1,
         "state": "combatLayer"
       },
-      "note": "P19 전투 강도 겹 — 1층 전투 곡 f1_jan 위에 겹치는 타악만의 층(96 s 루프, 80마디, 44.1 kHz 스테레오, 3/4 150 BPM — f1_jan 과 같은 길이·박자 격자). 큰 북 1박 + 술통 '통' 2박 뒤(좌우 번갈아) + 군북 4마디마다 몰아치기 + B·B' 탬버린 8분음 + C(긴장) 군북 2·3박 · 스네어 유령음 + D 앞 8마디 비움 → 끝 8마디 군북 8분음 쌓기. 화음 악기 없음. 혼자 재생하지 않는다 — f1_jan 재생 위치에 맞춰 함께 돌리고 mixing.bgmIntensity 규칙으로 음량만 올림/내림(살아 있는 적 ≥ 6 → 켬)"
+      "note": "P19 전투 강도 겹 — 1층 전투 곡 f1_jan 위에 겹치는 타악만의 층(96 s 루프, 80마디, 44.1 kHz 스테레오, 3/4 150 BPM — f1_jan 과 같은 길이·박자 격자). 큰 북 1박 + 술통 '통' 2박 뒤(좌우 번갈아) + 군북 4마디마다 몰아치기 + B·B' 낮은 손북 8분음(P21 — 탬버린 뺌) + C(긴장) 군북 2·3박 · 둔한 스네어 유령음 + D 앞 8마디 비움 → 끝 8마디 군북 8분음 쌓기. 화음 악기 없음. P21: f1_jan 과 같은 어두운 방(넓은 리버브 + 3.6 kHz 위 덮음). 혼자 재생하지 않는다 — f1_jan 재생 위치에 맞춰 함께 돌리고 mixing.bgmIntensity 규칙으로 음량만 올림/내림(살아 있는 적 ≥ 6 → 켬). 권장 음량 -0.8 dB(P21 — 어둡게 다시 뒤 파일 -22.3 LUFS → -23.1, f1_jan -19.1 보다 4 LU 아래. 겹치면 -17.8 LUFS = +1.3 LU)"
+    },
+    {
+      "id": "bgm/title_dark",
+      "kind": "bgm",
+      "category": "bgm",
+      "file": "assets/audio/bgm/title_dark.ogg",
+      "files": [
+        "assets/audio/bgm/title_dark.ogg",
+        "assets/audio/bgm/title_dark.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 2,
+      "samples": 2822400,
+      "durationMs": 64000,
+      "loop": true,
+      "loopStartSample": 0,
+      "loopEndSample": 2822400,
+      "gainDb": -7.0,
+      "floors": [],
+      "note": "P21 타이틀(bgmByState.title — 옛 bgm/title 대체). 64 s 루프, 44.1 kHz 스테레오, 박자 없음, A 프리지아. 바닥 A1 톱니 드론(필터가 32 s 주기로 열렸다 닫힘) + E2 · B♭1 반음 불협이 루프에 한 번 부풀었다 가라앉음 · 내내 좌우 따로 내리는 비(빗줄기 + 처마 물방울, 32 s 주기로 세졌다 약해짐) + 낮은 바람 · 2 s · 34 s 먼 종(A2·E3, 저역통과·긴 꼬리) · 12~38 s 첼로 첫 악구(A–B♭–A–G–F–E, 느린 활) · 42~61 s 둘째 악구(C–B♭–A–G♯–A) + 콘트라베이스 긴 음(A1·E1·B♭1·A1) · 22 s 왼쪽 먼 까마귀 셋 · 47 s 오른쪽 더 먼 까마귀 둘 · 38 s 가까운 숨(들이쉼–내쉼) · 58.5 s 떨리는 내쉼(목소리 없음). 6 kHz 위를 덮어 어둡게. 권장 음량 -7.0 dB = 통합 -23.1 LUFS(파일 -16.1 — 드론·현이 빽빽해 RMS 가 큼. 옛 타이틀 -23.2 · 벽 밖 -22.5 와 같은 조용한 층)"
     }
   ]
 }

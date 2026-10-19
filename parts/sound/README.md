@@ -9,7 +9,9 @@
 | `parts/sound/work/sfx_core61.py` | 61라운드 P11 핵심 20종 품질 패스(같은 키 18종을 `redo()` 로 다시 등록 — 순서·시드 유지) + 새 2종(`guard_block`·`combo_finish`) + 변주 23 |
 | `parts/sound/work/sfx_stage61.py` | 61라운드 단계 2·3: 신규 적 2종(독주 행상·술통 짐꾼) 12 · 보스 '만취' 패스(새 11 + `redo()` 다시 9 + 보관 1) · 칼 발도 검기 단수 5 · 가드(다시 2 + 새 1). 6절 = 단계 4(보스 `BOSS_ACTION` 새 동작 6 + 변주 2 · 화살비 다시 2, round `61-4`), 7절 = P12 무기 성장(새 8 + 변주 2 · 옛 6 트리거 이동), 8절 = P13(새 5 + 변주 2 · `boss1_break_pillar` 다시, round `61-5`), 9절 = P13 개성 발동음 15 + 공명 2(round `61-5`). 61-5 까지의 마지막 모듈(1,700줄을 넘어 61-6 부터 새 모듈로 나눔) |
 | `parts/sound/work/sfx_p14.py` | 61라운드 단계 6 (P14): 그림 속 입구 전환 3(`transition_enter`·`_exit`·`_floor`) · 수련장 과제 종 `training_task`(+ 변주 2) · 방 도장 `training_stamp`, round `61-6` |
-| `parts/sound/work/sfx_p16.py` | 62라운드 루프 2 (P16): 메뉴 공통 `ui_move`(+ 변주)·`ui_select`·`ui_back`·`ui_toggle` · `enemy_incoming` · `last_kill_slow` · `death_slow` · `trial_win`·`trial_fail` · `floor_end_sting` · `memory_unlock` · `relic_take` · `npc_talk` + `shop_buy`·`shop_reroll` 다시, round `62-2` · 외벽 문 `door_*`(62-2E) · 노드 이동 짧은 암전 `transition_fade`(round `62-3`) · **9절 P19 자유 전투**(무기별 타격 3층 · 움찔·버팀 깨짐 · 넉백 바람 · 벽꽝 3재질 · 볼링 · 띄움/착지 · 낙하 3 · 위험물 폭발 3 + 연쇄 상승음 3 · 점화 · 연속 처치 3 · 깃발 고수 · 술배 자폭병 · 대검 휘두름 다시, round `P19`). **마지막 모듈 — 새 효과음은 이 파일 끝에만** |
+| `parts/sound/work/sfx_p16.py` | 62라운드 루프 2 (P16): 메뉴 공통 `ui_move`(+ 변주)·`ui_select`·`ui_back`·`ui_toggle` · `enemy_incoming` · `last_kill_slow` · `death_slow` · `trial_win`·`trial_fail` · `floor_end_sting` · `memory_unlock` · `relic_take` · `npc_talk` + `shop_buy`·`shop_reroll` 다시, round `62-2` · 외벽 문 `door_*`(62-2E) · 노드 이동 짧은 암전 `transition_fade`(round `62-3`) · **9절 P19 자유 전투**(무기별 타격 3층 · 움찔·버팀 깨짐 · 넉백 바람 · 벽꽝 3재질 · 볼링 · 띄움/착지 · 낙하 3 · 위험물 폭발 3 + 연쇄 상승음 3 · 점화 · 연속 처치 3 · 깃발 고수 · 술배 자폭병 · 대검 휘두름 다시, round `P19`) |
+| `parts/sound/work/sfx_p21.py` | P21 어둠·잔혹 1차: 살·뼈 타격 층(`flesh_slash`·`flesh_stab`·`bone_crush`·`arrow_stick`) · 피 튐 `blood_splat` · 찢김 `dismember` · 쓰러짐 `body_fall`(+ 갑옷 `body_fall_armor`) · 처형 `execute_hit` · 주인공 상흔 `hero_crack`·`hero_ember_hiss` · 저HP `heartbeat_loop` · 적 신음 `enemy_groan_1/2`, round `P21`. **마지막 모듈 — 새 효과음은 이 파일 끝에만** |
+| `parts/sound/work/bgm_p21.py` | P21 타이틀 곡 `title_dark`(64 s, 44.1 kHz 스테레오, `bgmByState.title`) — 첼로·까마귀 합성 재료 포함. 마지막 BGM 모듈. (1층 전투 곡 `f1_jan`·겹 `f1_jan_perc` 는 같은 키로 `bgm_floor1.py`·`bgm_p19.py` 안에서 어둡게 고침) |
 | `parts/sound/work/bgm_training.py` | 61라운드 단계 6 (P14) 수련장 곡 `training`(72 s, 44.1 kHz 스테레오) — `bgm_floor1` 의 악기·버스 재사용, manifest `bgmByState.training`. 1층 곡 뒤에 등록 |
 | `parts/sound/work/bgm_p19.py` | P19 전투 강도 겹 `f1_jan_perc`(96 s, f1_jan 과 같은 박자 격자 — 타악만), `bgmByFloorState["1"].combatLayer` · `mixing.bgmIntensity`. 수련장 곡 뒤에 등록(마지막 BGM 모듈) |
 | `parts/sound/work/bgm_floor1.py` | 61라운드 P11 1층 전용 BGM 5파일(벽 밖 · 잔 거리 · 만취 3국면), 44.1 kHz 스테레오. 기존 6곡 뒤에 등록 |
@@ -17,8 +19,8 @@
 | `parts/sound/work/listen_index.py` → `listen_index.json` | 청취 검수(들어보기) 페이지용 목록: 전 효과음·BGM 의 분류·한 줄 설명·트리거·길이·루프·ogg/m4a 경로. 매니페스트를 쓸 때마다 함께 재생성 |
 | `parts/sound/work/encode.py` | 배포 형식 인코딩·검증(57라운드 Q17). ffmpeg(libvorbis·aac), bitexact 로 결정적 |
 | `parts/sound/work/wav/{sfx,bgm}/*.wav` | 합성 원본 **작업 캐시**(git 제외, `work/.gitignore`). `build.py` 로 바이트 단위 재생성 — 저장소·빌드 결과에 넣지 않는다 |
-| `assets/audio/sfx/*.{ogg,m4a}` | 효과음 **370종**(P19 새 35 + 변주 5, `swing_greatsword` 3 다시 — 아래 'P19' 절. 그 전 330종 = 62 루프 2 시스템 E 외벽 문 새 3 · 62 루프 3 `transition_fade` 새 1. 그 전 326종 = 62라운드 루프 2 P16: 새 13 + 변주 1, `shop_buy`·`shop_reroll` 다시 — 아래 '62-2' 절. 그 전 312종 = 61라운드 단계 6 P14: 전환 3 + 수련장 2 + 변주 2 — 아래 '61-6' 절. 그 전 305종 = 61라운드 단계 5 P13 개성: 행동 갈래 `trait_<act>` 15 + `resonance_on`·`resonance_proc` — 아래 '61-5 개성' 절. 그 전 288종 = 61라운드 단계 5 P13: 새 5 + 변주 2 · `boss1_break_pillar` 다시 — 아래 61-5 절. 그 전 281종 = 61라운드 단계 4: P12 무기 성장 새 8 + 변주 2 · 보스 `BOSS_ACTION` 새 6 + 변주 2, 화살비 다시 2 — 아래 61-4 절들. 그 전 263종 = 61라운드 단계 2·3: 새 29 + 다시 11 + `boss1_cup_shatter` 보관 — 아래 61-2 절. 그 전 234종 = 61라운드: 핵심 18종 다시 만듦 + 새 2 + 변주 23. 그 전 209종 = 29라운드 42 + 54라운드 1층 보스 '만취' `boss1_*` 18 + 55라운드 대검 차지·칼 잔상 9 + 56라운드 가드·자원·무기 새 수단 34 + 56라운드 검수 활 2 + 57·58라운드 빌드 축·갈래 1단·찌르기·균열·상태 37 + 60라운드 2차 묶음 25·2단 갈래 32·패시브 10 — 그중 `gs_plunge`·`gs_crack`·`katana_echo` 는 보관), 원본 44.1 kHz / mono / 피크 -6 dBFS |
-| `assets/audio/bgm/*.{ogg,m4a}` | BGM **13파일**(P19 전투 강도 겹 `f1_jan_perc` 96 s 44.1 kHz 스테레오 추가. 그 전 12파일 = 61-6 수련장 `training` 72 s 44.1 kHz 스테레오 추가): 기존 6곡(22.05 kHz / mono, 27~32 s 루프) + 61라운드 1층 전용 5파일(`f1_outside`·`f1_jan` 96 s, `f1_boss_p1~3` 72 s — 44.1 kHz / **stereo**). 피크 -6 dBFS(보스 p1·p2 는 공통 이득이라 더 낮음) |
+| `assets/audio/sfx/*.{ogg,m4a}` | 효과음 **401종**(P21 새 14 + 변주 17 — 아래 'P21' 절. 그 전 370종 = P19 새 35 + 변주 5, `swing_greatsword` 3 다시 — 아래 'P19' 절. 그 전 330종 = 62 루프 2 시스템 E 외벽 문 새 3 · 62 루프 3 `transition_fade` 새 1. 그 전 326종 = 62라운드 루프 2 P16: 새 13 + 변주 1, `shop_buy`·`shop_reroll` 다시 — 아래 '62-2' 절. 그 전 312종 = 61라운드 단계 6 P14: 전환 3 + 수련장 2 + 변주 2 — 아래 '61-6' 절. 그 전 305종 = 61라운드 단계 5 P13 개성: 행동 갈래 `trait_<act>` 15 + `resonance_on`·`resonance_proc` — 아래 '61-5 개성' 절. 그 전 288종 = 61라운드 단계 5 P13: 새 5 + 변주 2 · `boss1_break_pillar` 다시 — 아래 61-5 절. 그 전 281종 = 61라운드 단계 4: P12 무기 성장 새 8 + 변주 2 · 보스 `BOSS_ACTION` 새 6 + 변주 2, 화살비 다시 2 — 아래 61-4 절들. 그 전 263종 = 61라운드 단계 2·3: 새 29 + 다시 11 + `boss1_cup_shatter` 보관 — 아래 61-2 절. 그 전 234종 = 61라운드: 핵심 18종 다시 만듦 + 새 2 + 변주 23. 그 전 209종 = 29라운드 42 + 54라운드 1층 보스 '만취' `boss1_*` 18 + 55라운드 대검 차지·칼 잔상 9 + 56라운드 가드·자원·무기 새 수단 34 + 56라운드 검수 활 2 + 57·58라운드 빌드 축·갈래 1단·찌르기·균열·상태 37 + 60라운드 2차 묶음 25·2단 갈래 32·패시브 10 — 그중 `gs_plunge`·`gs_crack`·`katana_echo` 는 보관), 원본 44.1 kHz / mono / 피크 -6 dBFS |
+| `assets/audio/bgm/*.{ogg,m4a}` | BGM **14파일**(P21 타이틀 `title_dark` 64 s 44.1 kHz 스테레오 추가 + `f1_jan`·`f1_jan_perc` 같은 키로 어둡게 다시. 그 전 13파일 = P19 전투 강도 겹 `f1_jan_perc` 96 s 44.1 kHz 스테레오 추가. 그 전 12파일 = 61-6 수련장 `training` 72 s 44.1 kHz 스테레오 추가): 기존 6곡(22.05 kHz / mono, 27~32 s 루프) + 61라운드 1층 전용 5파일(`f1_outside`·`f1_jan` 96 s, `f1_boss_p1~3` 72 s — 44.1 kHz / **stereo**). 피크 -6 dBFS(보스 p1·p2 는 공통 이득이라 더 낮음) |
 | `assets/audio/manifest.json` | 시스템 파트가 읽을 목록(계약 초안): 파일(`file` 1순위 + `files` 형식별)·샘플 수·길이·루프 구간·권장 음량·트리거 이벤트 제안·층별 BGM 매핑 |
 
 ## 사용법
@@ -32,7 +34,7 @@ python3 parts/sound/work/build.py verify     # 검증(WAV 피크·클리핑·경
 python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.json)만 다시
 ```
 새로 받은 저장소에는 WAV 캐시가 없으므로 `encode`·`manifest`·`verify` 전에 `build.py`(전부)를 한 번 돌린다.
-새 효과음은 `@sfx('이름', '트리거', '설명', gainDb)` 데코레이터 함수 하나를 **마지막 모듈(62-2 부터 `sfx_p16.py`) 끝**에 추가하면 매니페스트·들어보기 목록까지 자동 반영된다(`build.py` 본문 중간이나 앞 모듈에 끼우면 시드가 밀려 뒤 소리가 바뀐다). 새 소리의 분류는 `listen_index.py` 의 `EXPLICIT`/`SUBGROUP` 에 적는다(60라운드 모듈 소리는 모듈 이름으로 자동). BGM 은 `@bgm(...)`.
+새 효과음은 `@sfx('이름', '트리거', '설명', gainDb)` 데코레이터 함수 하나를 **마지막 모듈(P21 부터 `sfx_p21.py`) 끝**에 추가하면 매니페스트·들어보기 목록까지 자동 반영된다(`build.py` 본문 중간이나 앞 모듈에 끼우면 시드가 밀려 뒤 소리가 바뀐다). 새 소리의 분류는 `listen_index.py` 의 `EXPLICIT`/`SUBGROUP` 에 적는다(60라운드 모듈 소리는 모듈 이름으로 자동). BGM 은 `@bgm(...)`.
 
 ## 자율 결정 (29라운드, 도영 님 부재 중 권장안으로 결정 — 복귀 후 검토)
 음향 파트 개시 BLANK(`parts/sound/CLAUDE.md`, GDD 8장) 네 항목을 아래와 같이 정했다. 근거는 `parts/producer/decisions/2026-10-01-round-29-autonomous-demo.md` 의 자율 진행 지시.
@@ -427,6 +429,51 @@ python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.
 - `npx vitest run src/systems/audio`(읽기만 실행): 48 중 45 통과, 실패 3 — 모두 시스템 연결 전 예상분 ① `audioDefs.test.ts` '쓰이지 않는 manifest 효과음 없음' = 새 40 id ② `audioMix.test.ts` 덕킹 규칙 수 `toHaveLength(12)` → 15 ③ `audioMix.test.ts` 지연 로드 1층 곡 5 → 6(`f1_jan_perc` 도 use.floor 1). 음향은 src 를 고치지 않음.
 - 청취 전(수치 검증만 — 100 ms 최대 RMS 로 이웃 소리와 맞춤).
 
+## 추가 (P21 어둠·잔혹 1차 — 살·뼈 타격 층 · 처형 · 상흔 · 저HP 심장 · 신음 · 타이틀 곡 · 1층 전투 곡 어둡게, 2026-10-19 전권 위임)
+근거: `parts/producer/decisions/2026-10-19-P21-dark-brutal.md` §2·§4 음향, 계약 `parts/producer/contracts/dark-brutal.md` §2(이벤트)·§9(키). 도영 님 '19세 게임처럼 … 어둡고 칙칙하고 두려운 … 전투 양상도 … 잔인해지고 진짜 현실 전투 같게'. 62라운드 전권 위임 — 인터뷰 없이 진행, 세부 판단은 이 절에 남긴다. 코드 `work/sfx_p21.py` · `work/bgm_p21.py` · `work/bgm_floor1.py`(f1_jan) · `work/bgm_p19.py`(f1_jan_perc) · `work/mixing.py` · `work/listen_index.py`(분류 `p21`, round `P21`) · `work/build.py`(import 2줄 · `bgmByState` 를 spec `state` 가 덮게). 표·설계는 `sound-design.md` 3-5 · 4-19.
+
+- **새 14 + 변주 17** (원칙: 기존 타격음 위에 겹치는 **층** — 쇠·바람은 기존 소리가, 이 층은 살·뼈·피·숨만. 5 kHz 위 거의 없음, 층 0.24~0.34 s. 목소리 없음):
+  `flesh_slash`(+v2·v3) ← `enemy:gore{cut:slash}` · `flesh_stab`(+v2·v3) ← `{cut:stab}` · `bone_crush`(+v2·v3) ← `{cut:crush}` · `arrow_stick`(+v2) ← `{cut:pierce}`(+ 주인공 화살 박힘·pinned) · `blood_splat`(+v2·v3) ← `{amount:2+}`(+110 ms) · `dismember`(+v2) ← `enemy:death-variant{variant:behead|bisect}` · `body_fall`(+v2) ← `{variant:collapse|behead|bisect|pinned|burn}` · `body_fall_armor` ← `{armored:true}`(제안 조건 — 계약 §9 목록 밖 새 키, 갑옷 변형을 무작위 변주가 아니라 적 종류로 고르기 위해 따로 둠) · `execute_hit`(+v2) ← `player:execute` · `hero_crack`(+v2·v3) ← `PLAYER_DAMAGED{guarded:false}` · `hero_ember_hiss`(+v2) ← `PLAYER_DAMAGED{woundStage:2+}`(제안 조건) · `heartbeat_loop`(루프 2.73 s) ← `player:low-hp{on:true}` · `enemy_groan_1`(+v2) ← `enemy:wounded{stage:1}` · `enemy_groan_2`(+v2) ← `{stage:2}`.
+- **판단 1 — 사망 소리는 '대체'**: 사망 변형이 오는 적은 `enemy_death` 대신 `body_fall`(+ 변형 층). 둘을 겹치면 '쿵'이 두 번이다. 전용 사망음(`peddler_death`·`porter_death`·`drummer_death`·`elite_die`·`bomber_blast`)은 이미 쓰러짐이 들어 있어 그대로 두고 `body_fall` 을 더하지 않는다(찢김 등 변형 층만 더함). `body_fall` 은 현실의 무너짐 순서(숨 빠짐 → 0.14 s 무릎 → 0.34 s 몸통 → 0.46 s 머리·팔)로 기존 `enemy_death`(0.13 s 한 번에 쿵)보다 무겁고 느리다.
+- **판단 2 — 타이틀은 새 키 `bgm/title_dark`**(계약 §9 그대로), `bgmByState.title` 을 이 곡으로. 옛 `bgm/title` 은 파일·항목을 남기고 note 앞에 [폴백] 표시.
+- **판단 3 — 1층 전투 곡은 같은 키 `bgm/f1_jan` 을 어둡게 다시**: 새 키로 두면 시스템이 `bgmByFloor`·`bgmByFloorState.combat`·`mixing.bgmIntensity.layers` 세 곳을 바꿔야 하고 옛 곡을 남길 쓸모가 없다(밝은 판은 git 기록에 있음). 길이·박자 격자(96 s, 3/4 150 BPM, 80마디)는 그대로라 겹 `f1_jan_perc` 동기가 유지된다. 바꾼 것: 현 주제 한 옥타브 아래(비올라·첼로 음역, B' 는 두 옥타브 아래 겹) · 손풍금 한 옥타브 아래·작게 · 탬버린·술병 뺌 · 숟가락을 1.5 kHz 아래 둔한 나무 '톡'으로 · 류트 대선율 한 옥타브 아래 · 바닥 불협 층(A1 드론 + **B♭1 반음 내내** + E♭2 삼전음 내내 희미·C 에서 부풂 + C 구간 낮은 현 떨기 E2·F2) · 리버브 넓고 어둡게 · 마지막 3.6 kHz 위 덮음. 취한 미끄러짐·처짐(1층 '잔 거리'·만취 보스의 결)은 남겼다.
+- **판단 4 — 겹 `f1_jan_perc` 도 조정**: 탬버린 8분음이 어두운 곡 위에서 혼자 밝게 뜨므로 낮은 손북 유령음으로 바꾸고, 스네어 유령음 2.2 kHz 아래, 같은 어두운 방(리버브)·3.6 kHz 덮음. 박·구성 그대로.
+- **판단 5 — 1층 여정 곡 `f1_outside`·보스 3국면은 이번에 손대지 않음**: 벽 밖은 이미 바람·먼 포성 위주의 적막(고역 적음)이고, 보스 3국면은 국면 교차·같은 이득 정규화가 묶여 있어 한 곡만 바꾸기 어렵다. 2차 통합에서 화면 톤과 함께 들어 보고 정한다.
+- **음량** (효과음 = 100 ms 창 최대 RMS + gainDb, dBFS — `hit_katana` -14.1 · `hit_greatsword` -10.8 · `hit_player` -9.0 · `enemy_death` -11.6 기준): `flesh_slash` -18.4~-20.5 · `flesh_stab` -17.6~-18.9(타격음보다 4~5 dB 아래) · `bone_crush` -15.1~-15.2 · `arrow_stick` -18.0~-18.4 · `blood_splat` -21~-24 · `dismember` -14.2~-14.3 · `body_fall` -11.0~-11.7(enemy_death 자리) · `execute_hit` -9.1~-9.5(+ 덕킹) · `hero_crack` -14.7~-15.9 · `hero_ember_hiss` -21.0~-23.1 · `heartbeat_loop` -18.0 · 신음 1단 -21.5~-23.2 · 2단 -20.2~-21.9. BGM(통합 LUFS, gainDb 적용): `title_dark` **-23.1**(옛 title -23.2 자리), `f1_jan` **-19.1**(그대로), `f1_jan_perc` -23.1, 겹치면 -17.8(+1.3 LU).
+- **믹싱**(`work/mixing.py`): 우선순위 3 = `player:execute`·`player:wounded`·`player:low-hp`, 1 = `enemy:gore`·`enemy:wounded`(층 — 빼앗기 1순위), 사망 변형 2. 같은 소리 상한 `P21_GROUP_MAX`(execute_hit·hero_*·heartbeat 1 · blood_splat·body_fall 3 · 나머지 2). 덕킹 새 3줄: 처형 → SFX(≤2) −9 dB · BGM −6 dB 300 ms('짧은 정적'), 심장 박동 도는 동안 BGM −2.5 dB. `cues` 새 5(blood_splat delayMs 110 · dismember 420 · body_fall 340 · execute_hit 0 · heartbeat 속도). 새 키 `mixing.gore.levels`(설정 0·1 에서 끄는 소리·낮추는 dB).
+- **검증·불변**: 작업 전 md5 대비 바뀐 파일 = `f1_jan`·`f1_jan_perc` × (WAV·OGG·M4A)(의도), 새 파일 = 효과음 31 + BGM 1 × 3. manifest 기존 항목 중 바뀐 것 = `bgm/title`(note 폴백 표시)·`bgm/f1_jan`·`bgm/f1_jan_perc`(note·gainDb), 최상위 = `mixing`·`bgmByState.title`. `build.py verify` **415개(효과음 401 + BGM 14) 문제 0**(heartbeat_loop 이음매 -76 dB · title_dark -48/-51 dB · f1_jan -44/-40 dB), 브라우저 1곳 OGG 13.80 MB / M4A 15.17 MB(+0.8 MB — 대부분 타이틀 곡 0.85 MB, 타이틀 화면에서 먼저 필요). `listen_index.json` 415항목.
+- `npx vitest run src/systems/audio`(읽기만 실행): 56 중 53 통과, 실패 3 — 모두 시스템 연결 전 예상분 ① `audioDefs.test.ts` '쓰이지 않는 manifest 효과음 없음' = 새 31 id ② `audioMix.test.ts` 타이틀 `bgmByState.title` 기대값 `bgm/title` → `bgm/title_dark` ③ `audioMix.test.ts` 덕킹 규칙 수 `toHaveLength(15)` → 18. 음향은 src 를 고치지 않음.
+- 청취 전(수치 검증만).
+
+**이벤트 연결 표 (시스템 통합용 — 매핑 구현은 시스템, 계약 sound-assets §15 초안과 같은 내용)**
+
+| 이벤트 (문자열) | 조건 | 재생 | 음량 (gainDb 위 더함) | 재생 속도 | 비고 |
+|---|---|---|---|---|---|
+| `ENEMY_DAMAGED{weapon}` (기존) | 무기 적중 | `hit_<무기>` (지금 그대로) | — | — | 바뀌지 않음. 아래 살 층이 같은 프레임에 겹친다 |
+| `enemy:gore` | `cut:slash` | `flesh_slash` (+v2·v3) | amount 1 −3 · 2 0 · 3 +1.5 dB | 대검 0.88 · 칼 1.0 · 그 밖 1.0 | 적중마다. weapon null(폭발 등)은 −3 dB 더 |
+| `enemy:gore` | `cut:stab` | `flesh_stab` (+v2·v3) | 위와 같음 | 단검 1.06 · 칼 0.97 | |
+| `enemy:gore` | `cut:crush` | `bone_crush` (+v2·v3) | 위와 같음 | 대검 0.94 | |
+| `enemy:gore` | `cut:pierce` | `arrow_stick` (+v2) | 위와 같음 | 1.0 | hit_bow 위에 겹침 (화살대 떨림은 hit_bow 몫) |
+| `enemy:gore` | `amount ≥ 2` | `blood_splat` (+v2·v3) | amount 3 +2 dB | amount 3 0.92 | **110 ms 늦게** 시작. 벽 튐 데칼이 붙는 적중(벽 1칸 안)은 속도 1.15 · −2 dB로 한 번 더 |
+| `ENEMY_DIED` (기존) | 같은 프레임에 같은 id의 `enemy:death-variant`가 없을 때 | `enemy_death` (지금 그대로) | — | — | 사망 변형이 오면 아래 줄로 **바꾼다** (둘 다 울리지 않음) |
+| `enemy:death-variant` | `collapse` | `body_fall` (+v2), 갑옷 적은 `body_fall_armor` | 0 | 큰 적(짐꾼 등) 0.9 | 전용 사망음(peddler·porter·drummer_death, elite_die, bomber_blast)이 있는 적은 body_fall을 빼고 전용 사망음을 그대로 쓴다 |
+| `enemy:death-variant` | `behead` · `bisect` | `dismember` (+v2) + `body_fall` | 0 | bisect 0.92 | 조각 착지가 0.42 s보다 늦으면 dismember 시작을 늦춘다 |
+| `enemy:death-variant` | `pinned` | `arrow_stick` + `body_fall` | arrow +2 · body −6 dB | arrow 0.8 | 벽에 박혀 주저앉음 |
+| `enemy:death-variant` | `burn` | `body_fall` + `hazard_ignite` | ignite −6 dB | ignite 1.1 | |
+| `enemy:death-variant` | `drown` | (없음) | — | — | `enemy:fell{zone:water}` → fall_water가 이미 맡는다 |
+| `player:execute` | 결정타 프레임 | `execute_hit` (+v2) | 0 | 칼 1.0 · 대검 0.9 · 단검 1.08 · 활 1.04 | 덕킹: 효과음(≤2) −9 dB · BGM −6 dB, 300 ms. 끝의 ENEMY_DIED와 death-variant는 위 줄대로. 단검 처형(collapse + 큰 분출)은 `flesh_stab` +3 dB · 0.9를 같은 순간에 |
+| `PLAYER_DAMAGED` (기존) | `guarded:false` | `hit_player` (그대로) + `hero_crack` (+v2·v3) | 0 | 1.0 | |
+| `PLAYER_DAMAGED` | `guarded:false` · 상처 단계 ≥ 2 | + `hero_ember_hiss` (+v2) | 0 | 단계 3이면 0.92 | woundStage = `UiSnapshot.player.wound.stage` |
+| `player:wounded` | 단계가 오를 때 (1·2·3) | `hero_crack` | 단계 3 +2 dB | 0.85 | 내려갈 때(회복)는 소리 없음 |
+| `player:wounded` | 단계가 2·3으로 오를 때 | `hero_ember_hiss` | 0 | 0.9 | |
+| `player:wounded` | 화살 수가 늘 때 | `arrow_stick` | −3 dB | 1.1 | 원거리 피격의 hit_player·hero_crack 위에 겹침 |
+| `player:low-hp` | `on:true` / `on:false` | `heartbeat_loop` (루프) 시작 / 정지 | 0 | ratio 0.25 → 1.0, 0.10 이하 → 1.15 (선형) | 켤 때 400 ms 페이드인, 끌 때 600 ms 페이드아웃. 덕킹: 도는 동안 BGM −2.5 dB |
+| `PLAYER_DIED` (기존) | — | `death_slow` (그대로) | — | — | 이때 `heartbeat_loop`는 1.1 s에 걸쳐 끈다 |
+| `enemy:wounded` | `stage:1` | `enemy_groan_1` (+v2) | 0 | 작은 적 1.06 · 큰 적 0.88 | 타격보다 80 ms 늦게, 위치 감쇠, 같은 적은 단계마다 한 번. 군주는 쓰지 않음 (보스 목소리 별도) |
+| `enemy:wounded` | `stage:2` | `enemy_groan_2` (+v2) | 0 | 위와 같음 | |
+| 고어 설정 `settings.gore` | 1 | dismember 끔 · flesh_* −3 · bone_crush −2 · blood_splat −4 · arrow_stick −2 dB | | | `mixing.gore.levels` |
+| 고어 설정 `settings.gore` | 0 | flesh_slash · flesh_stab · bone_crush · blood_splat · dismember 끔 | | | body_fall · execute_hit · hero_* · heartbeat · groan은 그대로 |
+
 ## 교차 참조 (29라운드 전체 공개 하에 읽은 것)
 - 읽기: `parts/story/world-bible.md`, `parts/producer/contracts/story-text.md`, `parts/producer/contracts/ui-system-interface.md`(이벤트 이름), `parts/producer/contracts/art-assets.md`(매니페스트 관례), `data/weapons.json`, `data/enemies.json`, `data/bosses.json`, `data/stages.json`(층 순서).
 - 60라운드 읽기(지시 범위): 아트 fx JSON 26개 `assets/sprites/fx/v3/{katana_whirl_loop,katana_whirl_reflect,katana_moon_trail,katana_cleave_crack,katana_execute,katana_mirror_ki,katana_mirror_parry,greatsword_quake_fork,greatsword_echo_counter,greatsword_giant_ring,greatsword_charge_flash_lv4,greatsword_congest_aura,greatsword_congest_burst,dagger_frenzy_clone_in,dagger_frenzy_clone_out,dagger_brand_bleed,dagger_brand_hop,dagger_stuck_blade,dagger_hotwind_trail,dagger_hotwind_burst,bow_arrow_split,bow_arrow_stuck,bow_arrow_recall,bow_deadeye_scope,bow_link_stack,bow_skypierce_line}.json` — 계약 `art-assets.md` §21 이 타이밍 기준으로 가리키는 런타임 데이터(타이밍 필드만 참고).
@@ -440,6 +487,7 @@ python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.
 - 62라운드 루프 2 읽기(전권 위임 — 다른 파트 읽기 허용, 지시 범위): 공개 자료 `2026-10-12-round-62-full-delegation.md`·`2026-10-12-P16-loop2.md`·`2026-10-12-P15-loop1.md`·`review-2026-10-12-stage1-competitive-audit.md`·`contracts/sound-assets.md`, 시스템(읽기만 — 덕킹 파서 형식·이벤트 이름·연출 시각) `src/systems/audio/audioMix.ts`·`audioMix.test.ts`·`audioMap.ts`·`audioBuild.ts`(menu·shop·challenge 연결부)·`audio.ts`(보스 덕킹), `src/core/EventBus.ts`(이벤트 이름·`EnemyIncomingPayload`·`ChallengeEventPayload`), `src/scenes/game/CombatFeel.ts`·`src/core/constants/feel.ts`(`FEEL.KILL.SLOW`), `src/contract/ui.ts`(`UiNodeTrial`·`UiChallengeCleared`), `parts/system/CHANGELOG.md`(P0-5·P0-8 절). 수정 없음.
 - 62라운드 루프 3 읽기: 공개 자료만 — `contracts/ui-system-interface.md` §19·§25, `contracts/sound-assets.md` §12·§13, `decisions/2026-10-12-P17-loop3.md`. 다른 파트 소유 경로는 열지 않음(vitest 실행만).
 - P19 읽기: 공개 자료만 — `decisions/2026-10-14-P19-free-combat.md`, `contracts/free-combat.md`·`sound-assets.md`. 다른 파트 소유 경로는 열지 않음(vitest 실행만).
+- P21 읽기: 공개 자료만 — `decisions/2026-10-19-P21-dark-brutal.md`, `contracts/dark-brutal.md`·`sound-assets.md`. 다른 파트 소유 경로는 열지 않음.
 - 쓰기: `parts/sound/**`, `assets/audio/**` 만.
 
 ## 미완료 · 보류
@@ -449,5 +497,6 @@ python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.
 - **61-6 새 7(전환 3 · 수련장 2 · 변주 2)과 수련장 BGM 도 청취 전.** 전환음 시간 축은 설계 수치(enter 1.1 s 덮임, exit ~1.3 s)에 맞춤 — UI 연출 실제 시각과 어긋나면 시각만 옮겨 다시 만든다.
 - **62-2 새 14(+ 다시 2)도 청취 전.** 시간 축은 시스템 상수(등장 1.0 s · 슬로모 280 ms · 사망 0.6 s)에 맞춤 — 실제 연출과 어긋나면 시각만 옮겨 다시 만든다. 트리거 이름 중 `FEEL_SLOWMO`·`MEMORY_UNLOCKED`·`UI_SETTING_TOGGLED` 는 제안 — 시스템 확정 후 manifest 를 맞춘다. 줍기류 대상 덕킹(그룹 대상)은 여전히 파서가 읽지 않음.
 - **P19 새 35·변주 5·다시 3·겹 BGM 1 도 청취 전.** 남은 확인: `ENEMY_DAMAGED` 에 무기 조건을 붙일 수 있는지(주인공 현재 무기), 새 적 2종 실제 id·이벤트 phase 이름, 자폭병 예고 길이(1.0 s 가정), 낙하 연출 길이(물 0.55 s · 낭떠러지 1.05 s 가정).
+- **P21 새 14·변주 17·타이틀 곡·1층 전투 곡 2(다시)도 청취 전.** 남은 확인: 갑옷 적 목록(`body_fall_armor` 조건 `armored` 는 제안), `PLAYER_DAMAGED` 의 `woundStage` 조건(제안), 처형 결정타 프레임 시각(`execute_hit` 은 결정타에 맞춤), 아트 쓰러짐 시트 몸통 착지 프레임(`body_fall` 0.34 s 가정)·잘린 조각 착지(`dismember` 0.42 s 가정). 1층 여정 곡 `f1_outside`·보스 3국면은 이번에 손대지 않음(위 P21 절 '판단 5').
 - 시스템 파트의 오디오 로더·트리거 연동은 시스템 소유 — 매니페스트 초안을 전달만 한다.
 - 진화별 전용 효과음, 엔딩 2종 음악, 층별 BGM 세분화는 `sound-design.md` 6장 참조.

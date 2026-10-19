@@ -142,3 +142,9 @@ interface SoundEntry {
 - **믹싱**: 우선순위 3 = stagger·wall-slam·bowled·fell·exploded·streak, 1 = flinch·knocked. `voices.hitLayer`: 타격음 동시 4, 40ms 안 둘째부터 −3dB씩(최저 −9), 같은 id 30ms. 덕킹: 벽꽝·볼링 → 효과음(≤2) −3dB 120ms, explode_large·bomber_blast → 효과음(≤2) −4dB 200ms·BGM −3dB 300ms. 루프 목록 bomber_fuse.
 - **전투 BGM 강도 2단**: `bgmByFloorState["1"].combatLayer = bgm/f1_jan_perc`(f1_jan 과 같은 격자 타악 층) — 같은 위치에서 음량 0 으로 동시 재생, 살아 있는 적 ≥ 6 이면 1.5s 에 gainDb 까지, ≤ 3 이 2s 이어지면(또는 클리어·보스 방) 3s 에 0, 최소 6s 유지(`mixing.bgmIntensity`).
 - `swing_greatsword`(+v2·v3) 더 무겁게(트리거·음량 그대로).
+
+## 15. P21 어둠·잔혹 (dark-brutal §9)
+- **트리거 = dark-brutal §2 이벤트 문자열 그대로**: `enemy:gore{cut:slash|stab|crush|pierce}` → `flesh_slash`·`flesh_stab`·`bone_crush`·`arrow_stick`(각 변주), `{amount:2+}` → `blood_splat`(+110 ms) · `enemy:death-variant{variant}` → collapse `body_fall`, behead·bisect `dismember` + `body_fall`, pinned `arrow_stick` + `body_fall`(−6), burn `body_fall` + `hazard_ignite`(−6), drown 없음 · `{armored:true}`(제안) → `body_fall_armor` · `player:execute` → `execute_hit`(결정타 프레임) · `PLAYER_DAMAGED{guarded:false}` → `hero_crack` 겹침, 상처 단계 ≥ 2 → `hero_ember_hiss` · `player:wounded` 단계 상승 → `hero_crack`(속도 0.85), 2·3 → `hero_ember_hiss`, 화살 증가 → `arrow_stick`(−3, 속도 1.1) · `player:low-hp{on}` → `heartbeat_loop` 루프(페이드 400/600 ms, 속도 1.0→1.15) · `enemy:wounded{stage:1|2}` → `enemy_groan_1|2`(80 ms 늦게, 군주 제외).
+- **대체 관계**: 같은 id 의 `enemy:death-variant` 가 같은 프레임에 오면 `enemy_death` 대신. 전용 사망음(peddler·porter·drummer_death·elite_die·bomber_blast)이 있는 적은 `body_fall` 생략.
+- **BGM**: `bgmByState.title` = `bgm/title_dark`(64 s, 옛 `bgm/title` 폴백). `bgm/f1_jan`·`bgm/f1_jan_perc` 는 같은 키로 어둡게 다시(길이·박자 격자 그대로).
+- **믹싱**: 우선순위 3 = `player:execute`·`player:wounded`·`player:low-hp`, 2 = `enemy:death-variant`, 1 = `enemy:gore`·`enemy:wounded`. 덕킹 새 3줄(처형 → SFX(≤2) −9·BGM −6 dB 300 ms, 심장 박동 → BGM −2.5 dB). `mixing.gore.levels`(설정 0·1 끄기·낮추기). 전체 연결 표: `parts/sound/README.md` P21 절.

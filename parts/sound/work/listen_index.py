@@ -29,6 +29,7 @@ GROUPS = [
     ('p14', '그림 속 입구 전환 · 수련장 (61-6 P14)'),
     ('p16', '1층 결 · 메뉴 공통 · 등장 예고 · 슬로모 · 시련 · 결산 · 기억 · 유품 · NPC (62-2 P16)'),
     ('p19', '자유 전투 — 무기별 타격 · 움찔·버팀 · 넉백 · 벽꽝 · 볼링 · 띄움 · 낙하 · 폭발·연쇄·점화 · 연속 처치 · 깃발 고수 · 술배 자폭병 (P19)'),
+    ('p21', '어둠·잔혹 — 살·뼈 타격 층 · 피 튐 · 찢김 · 쓰러짐 · 처형 · 주인공 상흔 · 저HP 심장 · 신음 (P21)'),
     ('pickup', '획득·상점'),
     ('ui', 'UI·연출'),
     ('bgm', 'BGM'),
@@ -80,6 +81,7 @@ EXPLICIT = {
             'explode_small', 'explode_mid', 'explode_large', 'explode_chain1', 'explode_chain2', 'explode_chain3',
             'hazard_ignite', 'streak_2', 'streak_4', 'streak_6', 'drummer_beat', 'drummer_rally', 'drummer_death',
             'bomber_fuse', 'bomber_swell', 'bomber_blast'],
+    'p21': ['flesh_slash', 'flesh_stab', 'bone_crush', 'arrow_stick', 'blood_splat', 'dismember', 'body_fall', 'body_fall_armor', 'execute_hit', 'hero_crack', 'hero_ember_hiss', 'heartbeat_loop', 'enemy_groan_1', 'enemy_groan_2'],
     'ui': ['menu_move', 'menu_select', 'menu_cancel', 'fate_decided', 'evolve', 'reinforce', 'player_death'],
 }
 
@@ -178,6 +180,12 @@ SUBGROUP = {
     'hazard_ignite': '위험물 점화', 'streak_2': '연속 처치 · 2', 'streak_4': '연속 처치 · 4', 'streak_6': '연속 처치 · 6+',
     'drummer_beat': '새 적 · 깃발 고수', 'drummer_rally': '새 적 · 깃발 고수', 'drummer_death': '새 적 · 깃발 고수',
     'bomber_fuse': '새 적 · 술배 자폭병', 'bomber_swell': '새 적 · 술배 자폭병', 'bomber_blast': '새 적 · 술배 자폭병',
+    # P21 어둠·잔혹
+    'flesh_slash': '살 층 · 베임', 'flesh_stab': '살 층 · 찌름·뿜음', 'bone_crush': '뼈 층 · 부러짐',
+    'arrow_stick': '살 층 · 화살 박힘', 'blood_splat': '피 · 바닥 튐', 'dismember': '죽음 · 찢김 + 떨어짐',
+    'body_fall': '죽음 · 쓰러짐', 'body_fall_armor': '죽음 · 갑옷 쓰러짐', 'execute_hit': '처형 · 일격',
+    'hero_crack': '주인공 상흔 · 숯 갈라짐', 'hero_ember_hiss': '주인공 상흔 · 불씨 쉿',
+    'heartbeat_loop': '저HP · 심장 박동(루프)', 'enemy_groan_1': '적 신음 · 1단', 'enemy_groan_2': '적 신음 · 2단',
     'exit_open': '폴백 (62-2 외벽 문 대체 — 방+복도 층 발판용)',
     'menu_move': '폴백 (62-2 대체)', 'menu_select': '폴백 (62-2 대체)', 'menu_cancel': '폴백 (62-2 대체)',
     'player_death': '폴백 (62-2 대체)', 'grade_perfect': '폴백 (62-2 대체)',
@@ -238,9 +246,9 @@ def _round(name, kind, sfx_specs):
     """새로 만들거나 다시 만든 라운드: '61-2' = 61라운드 단계 2·3(신규 적·보스 패스·발도·가드),
     '61' = 61라운드 품질 패스·변주·1층 BGM, '60' = 60라운드 모듈."""
     if kind == 'bgm':
-        return 'P19' if name == 'f1_jan_perc' else '61' if name.startswith('f1_') else '61-6' if name == 'training' else ''
+        return 'P21' if name in ('title_dark', 'f1_jan', 'f1_jan_perc') else '61' if name.startswith('f1_') else '61-6' if name == 'training' else ''
     spec = sfx_specs[name]
-    for r in ('P19', '62-3', '62-2', '61-6', '61-5', '61-4'):
+    for r in ('P21', 'P19', '62-3', '62-2', '61-6', '61-5', '61-4'):
         if spec.get('redone') == r or spec.get('round') == r:
             return r
     if spec.get('redone') == '61-2' or spec.get('archived') == '61-2' or spec['fn'].__module__ == 'sfx_stage61':
@@ -301,6 +309,8 @@ def write(root, manifest_path, sfx_specs, out_path=None):
              '"62-3" = 62라운드 루프 3(P17 — 노드 이동 짧은 먹 번짐 암전 transition_fade), '
              '"P19" = 자유 전투 1-Snd(무기별 타격 3층·움찔·버팀 깨짐·넉백 바람·벽꽝·볼링·띄움/착지·낙하·위험물 폭발/연쇄/점화·연속 처치·'
              '새 적 깃발 고수/술배 자폭병, 대검 휘두름 다시, 전투 강도 겹 BGM f1_jan_perc), '
+             '"P21" = 어둠·잔혹 1차(살·뼈 타격 층·피 튐·찢김·쓰러짐·처형 일격·주인공 숯 갈라짐/불씨 쉿·저HP 심장 루프·적 신음, '
+             '타이틀 곡 title_dark, 1층 전투 곡 f1_jan·겹 f1_jan_perc 어둡게 다시 — 같은 키), '
              '설명 앞 [폴백 …] = 새 소리로 대체되어 시스템이 새 id 가 없을 때만 쓰는 옛 소리(파일 유지), '
              'status "archived" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.',
         mixing=man['mixing'],

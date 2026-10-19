@@ -12,21 +12,23 @@ TIERS = [
                  'BOSS_ACTION{action:introRoar}', 'WEAPON_AWAKEN', 'PLAYER_DIED']),
     dict(level=3, name='hurt', label='주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)·기둥 무너짐·포물선 술병(61-5)·'
                                    '그림 속 입구 전환·수련장 도장(61-6)·적 등장 예고·마지막 처치 슬로모·노드 시련 성공/실패·'
-                                   '1층 끝 결산(62-2)·버팀 깨짐·벽꽝·볼링·낙하·위험물 폭발·연속 처치(P19 — 판단·보상 순간)',
+                                   '1층 끝 결산(62-2)·버팀 깨짐·벽꽝·볼링·낙하·위험물 폭발·연속 처치(P19 — 판단·보상 순간)·'
+                                   '처형·주인공 상흔·저HP 심장(P21)',
          events=['PLAYER_DAMAGED', 'PARRY_SUCCESS', 'PERFECT_GUARD', 'PERFECT_SUCCESS', 'ENEMY_TELEGRAPH', 'RUN_ENDED',
                  'BOSS_BREAK', 'ui:boss-break', 'BOSS_ACTION{action:cupStruck}', 'BOSS_ACTION{action:pillarCrack}',
                  'BOSS_ACTION{action:pillarCollapse}', 'BOSS_ACTION{action:lobThrow}',
                  'TRANSITION_BEGIN', 'TRAINING_STAMP',
                  'ENEMY_INCOMING', 'FEEL_SLOWMO', 'NODE_TRIAL_BROKEN', 'NODE_GRADED{grade:perfect}', 'ui:floor-end',
                  'enemy:staggered{kind:stagger}', 'enemy:wall-slam', 'enemy:bowled', 'enemy:fell', 'hazard:exploded',
-                 'combo:streak']),
+                 'combo:streak', 'player:execute', 'player:wounded', 'player:low-hp']),
     dict(level=2, name='hit', label='타격·처치·공격 동작(주인공·적·보스)·공명 켜짐(61-5)·수련장 과제 완료(61-6)·'
                                  '유품 획득·기억 해금(62-2)',
          events=['RESONANCE_ON', 'TRAINING_TASK', 'ui:relic-gained', 'MEMORY_UNLOCKED', '(그 밖의 combat·boss 분류)']),
     dict(level=1, name='ambient', label='환경·획득(바닥 줍기 61-5 포함)·이벤트·패시브·상태 부가음·개성 발동 특색 층(61-5)·'
-                                     '움찔·넉백 바람(P19 — 타격음 위 꼬리 층, 빼앗기 1순위)',
+                                     '움찔·넉백 바람(P19 — 타격음 위 꼬리 층, 빼앗기 1순위)·살·뼈·피 층과 적 신음(P21)',
          events=['PASSIVE_PROC', 'STATUS_CHANGED', 'BOSS_ACTION{action:flameSnuff}', 'PICKUP_LANDED', 'PICKUP_COLLECTED',
                  'TRAIT_PROC', 'EVENT_TALK', 'SHOP_TALK', 'enemy:staggered{kind:flinch}', 'enemy:knocked',
+                 'enemy:gore', 'enemy:wounded',
                  '(world·pickup·event 분류 — 상점 사기·다시 진열 포함)']),
     dict(level=0, name='ui', label='UI — 별도 버스, 상한·빼앗기 대상 아님(62-2 메뉴 공통 ui_move·ui_select·ui_back·ui_toggle)',
          events=['UI_MENU_*', 'UI_SETTING_TOGGLED', '(ui 분류)']),
@@ -60,6 +62,35 @@ P19_CUES = {
     'sfx/explode_chain3': dict(peakMs=0, note='P19: chain ≥ 3 은 재생 속도 2^((chain−3)×2/12), 최대 1.26'),
     'sfx/fall_water': dict(peakMs=550, note='P19: 0.55 s 첨벙 — 낙하 연출(떨어져 사라짐)이 0.55 s 가 아니면 재생 위치가 아니라 시작을 늦춘다'),
     'sfx/fall_drop': dict(peakMs=1050, note='P19: 1.05 s 먼 바닥 \'쿵\'(화면 밖)'),
+}
+
+
+# P21 어둠·잔혹 — 같은 소리 상한 · 시간 정점 · 고어 설정
+P21_GROUP_MAX = {
+    'sfx/flesh_slash': 2, 'sfx/flesh_stab': 2, 'sfx/bone_crush': 2, 'sfx/arrow_stick': 2, 'sfx/blood_splat': 3,
+    'sfx/dismember': 2, 'sfx/body_fall': 3, 'sfx/body_fall_armor': 2, 'sfx/execute_hit': 1,
+    'sfx/hero_crack': 1, 'sfx/hero_ember_hiss': 1, 'sfx/heartbeat_loop': 1, 'sfx/enemy_groan_1': 2, 'sfx/enemy_groan_2': 2,
+}
+P21_CUES = {
+    'sfx/blood_splat': dict(peakMs=0, delayMs=110, note='P21: 적중(enemy:gore)에서 110 ms 늦게 시작 — 분출한 피가 바닥에 떨어지는 순간. '
+                                                    '시체 밑 웅덩이(1.5 s 퍼짐) 시작에도 한 번 쓸 수 있다(gainDb −4 더)'),
+    'sfx/dismember': dict(peakMs=420, note='P21: 0 s 찢김(사망 변형과 같은 순간), 0.42 s 떨어져 나간 조각이 바닥에 \'퍽\' — '
+                                           '조각 비행(0.5~0.9 s)의 착지가 늦으면 재생 위치가 아니라 시작을 (착지 − 420) ms 늦춘다. 변주 _v2 는 0.50 s'),
+    'sfx/body_fall': dict(peakMs=340, note='P21: 0.14 s 무릎 · 0.34 s 몸통 \'쿵\'(변주 _v2 0.30 s, body_fall_armor 0.36 s) — 아트 쓰러짐 시트의 '
+                                           '몸통 착지 프레임이 크게 다르면 시작을 옮긴다(음향에 알림)'),
+    'sfx/execute_hit': dict(peakMs=0, alignTo='player:execute 의 결정타 프레임',
+                            note='P21: 0 s = 결정타(슬로 0.3배 120 ms 시작과 같은 순간). PLAYER_EXECUTE 가 처형 시작에 오면 '
+                                 '결정타 프레임까지 늦춰 재생한다(무기 처형 동작의 타격 프레임)'),
+    'sfx/heartbeat_loop': dict(peakMs=30, note='P21: player:low-hp{on:true} 에서 fadeIn 400 ms, {on:false} 에서 fadeOut 600 ms. '
+                                               '재생 속도 = ratio 0.25 → 1.0, ≤ 0.10 → 1.15(선형). 사망(PLAYER_DIED)이면 death_slow 와 함께 1.1 s 에 걸쳐 끔'),
+}
+P21_GORE = {
+    '2': dict(note='전체 — 모든 P21 소리'),
+    '1': dict(mute=['sfx/dismember'], gainDb={'sfx/flesh_slash': -3.0, 'sfx/flesh_stab': -3.0, 'sfx/bone_crush': -2.0,
+                                               'sfx/blood_splat': -4.0, 'sfx/arrow_stick': -2.0},
+              note='줄임 — 절단 없음(behead·bisect → collapse 라 dismember 는 원래 오지 않지만 안전하게 끔), 살·피 층 낮춤'),
+    '0': dict(mute=['sfx/flesh_slash', 'sfx/flesh_stab', 'sfx/bone_crush', 'sfx/blood_splat', 'sfx/dismember'],
+              note='끔 — 살·피 층 없음(무기 타격음만). body_fall·execute_hit·hero_*·heartbeat_loop·enemy_groan_* 은 그대로(잔혹 묘사가 아님)'),
 }
 
 
@@ -103,7 +134,7 @@ def settings(variant_groups):
                                'sfx/memory_unlock': 1, 'sfx/relic_take': 1, 'sfx/shop_buy': 2, 'sfx/shop_reroll': 1,
                                'sfx/npc_talk': 1, 'sfx/door_open': 1, 'sfx/door_walk_out': 1,
                                'sfx/door_walk_in': 1, 'sfx/door_walk_back': 1,
-                               **P19_GROUP_MAX},
+                               **P19_GROUP_MAX, **P21_GROUP_MAX},
             layerMax=dict(ids=['sfx/trait_%s' % a for a in TRAIT_ACTS], match='TRAIT_PROC 로 재생된 소리', max=3,
                           note='61-5: 개성 발동 특색 층(TRAIT_PROC 로 고른 trait_<act> 15종 + 개성별 trait_<무기>_<id> 가 생기면 그것도 — '
                                'trait_manifest(TRAIT_GAINED)는 아님) 전체를 '
@@ -173,6 +204,15 @@ def settings(variant_groups):
                       '자기 자신은 이 규칙에서 빼고 적용(시스템: 덕킹을 일으킨 소리는 대상에서 제외)'),
             dict(when='큰 폭발 재생(explode_large·bomber_blast) — BGM', target='bgm', db=-3.0, attackMs=20, releaseMs=500,
                  hold='300 ms', note='P19: 큰 폭발 때 곡이 잠깐 물러남(연쇄로 0.3초마다 이어지면 hold 가 이어져 한 번 눌린 채 유지)'),
+            dict(when='처형 일격 재생(execute_hit)', target='sfx priority ≤ 2', db=-9.0, attackMs=5, releaseMs=350,
+                 hold='300 ms',
+                 note='P21: 처형 결정타 순간 남은 타격·휘두름·살 층을 크게 눌러 \'짧은 정적\' — 낮은 충격과 먹먹한 꼬리만 남는다. '
+                      '처형으로 이어지는 사망 변형 소리(dismember·body_fall, priority 2)도 함께 눌려 뒤로 물러난다'),
+            dict(when='처형 일격 재생(execute_hit) — BGM', target='bgm', db=-6.0, attackMs=10, releaseMs=600,
+                 hold='300 ms', note='P21: 곡도 슬로(0.3배 120 ms)와 함께 물러났다가 0.6 s 에 걸쳐 돌아온다'),
+            dict(when='저HP 심장 박동 재생(heartbeat_loop) — BGM', target='bgm', db=-2.5, attackMs=400, releaseMs=600,
+                 hold='그 소리가 도는 동안',
+                 note='P21: HP ≤ 25% 동안 곡을 살짝 물려 심장 박동이 바닥에 깔리게(저역끼리 부딪히지 않게). 루프가 멈추면 풀림'),
             dict(when='1층 끝 결산 열림 재생(floor_end_sting) — BGM', target='bgm', db=-6.0, attackMs=200, releaseMs=1200,
                  hold='그 소리 길이 동안',
                  note='62-2: 결산 일기장이 열리는 손풍금 화음이 곡과 부딪히지 않게(보스 처치 뒤 정적이면 영향 없음)'),
@@ -247,8 +287,12 @@ def settings(variant_groups):
             'sfx/trial_win': dict(peakMs=0, note='62-2: 0 s 完 도장 \'꾹\'. 노드 마지막 처치와 같은 프레임이면(마지막 처치 슬로모 280 ms) '
                                                  '슬로모가 풀린 뒤 재생하면 \'웅\'과 도장·종이 겹치지 않는다(도장 연출이 늦게 뜨면 그 순간에)'),
             **P19_CUES,
+            **P21_CUES,
         },
         cuesNote='62-2: 시간 축이 연출에 맞춰진 효과음의 정점(peakMs, 파일 0 기준). 시스템·UI 연출 시각을 이 값에 맞추거나, '
                  '연출이 늦으면 재생을 그만큼 늦춘다. 계약 필드가 아니라 권장값.',
+        gore=dict(levels=P21_GORE,
+                  note='P21: settings.gore(2 전체 · 1 줄임 · 0 끔, contracts/dark-brutal.md §1)에 따라 효과음을 끄거나(mute) 낮춘다(gainDb, '
+                       '항목 gainDb 위에 더함). 변주(variants)도 원본과 같이 적용'),
         variantGroups=variant_groups,
     )
