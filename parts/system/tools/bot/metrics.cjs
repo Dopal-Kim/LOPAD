@@ -71,6 +71,20 @@ async function runWeapon(base, W) {
       if (s.over) { log('died'); break; }
       if (s.end != null) break;
     }
+    // P21: 끝나지 않은 노드(180초 상한)는 그 순간 상태를 남긴다 — 방 상태 머신이 기다리는 적·웨이브 예약·시계·처형 (진행 불가 원인 추적)
+    const ended = await ev(() => window.__botStats.combatEnd != null);
+    if (ended !== true)
+      log('STALL ' + JSON.stringify(await ev(() => {
+        const g = window.__lopad.sceneObj('Game'); const p = g.player; const dr = g.director;
+        return {
+          t: Math.round(g.time.now), p: [Math.round(p.x), Math.round(p.y)], act: p.action, v: [Math.round(p.body.velocity.x), Math.round(p.body.velocity.y)], blk: p.body.blocked,
+          paused: g.time.paused, hitStopped: g.hitStopped, frozen: g.frozen, worldTs: g.physics.world.timeScale, tweensTs: g.tweens.timeScale,
+          wave: dr.waveIndex, waves: dr.waves.length, pending: dr.pendingSpawn ? dr.pendingSpawn.getRemaining() : null, room: dr.activeRoom && dr.activeRoom.id,
+          directorAlive: [...dr.alive].map((m) => [m.spriteId, m.active, m.hp, Math.round(m.x), Math.round(m.y), g.mobs.contains(m), m.displayList ? m.displayList.constructor.name : null, g.world.isWalkableAt(m.x, m.y)]),
+          groupActive: g.mobs.getChildren().filter((m) => m.active).length,
+          brutal: g.brutal ? g.brutal.summary() : null,
+        };
+      })));
     const sum = await ev(() => window.__botSummary());
     log(`${node} ${((Date.now() - t0) / 1000).toFixed(0)}s real`);
     out.push({ weapon: W, ...sum });
