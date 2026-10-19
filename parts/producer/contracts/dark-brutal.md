@@ -61,3 +61,4 @@
 
 ## 조정 기록
 - §2 (시스템 1차): 이벤트의 `id`·`target` 은 적 **종류** id. 개체 짝 맞추기는 `UiSnapshot.executable[{uid, screen}]`(처형 가능 적의 개체 uid·화면 좌표)로 한다 — UI 표식 위치는 스냅샷, `ui:enemy-executable{on:false}` 는 즉시 숨김용.
+- §7 2차 실측(헤드리스 1920×1080, 아트 A capture.cjs): v14 → P21 1차 → 조정. 연회장(보스) 루마 0.273 → 0.245 → **0.166**(−39%), 채도 0.136 → 0.115. 황무지 0.122 → 0.155(주인공 빛 웅덩이 대비 — 바닥 대부분은 더 어두움). 조정: grade `brightness` 0.95 → 0.8, `vignette` 0.4/0.45 → 0.6/0.35, lighting `shapeAmbientMult` 0.77 → 0.62. 저HP 붉은 비네트는 UI(HudP21)만 그린다 — grade `lowHp.vignetteColor` = ""(월드는 채도만).
