@@ -720,3 +720,14 @@
 5. 타이틀 `title_fx_glow_hero` y 408→434(`title.json`).
 6. 권장: 무기 끝에서 생기는 fx(타격·잔광, 스미어 제외)에 현재 몸 프레임 `weaponOffsetDots` 를 더할 것(무기가 평균 6~12도트 올라감).
 - 남은 것(프로듀서 판정): 정면 앞 허리천이 1배에서 네모 덩어리로 읽힘(찢긴 삼각 천 자락으로), 내려베기 정점 팔이 곧게 뻗음, 무기 궤적 재렌더 없음, 공중제비 덩어리.
+
+## 37. P21 어두운 톤·잔혹·상흔 (dark-brutal §8)
+- **타이틀**(아트 A): `assets/sprites/title/*` 같은 이름·크기·좌표로 교체(`title.json` version `dark21-1`, 소스 `parts/art/work/dark21/build.py` — `title62/build.py` 다시 실행 금지). 새 선택 층 `title_fx_rain`·`title_fx_crow`·`title_fx_ash`(규격 title.json `rain`·`crows`·`ash`, 깊이 `layers[].new == "P21"`). 무기 목소리 펄스 알파 [0.15, 1.0]. 로고 `colors.accent` 에 blood·bloodLight·ember·bone. 타이틀 검붉은 램프 B0~B5(#140808 #240b0a #3a0f0c #55150f #741d12 #962a16).
+- **타일 v4**: 세로면(벽 앞면·앞면 끝·높은 단 앞면) 한 단 어둡게(`v4.p21Dark`). `p19/tiles4.py` 를 다시 돌리면 `dark21/tiles_dark.py` 도 다시.
+- **보정·조명 제안**: `parts/art/work/dark21/grade_proposal.json`·`lighting_proposal.json`(`_semantics` = 보정 순서·의미). 황무지 주변광은 프로듀서 결정 #5e626e.
+- **피 fx** `fx/v5/`(아트 B, 피벗 기준): `blood_spray_{slash,stab,crush,pierce}`(행 = amount 1~3, 8f 420ms, 오른쪽 = 진행 방향 · 시스템 회전 · flipY 허용), `blood_drip`, `blood_pool`(v0~v2, 퍼짐을 프레임으로 그림 → **스케일 트윈 금지**, 마지막 프레임 유지), `blood_decal_floor`(12 정지, json `variants`·`directional`·`byCut`), `blood_decal_wall`(6, 회전 금지·flipX 허용), `tar_ember_hit`, `ash_chips`, `wound_cut`(10: 베기 0~3·찌르기 4~5·부숨 6~7·꿰뚫음 8~9), `stuck_arrow`(5: −90·−120·−150·180·150°), `ink_ash_burst`(gore 0). 피 색 #1a0f13·#381b25·#572030·#751f33·#941930(가장 밝은 것은 하이라이트 1도트).
+- **주인공 상흔** `player/v3/hero_wound{1,2,3}_<몸 시트>` 60시트(20 몸 시트 × 3단) — 본 시트와 프레임 수·크기·피벗·ms·loop·방향 같음. 단계는 누적(3단 시트에 1~3단 다 그려짐 → 현재 단계 시트 하나만 겹침). 깊이: 몸 바로 위, 무기 오버레이·화살(above) 아래. 오버레이가 없는 몸 시트(특수기·갈래·처형·turn_skid·death·birth) 재생 중엔 상흔 숨김.
+- **박힌 화살 앵커**: 모든 `hero_wound*` json `arrowAnchors{방향: [프레임마다 {back|shoulderL|shoulderR|thigh|arm: {x, y, frame, flipX, depth:'above'|'below'}} | null]}` — x,y 몸 도트 좌표(피벗 기준 x−48, y−138), frame = `stuck_arrow` 프레임, null = 숨김.
+- **적 사망 변형** `enemies/v4/<적>_death_{collapse,behead,bisect,pinned,burn}` 30시트(archer·charger·peddler·porter·drummer·bomber) — 원래 death 와 틀·피벗·10프레임·ms 같음, `holdLastFrame`. drown 없음(낙하 연출), 재생 중 림 오버레이 끔. 잘린 조각 `fx/v5/gore_parts_<적>`(행 head·arm·upper, 열 45° 회전 8장 50ms 루프, json `restFrame`·`spawnFromEnemyPivot`·`physicsHint`).
+- **처형** 몸 `player/v3/hero_execute_{katana,greatsword,dagger,bow}`(96×144, 피벗 48,138) + 무기 오버레이 `weapons/v3/hero_execute_*`(`bodySheet` 연결), 합 450ms. json `execute{invulnMs, slow, sourceFrames}`·`impactFrame`·`timingMs` — 타격: 칼 f2/90ms(behead) · 대검 f4/210ms(bisect, 8방향) · 단검 f4/155ms(collapse) · 활 f2/130ms(pinned).
+- **도구**: `atlas57/build.py --ver v3|v4|v5`, `verify.py` 가 `*/v5/` 도 점검. `hero20/rig20.py` 전역 `WOUND`·`wounds()`·`arrow_anchors()`(WOUND 0 이면 렌더 동일).

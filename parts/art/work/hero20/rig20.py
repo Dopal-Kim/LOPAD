@@ -49,6 +49,7 @@ HIP_A = 4.6
 SH_A, SH_Y = 10.4, 31.0
 HEAD_Y, HEAD_F = 19.4, 1.1   # 머리 중심(키 92−13 = 79, 머리 11.6 → 약 6.8등신)
 KD, KYG = 0.12, 0.42
+WOUND = 0               # P21 상흔 단계(0 = 본 시트 그대로 · 1 가는 균열·재 · 2 균열 벌어짐·불씨 흐름 · 3 가슴·팔 크게 갈라짐) — gore21/wound_build.py 가 바꿔 렌더
 
 # 몸통 단면 (y, 반폭 w, 앞 fe, 뒤 be) — 승모 → 삼각근 → 가슴 → 잘록한 허리 → 골반·볼기. 등은 곧다(굽은 혹 없음)
 TORSO = [(27.4, 3.6, 1.2, -2.0), (28.5, 7.6, 2.0, -3.0), (29.8, 10.6, 3.2, -3.7), (31.6, 11.8, 4.6, -4.2),
@@ -430,6 +431,7 @@ def build(d, p):
             q0, q1 = lerp(kn2, an2, 0.28), lerp(kn2, an2, 0.96)
             R.capsule(P("shinbandL", BAND, 1, soft=1.0, rim=False), [q0, q1], [2.75, 1.95])
             details.append(("shinband", q0, q1, "shinbandL"))
+        R.anchors["thigh" + side] = lerp(hip2, kn2, 0.45)
         R.anchors["knee" + side] = kn2
         R.anchors["ankle" + side] = an2
 
@@ -497,6 +499,7 @@ def build(d, p):
         details.append(("armband", b0, b1, "band" + side))
         R.ellipse(P("hand" + side, ASH, 2 - shade, group="hand" + side, soft=1.0), hand[0], hand[1], 2.1, 2.3)
         details.append(("hand", (hand[0] - dx * 0.4 / dl, hand[1] - dy * 0.4 / dl), (dx / dl, dy / dl), "hand" + side))
+        details.append(("armw", side, shj, el, wrist, shade))
         R.anchors["hand" + side] = (hand[0], hand[1])
         R.anchors["shoulder" + side] = shj
         R.anchors["elbow" + side] = el
@@ -729,6 +732,7 @@ def build(d, p):
     R.anchors["beltTop"] = (c_[0], min(ys_) - 1.1)      # 허리띠 윗줄 가운데(오버레이 오프셋 측정 기준)
     R.scar = scar(B)
     R.body = B
+    R.anchors["arrows"] = arrow_anchors(R, B, p)
     return R
 
 
@@ -886,6 +890,8 @@ def decorate(R, B, p, details):
         elif kind == "fletch":
             _, nock, tip = det
             fline(R, [nock, tip], [G[6], G[4]])
+    if WOUND:
+        wounds(R, B, p, details, WOUND)
     # ---- 머리: 맨머리 숯빛 · 이마뼈 · 가늘게 빛나는 한쪽 눈(해부 왼눈) ----
     head(R, B, p)
     # ---- 어깨 혼불 ----
@@ -971,3 +977,156 @@ def draw_rig(d, p):
 
 def draw(d, p):
     return draw_rig(d, p).image
+
+
+# =============================================================================
+# P21 상흔 층(WOUND 1~3) — 본 그림 위에 더하는 것만(실루엣·부위 모양은 그대로) → 차이 = 상흔 오버레이
+# =============================================================================
+def _sline(R, B, pts, cols, back=False, part="torso", minvis=-0.05):
+    seg = []
+    for a, y in pts:
+        if B.vis(a, y, back) > minvis:
+            seg.append(B.surf(a, y, back, out=0.0))
+        else:
+            if len(seg) >= 2:
+                fline(R, seg, cols, part)
+            seg = []
+    if len(seg) >= 2:
+        fline(R, seg, cols, part)
+
+
+def _split(path, w, jit):
+    """몸통 표면 경로 (a, y) 를 따라 폭 w(설계) 로 벌어진 틈 다각형 + 심 다각형(폭 40%). jit = 가장자리 들쭉날쭉."""
+    L, Rr, cL, cR = [], [], [], []
+    n = len(path)
+    for i, (a, y) in enumerate(path):
+        a0, y0 = path[max(0, i - 1)]
+        a1, y1 = path[min(n - 1, i + 1)]
+        dx, dy = a1 - a0, y1 - y0
+        dl = math.hypot(dx, dy) or 1.0
+        nx, ny = -dy / dl, dx / dl
+        k = math.sin(math.pi * (i + 0.5) / n) ** 0.6
+        j = jit[i % len(jit)]
+        ww = w * k
+        L.append((a + nx * (ww + j), y + ny * (ww + j)))
+        Rr.append((a - nx * (ww - j * 0.5), y - ny * (ww - j * 0.5)))
+        cL.append((a + nx * ww * 0.35, y + ny * ww * 0.35))
+        cR.append((a - nx * ww * 0.35, y - ny * ww * 0.35))
+    return L + Rr[::-1], cL + cR[::-1]
+
+
+def _limb_line(R, p0, p1, t0, t1, off, cols, part):
+    """팔 위 선(화면 설계 좌표 p0→p1 의 t0~t1 구간, 수직 off 만큼 비켜) — part 픽셀 위에만."""
+    dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+    dl = math.hypot(dx, dy) or 1.0
+    nx, ny = -dy / dl, dx / dl
+    a = (p0[0] + dx * t0 + nx * off, p0[1] + dy * t0 + ny * off)
+    b = (p0[0] + dx * t1 + nx * off, p0[1] + dy * t1 + ny * off)
+    m = ((a[0] + b[0]) / 2 + nx * 0.5, (a[1] + b[1]) / 2 + ny * 0.5)
+    fline(R, [a, m, b], cols, part)
+
+
+EMB = [A[19], A[21], A[19]]
+
+
+def wounds(R, B, p, details, k):
+    view = B.view
+    # ---- 앞 몸통 ----
+    if view != "back":
+        # 1: 가는 균열(어두운 불씨 선) + 재 딱지
+        for pts in ([(3.0, 32.6), (4.6, 33.8), (6.2, 33.4), (7.8, 35.0)], [(1.8, 42.6), (3.2, 44.0), (2.6, 45.8), (3.6, 47.2)],
+                    [(-6.0, 40.4), (-7.4, 42.2), (-6.8, 43.8)]):
+            _sline(R, B, pts, EMB if k == 1 else [A[21], A[23], A[21]])
+        for a, y in ((7.0, 33.0), (4.0, 45.0), (-7.0, 41.0), (5.4, 36.4)):
+            if B.vis(a, y) > 0.1:
+                q = R.T(B.surf(a, y, False, 0))
+                R.cdot(q[0], q[1], G[6], "torso")
+        if k >= 2:   # 2: 균열이 벌어져 틈 + 불씨가 흘러내림
+            tear(R, B, [(3.2, 32.4), (4.8, 33.2), (6.6, 32.8), (8.0, 34.6), (6.8, 35.4), (5.0, 35.0), (3.6, 34.0)],
+                 [(4.6, 33.6), (6.2, 33.8), (5.4, 34.4)], glow=0, pulse=0)
+            tear(R, B, [(1.6, 42.4), (3.6, 43.4), (3.2, 45.4), (4.0, 47.4), (2.4, 46.8), (2.0, 44.6)],
+                 [(2.8, 43.8), (2.8, 45.6), (2.6, 44.6)], glow=0, pulse=0)
+            for pts in ([(6.0, 35.6), (6.2, 37.8), (5.8, 40.0)], [(3.2, 47.6), (3.4, 49.6)], [(-2.4, 43.0), (-2.6, 45.6), (-2.2, 47.4)]):
+                _sline(R, B, pts, [A[23], A[21], A[19]])
+        if k >= 3:   # 3: 왼어깨 → 오른허리 크게 갈라짐(뜨거운 심) + 불씨 방울
+            path = [(9.6, 30.6), (7.4, 32.8), (5.6, 35.6), (3.2, 37.6), (1.4, 40.4), (-1.0, 42.4), (-3.0, 45.2), (-5.4, 47.6)]
+            o, c = _split(path, 1.5, [0.0, 0.5, -0.3, 0.6, -0.2, 0.4, 0.1, -0.4])
+            tear(R, B, o, c, glow=2, pulse=1)
+            for a, y in ((-5.8, 49.0), (-6.0, 50.6), (4.4, 41.6), (4.6, 43.0)):
+                if B.vis(a, y) > 0.0:
+                    q = R.T(B.surf(a, y, False, 0))
+                    R.cdot(q[0], q[1], A[23], "torso")
+    # ---- 등 ----
+    if view != "front":
+        for pts in ([(-3.6, 32.8), (-5.4, 34.4), (-7.0, 34.0), (-8.0, 36.2)], [(4.4, 36.4), (6.2, 38.0), (5.6, 40.0)],
+                    [(-1.8, 39.6), (-3.4, 41.0)]):
+            _sline(R, B, pts, EMB if k == 1 else [A[21], A[23], A[21]], back=True)
+        for a, y in ((-6.0, 33.6), (5.0, 37.2), (-2.6, 40.2)):
+            if B.vis(a, y, True) > 0.1:
+                q = R.T(B.surf(a, y, True, 0))
+                R.cdot(q[0], q[1], G[6], "torso")
+        if k >= 2:
+            tear(R, B, [(4.0, 36.0), (6.0, 37.0), (6.8, 38.8), (5.8, 40.6), (4.8, 39.0), (4.2, 37.6)], [(5.0, 37.4), (5.8, 38.8), (5.0, 38.6)],
+                 back=True, glow=0, pulse=0)
+            for pts in ([(5.6, 40.8), (5.8, 43.0), (5.4, 45.0)], [(-7.6, 36.6), (-7.8, 38.8)]):
+                _sline(R, B, pts, [A[23], A[21], A[19]], back=True)
+        if k >= 3:
+            path = [(-9.4, 31.0), (-7.0, 33.6), (-4.8, 35.4), (-2.2, 38.0), (0.6, 40.2), (2.8, 42.8), (4.6, 45.4), (6.4, 47.8)]
+            o, c = _split(path, 1.5, [0.2, -0.4, 0.5, 0.0, 0.6, -0.3, 0.4, -0.1])
+            tear(R, B, o, c, back=True, glow=2, pulse=1)
+            for a, y in ((6.6, 49.2), (6.8, 50.8)):
+                if B.vis(a, y, True) > 0.0:
+                    q = R.T(B.surf(a, y, True, 0))
+                    R.cdot(q[0], q[1], A[23], "torso")
+    # ---- 팔(위팔·아래팔) ----
+    for det in details:
+        if det[0] != "armw":
+            continue
+        _, side, shj, el, wrist, shade = det
+        part = "arm" + side
+        s = 1 if side == "L" else -1
+        _limb_line(R, shj, el, 0.30, 0.62, 0.5 * s, EMB if k == 1 else [A[21], A[23], A[21]], part)
+        if k >= 2:
+            _limb_line(R, shj, el, 0.28, 0.66, 0.5 * s - 0.6, [A[19], A[21], A[19]], part)
+            _limb_line(R, el, wrist, 0.05, 0.25, -0.4 * s, [A[21], A[23], A[19]], part)
+        if k >= 3:   # 들쭉날쭉 갈라짐(곧은 네온 줄 금지 — 2차 비평): 지그재그 마디 + 끊긴 틈 + 심만 백열
+            dx, dy = el[0] - shj[0], el[1] - shj[1]
+            dl = math.hypot(dx, dy) or 1.0
+            nx, ny = -dy / dl, dx / dl
+            zz = [(0.12, -0.5), (0.27, 0.35), (0.4, -0.25), (0.52, 0.5), (0.66, -0.3), (0.8, 0.3), (0.9, -0.1)]
+            pts = [(shj[0] + dx * t + nx * (o - 0.2 * s), shj[1] + dy * t + ny * (o - 0.2 * s)) for t, o in zz]
+            for i, (a_, b_) in enumerate(zip(pts, pts[1:])):
+                if i == 3:
+                    continue
+                fline(R, [a_, b_], [A[21], A[25], A[26] if i in (1, 4) else A[25], A[21]], part)
+                fline(R, [(a_[0] + nx * 0.7, a_[1] + ny * 0.7), (b_[0] + nx * 0.7, b_[1] + ny * 0.7)], [A[19], A[21]], part)
+            _limb_line(R, el, wrist, 0.3, 0.6, 0.3 * s, [A[19], A[23], A[19]], part)
+            q = R.T((el[0] + 0.3, el[1] + 1.4))
+            R.cdot(q[0], q[1], A[23], part)
+
+
+def arrow_anchors(R, B, p):
+    """박힌 화살 앵커(계약 dark-brutal §3 순서 back·shoulderL·shoulderR·thigh·arm) — 설계 좌표 점 + 화면 각(박힌 점 → 깃) + 앞/뒤.
+    화살대는 몸 뒤쪽·바깥으로 박혀 있다(등·어깨 위·허벅지 뒤·오른위팔 바깥). 앞/뒤는 보기 방향 규칙(그림자 셈보다 안정)."""
+    out = {}
+    side = B.view == "side" and not B.diag
+    near = B.near
+    back_view = B.view == "back"
+    arm_back = "R" in (p.get("armBack") or ())
+
+    def ang(base, tip):
+        return math.degrees(math.atan2(tip[1] - base[1], tip[0] - base[0]))
+
+    def put(name, pt, a, f, y, dv, front):
+        b0 = B.P(a, f, y)
+        t0 = B.P(a + dv[0] * 8, f + dv[1] * 8, y - dv[2] * 8)
+        out[name] = dict(pt=pt, angle=ang(b0, t0), front=front)
+    w, fe, be = section(41.0)
+    put("back", B.P(3.4, be + 0.2, 41.0), 3.4, be + 0.2, 41.0, (0.25, -0.85, 0.55), back_view or side)
+    for nm, sg in (("shoulderL", 1), ("shoulderR", -1)):
+        pt = B.P(sg * (SH_A + 0.6), 0.0, SH_Y - 2.0)
+        put(nm, pt, sg * (SH_A + 0.6), 0.0, SH_Y - 2.0, (sg * 0.55, -0.35, 0.8), not side or near == nm[-1])
+    put("thigh", R.anchors["thighL"], HIP_A, -2.0, HIP_Y + 4.0, (0.3, -0.9, 0.35), back_view or (side and near == "L"))
+    put("arm", lerp(R.anchors["shoulderR"], R.anchors["elbowR"], 0.5), -SH_A, 0.0, SH_Y + 6.0, (-0.9, -0.5, 0.3),
+        not arm_back and not (side and near == "L"))
+    return out

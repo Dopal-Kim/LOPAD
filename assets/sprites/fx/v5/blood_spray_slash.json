@@ -1,0 +1,115 @@
+{
+ "image": "blood_spray_slash.png",
+ "frameWidth": 208,
+ "frameHeight": 144,
+ "framesPerDirection": 8,
+ "palette": "parts/art/palette/lopad.json — 피 = 7층 '적' 램프 어두운 5단 #1a0f13·#381b25·#572030·#751f33·#941930(고정 hex, 밝은 빨강 없음 · #941930 은 덩어리마다 하이라이트 1도트) · 타르 = 무채 G0~G4 · 불씨 = 1층 호박 램프(고정) · 재 = G5~G8. paletteSwap none(층 램프 교체 대상 아님). 새 색 없음",
+ "source": "parts/art/work/gore21/fx_blood.py (P21 잔혹 전투 — 피 fx v5)",
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 층·지역 바닥 팔레트 교체에서 제외(그린 색 그대로)",
+ "unitNote": "길이 필드(pivot 등)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5)",
+ "action": "blood_spray_slash",
+ "directions": [
+  "amount1",
+  "amount2",
+  "amount3"
+ ],
+ "rowsAre": "ENEMY_GORE.amount 1|2|3 (행 0~2). gore 1 = amount1 행만 + 시스템 틴트 어둡게",
+ "frameDurationsMs": [
+  30,
+  35,
+  40,
+  45,
+  50,
+  60,
+  70,
+  90
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 30,
+  "y": 72
+ },
+ "anchor": "hitbox_center",
+ "event": "ENEMY_GORE",
+ "cut": "slash",
+ "rotate": true,
+ "drawnFacing": "right",
+ "flipY": "allowed",
+ "depth": "above",
+ "note": "베기 — 칼길을 따라 이어진 넓은 피 띠(0~1) → 끊어진 방울이 ±40° 부채꼴로 날아 바닥에 떨어져 납작해지고(4~) 스며든다(6~7). 피벗 = 적중점. 시스템은 (dirX, dirY) 각도로 회전, 무작위 flipY 로 변주. 바닥에 떨어진 자리에는 끝(6~7 프레임) 무렵 blood_decal_floor 를 남길 것(제안: amount 당 1~3장, 적중점에서 진행 방향 20~70 도트)",
+ "decalHint": {
+  "count": [
+   1,
+   2,
+   3
+  ],
+  "distDots": [
+   20,
+   70
+  ],
+  "spawnAtFrame": 6
+ },
+ "layout": "row = direction/variant (directions 순서), column = frame index",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "pixelScale": 0.5,
+ "semiTransparent": false,
+ "version": "v5-p21",
+ "fps": 19.05,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 blood_spray_slash.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 3,
+   "frameWidth": 208,
+   "frameHeight": 144,
+   "frameCount": 24
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":409,"y":291,"w":24,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":64,"w":24,"h":21},"sourceSize":{"w":208,"h":144}},
+  "1":{"frame":{"x":394,"y":427,"w":41,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":47,"w":41,"h":61},"sourceSize":{"w":208,"h":144}},
+  "2":{"frame":{"x":143,"y":650,"w":63,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":30,"w":63,"h":102},"sourceSize":{"w":208,"h":144}},
+  "3":{"frame":{"x":304,"y":427,"w":88,"h":132},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":42,"y":12,"w":88,"h":132},"sourceSize":{"w":208,"h":144}},
+  "4":{"frame":{"x":277,"y":561,"w":115,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":42,"y":25,"w":115,"h":100},"sourceSize":{"w":208,"h":144}},
+  "5":{"frame":{"x":0,"y":529,"w":143,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":42,"y":17,"w":143,"h":119},"sourceSize":{"w":208,"h":144}},
+  "6":{"frame":{"x":162,"y":261,"w":151,"h":132},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":7,"w":151,"h":132},"sourceSize":{"w":208,"h":144}},
+  "7":{"frame":{"x":152,"y":395,"w":150,"h":132},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":7,"w":150,"h":132},"sourceSize":{"w":208,"h":144}},
+  "8":{"frame":{"x":277,"y":529,"w":24,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":61,"w":24,"h":23},"sourceSize":{"w":208,"h":144}},
+  "9":{"frame":{"x":208,"y":650,"w":47,"h":67},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":40,"w":47,"h":67},"sourceSize":{"w":208,"h":144}},
+  "10":{"frame":{"x":0,"y":650,"w":72,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":18,"w":72,"h":112},"sourceSize":{"w":208,"h":144}},
+  "11":{"frame":{"x":325,"y":0,"w":99,"h":144},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":0,"w":99,"h":144},"sourceSize":{"w":208,"h":144}},
+  "12":{"frame":{"x":145,"y":529,"w":130,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":2,"w":130,"h":119},"sourceSize":{"w":208,"h":144}},
+  "13":{"frame":{"x":0,"y":0,"w":161,"h":130},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":0,"w":161,"h":130},"sourceSize":{"w":208,"h":144}},
+  "14":{"frame":{"x":162,"y":143,"w":152,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":14,"w":152,"h":116},"sourceSize":{"w":208,"h":144}},
+  "15":{"frame":{"x":0,"y":417,"w":150,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":15,"w":150,"h":110},"sourceSize":{"w":208,"h":144}},
+  "16":{"frame":{"x":409,"y":314,"w":24,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":63,"w":24,"h":21},"sourceSize":{"w":208,"h":144}},
+  "17":{"frame":{"x":257,"y":663,"w":46,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":46,"w":46,"h":61},"sourceSize":{"w":208,"h":144}},
+  "18":{"frame":{"x":74,"y":650,"w":67,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":28,"w":67,"h":102},"sourceSize":{"w":208,"h":144}},
+  "19":{"frame":{"x":315,"y":291,"w":92,"h":134},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":10,"w":92,"h":134},"sourceSize":{"w":208,"h":144}},
+  "20":{"frame":{"x":316,"y":146,"w":121,"h":143},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":1,"w":121,"h":143},"sourceSize":{"w":208,"h":144}},
+  "21":{"frame":{"x":0,"y":272,"w":150,"h":143},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":1,"w":150,"h":143},"sourceSize":{"w":208,"h":144}},
+  "22":{"frame":{"x":163,"y":0,"w":160,"h":141},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":45,"y":1,"w":160,"h":141},"sourceSize":{"w":208,"h":144}},
+  "23":{"frame":{"x":0,"y":132,"w":160,"h":138},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":45,"y":2,"w":160,"h":138},"sourceSize":{"w":208,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "blood_spray_slash.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 437,
+   "h": 762
+  },
+  "scale": "1"
+ }
+}

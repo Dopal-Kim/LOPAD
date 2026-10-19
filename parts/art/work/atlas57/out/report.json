@@ -12652,6 +12652,2931 @@
    "jsonBefore": 4061,
    "jsonAfter": 15467,
    "cat": "bosses"
+  },
+  {
+   "name": "blood_spray_slash",
+   "src": "assets/sprites/fx/v5/blood_spray_slash.png",
+   "srcSize": [
+    1664,
+    432
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "blood_spray_slash.png",
+     437,
+     762
+    ]
+   ],
+   "gpuBefore": 2875392,
+   "gpuAfter": 1331976,
+   "fileBefore": 21261,
+   "fileAfter": 10809,
+   "jsonBefore": 2038,
+   "jsonAfter": 6783,
+   "cat": "fx"
+  },
+  {
+   "name": "blood_spray_stab",
+   "src": "assets/sprites/fx/v5/blood_spray_stab.png",
+   "srcSize": [
+    1792,
+    240
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "blood_spray_stab.png",
+     428,
+     373
+    ]
+   ],
+   "gpuBefore": 1720320,
+   "gpuAfter": 638576,
+   "fileBefore": 10367,
+   "fileAfter": 5838,
+   "jsonBefore": 1966,
+   "jsonAfter": 6647,
+   "cat": "fx"
+  },
+  {
+   "name": "blood_spray_crush",
+   "src": "assets/sprites/fx/v5/blood_spray_crush.png",
+   "srcSize": [
+    1408,
+    528
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "blood_spray_crush.png",
+     278,
+     1254
+    ]
+   ],
+   "gpuBefore": 2973696,
+   "gpuAfter": 1394448,
+   "fileBefore": 20409,
+   "fileAfter": 11188,
+   "jsonBefore": 1983,
+   "jsonAfter": 6727,
+   "cat": "fx"
+  },
+  {
+   "name": "blood_spray_pierce",
+   "src": "assets/sprites/fx/v5/blood_spray_pierce.png",
+   "srcSize": [
+    1984,
+    240
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "blood_spray_pierce.png",
+     475,
+     509
+    ]
+   ],
+   "gpuBefore": 1904640,
+   "gpuAfter": 967100,
+   "fileBefore": 11294,
+   "fileAfter": 6325,
+   "jsonBefore": 1986,
+   "jsonAfter": 6659,
+   "cat": "fx"
+  },
+  {
+   "name": "blood_pool",
+   "src": "assets/sprites/fx/v5/blood_pool.png",
+   "srcSize": [
+    1600,
+    360
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "blood_pool.png",
+     243,
+     736
+    ]
+   ],
+   "gpuBefore": 2304000,
+   "gpuAfter": 715392,
+   "fileBefore": 9853,
+   "fileAfter": 6200,
+   "jsonBefore": 1848,
+   "jsonAfter": 6567,
+   "cat": "fx"
+  },
+  {
+   "name": "blood_decal_floor",
+   "src": "assets/sprites/fx/v5/blood_decal_floor.png",
+   "srcSize": [
+    1152,
+    64
+   ],
+   "frames": 12,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "blood_decal_floor.png",
+     192,
+     85
+    ]
+   ],
+   "gpuBefore": 294912,
+   "gpuAfter": 65280,
+   "fileBefore": 3012,
+   "fileAfter": 2243,
+   "jsonBefore": 2124,
+   "jsonAfter": 4845,
+   "cat": "fx"
+  },
+  {
+   "name": "blood_decal_wall",
+   "src": "assets/sprites/fx/v5/blood_decal_wall.png",
+   "srcSize": [
+    432,
+    112
+   ],
+   "frames": 6,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "blood_decal_wall.png",
+     261,
+     102
+    ]
+   ],
+   "gpuBefore": 193536,
+   "gpuAfter": 106488,
+   "fileBefore": 2770,
+   "fileAfter": 2239,
+   "jsonBefore": 1581,
+   "jsonAfter": 3376,
+   "cat": "fx"
+  },
+  {
+   "name": "blood_drip",
+   "src": "assets/sprites/fx/v5/blood_drip.png",
+   "srcSize": [
+    192,
+    64
+   ],
+   "frames": 8,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "blood_drip.png",
+     12,
+     24
+    ]
+   ],
+   "gpuBefore": 49152,
+   "gpuAfter": 1152,
+   "fileBefore": 378,
+   "fileAfter": 265,
+   "jsonBefore": 1651,
+   "jsonAfter": 3692,
+   "cat": "fx"
+  },
+  {
+   "name": "tar_ember_hit",
+   "src": "assets/sprites/fx/v5/tar_ember_hit.png",
+   "srcSize": [
+    1120,
+    112
+   ],
+   "frames": 7,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "tar_ember_hit.png",
+     224,
+     213
+    ]
+   ],
+   "gpuBefore": 501760,
+   "gpuAfter": 190848,
+   "fileBefore": 4966,
+   "fileAfter": 2863,
+   "jsonBefore": 1829,
+   "jsonAfter": 3793,
+   "cat": "fx"
+  },
+  {
+   "name": "ash_chips",
+   "src": "assets/sprites/fx/v5/ash_chips.png",
+   "srcSize": [
+    384,
+    72
+   ],
+   "frames": 8,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "ash_chips.png",
+     20,
+     114
+    ]
+   ],
+   "gpuBefore": 110592,
+   "gpuAfter": 9120,
+   "fileBefore": 426,
+   "fileAfter": 328,
+   "jsonBefore": 1704,
+   "jsonAfter": 3777,
+   "cat": "fx"
+  },
+  {
+   "name": "wound_cut",
+   "src": "assets/sprites/fx/v5/wound_cut.png",
+   "srcSize": [
+    240,
+    24
+   ],
+   "frames": 10,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "wound_cut.png",
+     23,
+     108
+    ]
+   ],
+   "gpuBefore": 23040,
+   "gpuAfter": 9936,
+   "fileBefore": 1318,
+   "fileAfter": 1255,
+   "jsonBefore": 2184,
+   "jsonAfter": 4553,
+   "cat": "fx"
+  },
+  {
+   "name": "stuck_arrow",
+   "src": "assets/sprites/fx/v5/stuck_arrow.png",
+   "srcSize": [
+    280,
+    56
+   ],
+   "frames": 5,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "stuck_arrow.png",
+     47,
+     31
+    ]
+   ],
+   "gpuBefore": 62720,
+   "gpuAfter": 5828,
+   "fileBefore": 680,
+   "fileAfter": 535,
+   "jsonBefore": 1794,
+   "jsonAfter": 3402,
+   "cat": "fx"
+  },
+  {
+   "name": "ink_ash_burst",
+   "src": "assets/sprites/fx/v5/ink_ash_burst.png",
+   "srcSize": [
+    1408,
+    112
+   ],
+   "frames": 8,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "ink_ash_burst.png",
+     58,
+     394
+    ]
+   ],
+   "gpuBefore": 630784,
+   "gpuAfter": 91408,
+   "fileBefore": 3923,
+   "fileAfter": 2193,
+   "jsonBefore": 1545,
+   "jsonAfter": 3656,
+   "cat": "fx"
+  },
+  {
+   "name": "hero_wound1_player_idle",
+   "src": "assets/sprites/player/v3/hero_wound1_player_idle.png",
+   "srcSize": [
+    576,
+    576
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 6,
+   "pages": [
+    [
+     "hero_wound1_player_idle.png",
+     119,
+     105
+    ]
+   ],
+   "gpuBefore": 1327104,
+   "gpuAfter": 49980,
+   "fileBefore": 2217,
+   "fileAfter": 934,
+   "jsonBefore": 16001,
+   "jsonAfter": 20639,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_idle",
+   "src": "assets/sprites/player/v3/hero_wound2_player_idle.png",
+   "srcSize": [
+    576,
+    576
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 6,
+   "pages": [
+    [
+     "hero_wound2_player_idle.png",
+     59,
+     321
+    ]
+   ],
+   "gpuBefore": 1327104,
+   "gpuAfter": 75756,
+   "fileBefore": 4580,
+   "fileAfter": 2097,
+   "jsonBefore": 16005,
+   "jsonAfter": 20658,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_idle",
+   "src": "assets/sprites/player/v3/hero_wound3_player_idle.png",
+   "srcSize": [
+    576,
+    576
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 6,
+   "pages": [
+    [
+     "hero_wound3_player_idle.png",
+     64,
+     429
+    ]
+   ],
+   "gpuBefore": 1327104,
+   "gpuAfter": 109824,
+   "fileBefore": 8471,
+   "fileAfter": 3556,
+   "jsonBefore": 16046,
+   "jsonAfter": 20685,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_idle_free",
+   "src": "assets/sprites/player/v3/hero_wound1_player_idle_free.png",
+   "srcSize": [
+    576,
+    576
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 6,
+   "pages": [
+    [
+     "hero_wound1_player_idle_free.png",
+     54,
+     230
+    ]
+   ],
+   "gpuBefore": 1327104,
+   "gpuAfter": 49680,
+   "fileBefore": 2152,
+   "fileAfter": 955,
+   "jsonBefore": 16016,
+   "jsonAfter": 20645,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_idle_free",
+   "src": "assets/sprites/player/v3/hero_wound2_player_idle_free.png",
+   "srcSize": [
+    576,
+    576
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 6,
+   "pages": [
+    [
+     "hero_wound2_player_idle_free.png",
+     221,
+     88
+    ]
+   ],
+   "gpuBefore": 1327104,
+   "gpuAfter": 77792,
+   "fileBefore": 4468,
+   "fileAfter": 2194,
+   "jsonBefore": 16020,
+   "jsonAfter": 20685,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_idle_free",
+   "src": "assets/sprites/player/v3/hero_wound3_player_idle_free.png",
+   "srcSize": [
+    576,
+    576
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 6,
+   "pages": [
+    [
+     "hero_wound3_player_idle_free.png",
+     64,
+     429
+    ]
+   ],
+   "gpuBefore": 1327104,
+   "gpuAfter": 109824,
+   "fileBefore": 8405,
+   "fileAfter": 3564,
+   "jsonBefore": 16061,
+   "jsonAfter": 20724,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_walk",
+   "src": "assets/sprites/player/v3/hero_wound1_player_walk.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 6,
+   "pages": [
+    [
+     "hero_wound1_player_walk.png",
+     115,
+     151
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 69460,
+   "fileBefore": 3049,
+   "fileAfter": 1351,
+   "jsonBefore": 20663,
+   "jsonAfter": 26577,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_walk",
+   "src": "assets/sprites/player/v3/hero_wound2_player_walk.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 6,
+   "pages": [
+    [
+     "hero_wound2_player_walk.png",
+     58,
+     455
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 105560,
+   "fileBefore": 6839,
+   "fileAfter": 2795,
+   "jsonBefore": 20667,
+   "jsonAfter": 26587,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_walk",
+   "src": "assets/sprites/player/v3/hero_wound3_player_walk.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 4,
+   "pages": [
+    [
+     "hero_wound3_player_walk.png",
+     62,
+     636
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 157728,
+   "fileBefore": 12899,
+   "fileAfter": 5192,
+   "jsonBefore": 20708,
+   "jsonAfter": 26620,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_walk_free",
+   "src": "assets/sprites/player/v3/hero_wound1_player_walk_free.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 6,
+   "pages": [
+    [
+     "hero_wound1_player_walk_free.png",
+     52,
+     330
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 68640,
+   "fileBefore": 3003,
+   "fileAfter": 1397,
+   "jsonBefore": 20678,
+   "jsonAfter": 26583,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_walk_free",
+   "src": "assets/sprites/player/v3/hero_wound2_player_walk_free.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 6,
+   "pages": [
+    [
+     "hero_wound2_player_walk_free.png",
+     60,
+     474
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 113760,
+   "fileBefore": 6958,
+   "fileAfter": 2855,
+   "jsonBefore": 20682,
+   "jsonAfter": 26613,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_walk_free",
+   "src": "assets/sprites/player/v3/hero_wound3_player_walk_free.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 4,
+   "pages": [
+    [
+     "hero_wound3_player_walk_free.png",
+     64,
+     635
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 162560,
+   "fileBefore": 13186,
+   "fileAfter": 5292,
+   "jsonBefore": 20723,
+   "jsonAfter": 26645,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_run",
+   "src": "assets/sprites/player/v3/hero_wound1_player_run.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 5,
+   "pages": [
+    [
+     "hero_wound1_player_run.png",
+     48,
+     290
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 55680,
+   "fileBefore": 3118,
+   "fileAfter": 1295,
+   "jsonBefore": 20664,
+   "jsonAfter": 26559,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_run",
+   "src": "assets/sprites/player/v3/hero_wound2_player_run.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 3,
+   "pages": [
+    [
+     "hero_wound2_player_run.png",
+     91,
+     286
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 104104,
+   "fileBefore": 6902,
+   "fileAfter": 2849,
+   "jsonBefore": 20668,
+   "jsonAfter": 26587,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_run",
+   "src": "assets/sprites/player/v3/hero_wound3_player_run.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 2,
+   "pages": [
+    [
+     "hero_wound3_player_run.png",
+     286,
+     122
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 139568,
+   "fileBefore": 13143,
+   "fileAfter": 4957,
+   "jsonBefore": 20709,
+   "jsonAfter": 26630,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_run_free",
+   "src": "assets/sprites/player/v3/hero_wound1_player_run_free.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 4,
+   "pages": [
+    [
+     "hero_wound1_player_run_free.png",
+     67,
+     188
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 50384,
+   "fileBefore": 3236,
+   "fileAfter": 1313,
+   "jsonBefore": 20679,
+   "jsonAfter": 26581,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_run_free",
+   "src": "assets/sprites/player/v3/hero_wound2_player_run_free.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 3,
+   "pages": [
+    [
+     "hero_wound2_player_run_free.png",
+     57,
+     405
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 92340,
+   "fileBefore": 7146,
+   "fileAfter": 2847,
+   "jsonBefore": 20683,
+   "jsonAfter": 26612,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_run_free",
+   "src": "assets/sprites/player/v3/hero_wound3_player_run_free.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 2,
+   "pages": [
+    [
+     "hero_wound3_player_run_free.png",
+     1029,
+     32
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 131712,
+   "fileBefore": 13881,
+   "fileAfter": 4857,
+   "jsonBefore": 20724,
+   "jsonAfter": 26644,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_dash",
+   "src": "assets/sprites/player/v3/hero_wound1_player_dash.png",
+   "srcSize": [
+    480,
+    576
+   ],
+   "frames": 20,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound1_player_dash.png",
+     55,
+     161
+    ]
+   ],
+   "gpuBefore": 1105920,
+   "gpuAfter": 35420,
+   "fileBefore": 2123,
+   "fileAfter": 959,
+   "jsonBefore": 13667,
+   "jsonAfter": 17665,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_dash",
+   "src": "assets/sprites/player/v3/hero_wound2_player_dash.png",
+   "srcSize": [
+    480,
+    576
+   ],
+   "frames": 20,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound2_player_dash.png",
+     63,
+     266
+    ]
+   ],
+   "gpuBefore": 1105920,
+   "gpuAfter": 67032,
+   "fileBefore": 4727,
+   "fileAfter": 2167,
+   "jsonBefore": 13671,
+   "jsonAfter": 17692,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_dash",
+   "src": "assets/sprites/player/v3/hero_wound3_player_dash.png",
+   "srcSize": [
+    480,
+    576
+   ],
+   "frames": 20,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound3_player_dash.png",
+     89,
+     266
+    ]
+   ],
+   "gpuBefore": 1105920,
+   "gpuAfter": 94696,
+   "fileBefore": 9155,
+   "fileAfter": 3746,
+   "jsonBefore": 13712,
+   "jsonAfter": 17734,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_hurt",
+   "src": "assets/sprites/player/v3/hero_wound1_player_hurt.png",
+   "srcSize": [
+    288,
+    576
+   ],
+   "frames": 12,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound1_player_hurt.png",
+     111,
+     75
+    ]
+   ],
+   "gpuBefore": 663552,
+   "gpuAfter": 33300,
+   "fileBefore": 1473,
+   "fileAfter": 741,
+   "jsonBefore": 8972,
+   "jsonAfter": 11720,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_hurt",
+   "src": "assets/sprites/player/v3/hero_wound2_player_hurt.png",
+   "srcSize": [
+    288,
+    576
+   ],
+   "frames": 12,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound2_player_hurt.png",
+     66,
+     203
+    ]
+   ],
+   "gpuBefore": 663552,
+   "gpuAfter": 53592,
+   "fileBefore": 3734,
+   "fileAfter": 1920,
+   "jsonBefore": 8976,
+   "jsonAfter": 11730,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_hurt",
+   "src": "assets/sprites/player/v3/hero_wound3_player_hurt.png",
+   "srcSize": [
+    288,
+    576
+   ],
+   "frames": 12,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound3_player_hurt.png",
+     294,
+     63
+    ]
+   ],
+   "gpuBefore": 663552,
+   "gpuAfter": 74088,
+   "fileBefore": 6958,
+   "fileAfter": 3049,
+   "jsonBefore": 9017,
+   "jsonAfter": 11768,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_katana_rise",
+   "src": "assets/sprites/player/v3/hero_wound1_player_katana_rise.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound1_player_katana_rise.png",
+     90,
+     194
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 69840,
+   "fileBefore": 3164,
+   "fileAfter": 1415,
+   "jsonBefore": 20702,
+   "jsonAfter": 26625,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_katana_rise",
+   "src": "assets/sprites/player/v3/hero_wound2_player_katana_rise.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound2_player_katana_rise.png",
+     80,
+     360
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 115200,
+   "fileBefore": 7510,
+   "fileAfter": 3122,
+   "jsonBefore": 20706,
+   "jsonAfter": 26646,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_katana_rise",
+   "src": "assets/sprites/player/v3/hero_wound3_player_katana_rise.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound3_player_katana_rise.png",
+     94,
+     416
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 156416,
+   "fileBefore": 14324,
+   "fileAfter": 5624,
+   "jsonBefore": 20747,
+   "jsonAfter": 26685,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_katana_fall",
+   "src": "assets/sprites/player/v3/hero_wound1_player_katana_fall.png",
+   "srcSize": [
+    672,
+    576
+   ],
+   "frames": 28,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound1_player_katana_fall.png",
+     28,
+     488
+    ]
+   ],
+   "gpuBefore": 1548288,
+   "gpuAfter": 54656,
+   "fileBefore": 2824,
+   "fileAfter": 1224,
+   "jsonBefore": 18362,
+   "jsonAfter": 23648,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_katana_fall",
+   "src": "assets/sprites/player/v3/hero_wound2_player_katana_fall.png",
+   "srcSize": [
+    672,
+    576
+   ],
+   "frames": 28,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound2_player_katana_fall.png",
+     136,
+     159
+    ]
+   ],
+   "gpuBefore": 1548288,
+   "gpuAfter": 86496,
+   "fileBefore": 6255,
+   "fileAfter": 2700,
+   "jsonBefore": 18366,
+   "jsonAfter": 23667,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_katana_fall",
+   "src": "assets/sprites/player/v3/hero_wound3_player_katana_fall.png",
+   "srcSize": [
+    672,
+    576
+   ],
+   "frames": 28,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound3_player_katana_fall.png",
+     186,
+     173
+    ]
+   ],
+   "gpuBefore": 1548288,
+   "gpuAfter": 128712,
+   "fileBefore": 12296,
+   "fileAfter": 4799,
+   "jsonBefore": 18407,
+   "jsonAfter": 23711,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_katana_thrust",
+   "src": "assets/sprites/player/v3/hero_wound1_player_katana_thrust.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 2,
+   "pages": [
+    [
+     "hero_wound1_player_katana_thrust.png",
+     87,
+     262
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 91176,
+   "fileBefore": 3998,
+   "fileAfter": 1751,
+   "jsonBefore": 25406,
+   "jsonAfter": 32613,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_katana_thrust",
+   "src": "assets/sprites/player/v3/hero_wound2_player_katana_thrust.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound2_player_katana_thrust.png",
+     116,
+     356
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 165184,
+   "fileBefore": 9146,
+   "fileAfter": 3882,
+   "jsonBefore": 25410,
+   "jsonAfter": 32620,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_katana_thrust",
+   "src": "assets/sprites/player/v3/hero_wound3_player_katana_thrust.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound3_player_katana_thrust.png",
+     215,
+     240
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 206400,
+   "fileBefore": 16865,
+   "fileAfter": 6659,
+   "jsonBefore": 25451,
+   "jsonAfter": 32676,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_greatsword_sweep_cw",
+   "src": "assets/sprites/player/v3/hero_wound1_player_greatsword_sweep_cw.png",
+   "srcSize": [
+    1440,
+    1152
+   ],
+   "frames": 120,
+   "empty": 0,
+   "deduped": 1,
+   "pages": [
+    [
+     "hero_wound1_player_greatsword_sweep_cw.png",
+     147,
+     432
+    ]
+   ],
+   "gpuBefore": 6635520,
+   "gpuAfter": 254016,
+   "fileBefore": 11208,
+   "fileAfter": 3500,
+   "jsonBefore": 72253,
+   "jsonAfter": 92195,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_greatsword_sweep_cw",
+   "src": "assets/sprites/player/v3/hero_wound2_player_greatsword_sweep_cw.png",
+   "srcSize": [
+    1440,
+    1152
+   ],
+   "frames": 120,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound2_player_greatsword_sweep_cw.png",
+     314,
+     338
+    ]
+   ],
+   "gpuBefore": 6635520,
+   "gpuAfter": 424528,
+   "fileBefore": 25525,
+   "fileAfter": 8762,
+   "jsonBefore": 72257,
+   "jsonAfter": 92272,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_greatsword_sweep_cw",
+   "src": "assets/sprites/player/v3/hero_wound3_player_greatsword_sweep_cw.png",
+   "srcSize": [
+    1440,
+    1152
+   ],
+   "frames": 120,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound3_player_greatsword_sweep_cw.png",
+     187,
+     789
+    ]
+   ],
+   "gpuBefore": 6635520,
+   "gpuAfter": 590172,
+   "fileBefore": 47809,
+   "fileAfter": 17451,
+   "jsonBefore": 72298,
+   "jsonAfter": 92302,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_greatsword_cleave",
+   "src": "assets/sprites/player/v3/hero_wound1_player_greatsword_cleave.png",
+   "srcSize": [
+    1728,
+    1152
+   ],
+   "frames": 144,
+   "empty": 0,
+   "deduped": 3,
+   "pages": [
+    [
+     "hero_wound1_player_greatsword_cleave.png",
+     370,
+     323
+    ]
+   ],
+   "gpuBefore": 7962624,
+   "gpuAfter": 478040,
+   "fileBefore": 14547,
+   "fileAfter": 4683,
+   "jsonBefore": 86274,
+   "jsonAfter": 110128,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_greatsword_cleave",
+   "src": "assets/sprites/player/v3/hero_wound2_player_greatsword_cleave.png",
+   "srcSize": [
+    1728,
+    1152
+   ],
+   "frames": 144,
+   "empty": 0,
+   "deduped": 2,
+   "pages": [
+    [
+     "hero_wound2_player_greatsword_cleave.png",
+     203,
+     868
+    ]
+   ],
+   "gpuBefore": 7962624,
+   "gpuAfter": 704816,
+   "fileBefore": 32073,
+   "fileAfter": 11799,
+   "jsonBefore": 86278,
+   "jsonAfter": 110131,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_greatsword_cleave",
+   "src": "assets/sprites/player/v3/hero_wound3_player_greatsword_cleave.png",
+   "srcSize": [
+    1728,
+    1152
+   ],
+   "frames": 144,
+   "empty": 0,
+   "deduped": 1,
+   "pages": [
+    [
+     "hero_wound3_player_greatsword_cleave.png",
+     324,
+     710
+    ]
+   ],
+   "gpuBefore": 7962624,
+   "gpuAfter": 920160,
+   "fileBefore": 60778,
+   "fileAfter": 22455,
+   "jsonBefore": 86319,
+   "jsonAfter": 110200,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_greatsword_sweep_ccw",
+   "src": "assets/sprites/player/v3/hero_wound1_player_greatsword_sweep_ccw.png",
+   "srcSize": [
+    1440,
+    1152
+   ],
+   "frames": 120,
+   "empty": 1,
+   "deduped": 1,
+   "pages": [
+    [
+     "hero_wound1_player_greatsword_sweep_ccw.png",
+     155,
+     454
+    ]
+   ],
+   "gpuBefore": 6635520,
+   "gpuAfter": 281480,
+   "fileBefore": 11457,
+   "fileAfter": 3564,
+   "jsonBefore": 72257,
+   "jsonAfter": 92202,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_greatsword_sweep_ccw",
+   "src": "assets/sprites/player/v3/hero_wound2_player_greatsword_sweep_ccw.png",
+   "srcSize": [
+    1440,
+    1152
+   ],
+   "frames": 120,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound2_player_greatsword_sweep_ccw.png",
+     205,
+     614
+    ]
+   ],
+   "gpuBefore": 6635520,
+   "gpuAfter": 503480,
+   "fileBefore": 26043,
+   "fileAfter": 9280,
+   "jsonBefore": 72261,
+   "jsonAfter": 92273,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_greatsword_sweep_ccw",
+   "src": "assets/sprites/player/v3/hero_wound3_player_greatsword_sweep_ccw.png",
+   "srcSize": [
+    1440,
+    1152
+   ],
+   "frames": 120,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound3_player_greatsword_sweep_ccw.png",
+     198,
+     862
+    ]
+   ],
+   "gpuBefore": 6635520,
+   "gpuAfter": 682704,
+   "fileBefore": 48806,
+   "fileAfter": 18091,
+   "jsonBefore": 72302,
+   "jsonAfter": 92308,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_dagger_combo1",
+   "src": "assets/sprites/player/v3/hero_wound1_player_dagger_combo1.png",
+   "srcSize": [
+    576,
+    576
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound1_player_dagger_combo1.png",
+     71,
+     152
+    ]
+   ],
+   "gpuBefore": 1327104,
+   "gpuAfter": 43168,
+   "fileBefore": 2277,
+   "fileAfter": 1007,
+   "jsonBefore": 16039,
+   "jsonAfter": 20681,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_dagger_combo1",
+   "src": "assets/sprites/player/v3/hero_wound2_player_dagger_combo1.png",
+   "srcSize": [
+    576,
+    576
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound2_player_dagger_combo1.png",
+     128,
+     181
+    ]
+   ],
+   "gpuBefore": 1327104,
+   "gpuAfter": 92672,
+   "fileBefore": 5589,
+   "fileAfter": 2545,
+   "jsonBefore": 16043,
+   "jsonAfter": 20713,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_dagger_combo1",
+   "src": "assets/sprites/player/v3/hero_wound3_player_dagger_combo1.png",
+   "srcSize": [
+    576,
+    576
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound3_player_dagger_combo1.png",
+     104,
+     324
+    ]
+   ],
+   "gpuBefore": 1327104,
+   "gpuAfter": 134784,
+   "fileBefore": 10376,
+   "fileAfter": 4393,
+   "jsonBefore": 16084,
+   "jsonAfter": 20757,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_dagger_combo2",
+   "src": "assets/sprites/player/v3/hero_wound1_player_dagger_combo2.png",
+   "srcSize": [
+    576,
+    576
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound1_player_dagger_combo2.png",
+     74,
+     159
+    ]
+   ],
+   "gpuBefore": 1327104,
+   "gpuAfter": 47064,
+   "fileBefore": 2364,
+   "fileAfter": 1112,
+   "jsonBefore": 16041,
+   "jsonAfter": 20690,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_dagger_combo2",
+   "src": "assets/sprites/player/v3/hero_wound2_player_dagger_combo2.png",
+   "srcSize": [
+    576,
+    576
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound2_player_dagger_combo2.png",
+     83,
+     254
+    ]
+   ],
+   "gpuBefore": 1327104,
+   "gpuAfter": 84328,
+   "fileBefore": 5918,
+   "fileAfter": 2615,
+   "jsonBefore": 16045,
+   "jsonAfter": 20718,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_dagger_combo2",
+   "src": "assets/sprites/player/v3/hero_wound3_player_dagger_combo2.png",
+   "srcSize": [
+    576,
+    576
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound3_player_dagger_combo2.png",
+     205,
+     152
+    ]
+   ],
+   "gpuBefore": 1327104,
+   "gpuAfter": 124640,
+   "fileBefore": 11098,
+   "fileAfter": 4467,
+   "jsonBefore": 16086,
+   "jsonAfter": 20761,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_dagger_combo3",
+   "src": "assets/sprites/player/v3/hero_wound1_player_dagger_combo3.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound1_player_dagger_combo3.png",
+     78,
+     232
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 72384,
+   "fileBefore": 3099,
+   "fileAfter": 1423,
+   "jsonBefore": 20724,
+   "jsonAfter": 26645,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_dagger_combo3",
+   "src": "assets/sprites/player/v3/hero_wound2_player_dagger_combo3.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound2_player_dagger_combo3.png",
+     141,
+     234
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 131976,
+   "fileBefore": 7322,
+   "fileAfter": 3277,
+   "jsonBefore": 20728,
+   "jsonAfter": 26675,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_dagger_combo3",
+   "src": "assets/sprites/player/v3/hero_wound3_player_dagger_combo3.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound3_player_dagger_combo3.png",
+     159,
+     273
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 173628,
+   "fileBefore": 13228,
+   "fileAfter": 5678,
+   "jsonBefore": 20769,
+   "jsonAfter": 26721,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_bow_aim",
+   "src": "assets/sprites/player/v3/hero_wound1_player_bow_aim.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 1,
+   "pages": [
+    [
+     "hero_wound1_player_bow_aim.png",
+     119,
+     263
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 125188,
+   "fileBefore": 3130,
+   "fileAfter": 1816,
+   "jsonBefore": 20684,
+   "jsonAfter": 26615,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_bow_aim",
+   "src": "assets/sprites/player/v3/hero_wound2_player_bow_aim.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 1,
+   "pages": [
+    [
+     "hero_wound2_player_bow_aim.png",
+     190,
+     256
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 194560,
+   "fileBefore": 6519,
+   "fileAfter": 3590,
+   "jsonBefore": 20688,
+   "jsonAfter": 26628,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_bow_aim",
+   "src": "assets/sprites/player/v3/hero_wound3_player_bow_aim.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound3_player_bow_aim.png",
+     144,
+     423
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 243648,
+   "fileBefore": 11655,
+   "fileAfter": 5930,
+   "jsonBefore": 20729,
+   "jsonAfter": 26671,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_bow_draw_hold",
+   "src": "assets/sprites/player/v3/hero_wound1_player_bow_draw_hold.png",
+   "srcSize": [
+    1344,
+    576
+   ],
+   "frames": 56,
+   "empty": 0,
+   "deduped": 8,
+   "pages": [
+    [
+     "hero_wound1_player_bow_draw_hold.png",
+     178,
+     309
+    ]
+   ],
+   "gpuBefore": 3096576,
+   "gpuAfter": 220008,
+   "fileBefore": 4855,
+   "fileAfter": 2405,
+   "jsonBefore": 34733,
+   "jsonAfter": 44504,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_bow_draw_hold",
+   "src": "assets/sprites/player/v3/hero_wound2_player_bow_draw_hold.png",
+   "srcSize": [
+    1344,
+    576
+   ],
+   "frames": 56,
+   "empty": 0,
+   "deduped": 7,
+   "pages": [
+    [
+     "hero_wound2_player_bow_draw_hold.png",
+     164,
+     498
+    ]
+   ],
+   "gpuBefore": 3096576,
+   "gpuAfter": 326688,
+   "fileBefore": 8124,
+   "fileAfter": 4797,
+   "jsonBefore": 34737,
+   "jsonAfter": 44505,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_bow_draw_hold",
+   "src": "assets/sprites/player/v3/hero_wound3_player_bow_draw_hold.png",
+   "srcSize": [
+    1344,
+    576
+   ],
+   "frames": 56,
+   "empty": 0,
+   "deduped": 5,
+   "pages": [
+    [
+     "hero_wound3_player_bow_draw_hold.png",
+     187,
+     587
+    ]
+   ],
+   "gpuBefore": 3096576,
+   "gpuAfter": 439076,
+   "fileBefore": 13531,
+   "fileAfter": 7894,
+   "jsonBefore": 34778,
+   "jsonAfter": 44556,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound1_player_bow_release",
+   "src": "assets/sprites/player/v3/hero_wound1_player_bow_release.png",
+   "srcSize": [
+    384,
+    576
+   ],
+   "frames": 16,
+   "empty": 0,
+   "deduped": 1,
+   "pages": [
+    [
+     "hero_wound1_player_bow_release.png",
+     73,
+     222
+    ]
+   ],
+   "gpuBefore": 884736,
+   "gpuAfter": 64824,
+   "fileBefore": 1694,
+   "fileAfter": 995,
+   "jsonBefore": 11333,
+   "jsonAfter": 14736,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound2_player_bow_release",
+   "src": "assets/sprites/player/v3/hero_wound2_player_bow_release.png",
+   "srcSize": [
+    384,
+    576
+   ],
+   "frames": 16,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound2_player_bow_release.png",
+     119,
+     219
+    ]
+   ],
+   "gpuBefore": 884736,
+   "gpuAfter": 104244,
+   "fileBefore": 3678,
+   "fileAfter": 2307,
+   "jsonBefore": 11337,
+   "jsonAfter": 14742,
+   "cat": "player"
+  },
+  {
+   "name": "hero_wound3_player_bow_release",
+   "src": "assets/sprites/player/v3/hero_wound3_player_bow_release.png",
+   "srcSize": [
+    384,
+    576
+   ],
+   "frames": 16,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_wound3_player_bow_release.png",
+     138,
+     237
+    ]
+   ],
+   "gpuBefore": 884736,
+   "gpuAfter": 130824,
+   "fileBefore": 6653,
+   "fileAfter": 3640,
+   "jsonBefore": 11378,
+   "jsonAfter": 14784,
+   "cat": "player"
+  },
+  {
+   "name": "archer_death_collapse",
+   "src": "assets/sprites/enemies/v4/archer_death_collapse.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "archer_death_collapse.png",
+     325,
+     947
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1231100,
+   "fileBefore": 97593,
+   "fileAfter": 40650,
+   "jsonBefore": 1331,
+   "jsonAfter": 8573,
+   "cat": "enemies"
+  },
+  {
+   "name": "archer_death_behead",
+   "src": "assets/sprites/enemies/v4/archer_death_behead.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "archer_death_behead.png",
+     383,
+     678
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1038696,
+   "fileBefore": 77570,
+   "fileAfter": 33505,
+   "jsonBefore": 1572,
+   "jsonAfter": 8834,
+   "cat": "enemies"
+  },
+  {
+   "name": "archer_death_bisect",
+   "src": "assets/sprites/enemies/v4/archer_death_bisect.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "archer_death_bisect.png",
+     283,
+     920
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1041440,
+   "fileBefore": 99467,
+   "fileAfter": 39475,
+   "jsonBefore": 1390,
+   "jsonAfter": 8620,
+   "cat": "enemies"
+  },
+  {
+   "name": "archer_death_pinned",
+   "src": "assets/sprites/enemies/v4/archer_death_pinned.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 3,
+   "pages": [
+    [
+     "archer_death_pinned.png",
+     236,
+     1199
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1131856,
+   "fileBefore": 59123,
+   "fileAfter": 29563,
+   "jsonBefore": 1360,
+   "jsonAfter": 8659,
+   "cat": "enemies"
+  },
+  {
+   "name": "archer_death_burn",
+   "src": "assets/sprites/enemies/v4/archer_death_burn.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "archer_death_burn.png",
+     340,
+     893
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1214480,
+   "fileBefore": 96467,
+   "fileAfter": 39998,
+   "jsonBefore": 1452,
+   "jsonAfter": 8708,
+   "cat": "enemies"
+  },
+  {
+   "name": "charger_death_collapse",
+   "src": "assets/sprites/enemies/v4/charger_death_collapse.png",
+   "srcSize": [
+    1280,
+    704
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "charger_death_collapse.png",
+     869,
+     517
+    ]
+   ],
+   "gpuBefore": 3604480,
+   "gpuAfter": 1797092,
+   "fileBefore": 131518,
+   "fileAfter": 54537,
+   "jsonBefore": 1335,
+   "jsonAfter": 8690,
+   "cat": "enemies"
+  },
+  {
+   "name": "charger_death_behead",
+   "src": "assets/sprites/enemies/v4/charger_death_behead.png",
+   "srcSize": [
+    1280,
+    704
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "charger_death_behead.png",
+     100,
+     3923
+    ]
+   ],
+   "gpuBefore": 3604480,
+   "gpuAfter": 1569200,
+   "fileBefore": 115705,
+   "fileAfter": 45990,
+   "jsonBefore": 1576,
+   "jsonAfter": 8913,
+   "cat": "enemies"
+  },
+  {
+   "name": "charger_death_bisect",
+   "src": "assets/sprites/enemies/v4/charger_death_bisect.png",
+   "srcSize": [
+    1280,
+    704
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "charger_death_bisect.png",
+     327,
+     1065
+    ]
+   ],
+   "gpuBefore": 3604480,
+   "gpuAfter": 1393020,
+   "fileBefore": 142273,
+   "fileAfter": 54479,
+   "jsonBefore": 1394,
+   "jsonAfter": 8732,
+   "cat": "enemies"
+  },
+  {
+   "name": "charger_death_pinned",
+   "src": "assets/sprites/enemies/v4/charger_death_pinned.png",
+   "srcSize": [
+    1280,
+    704
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 2,
+   "pages": [
+    [
+     "charger_death_pinned.png",
+     506,
+     776
+    ]
+   ],
+   "gpuBefore": 3604480,
+   "gpuAfter": 1570624,
+   "fileBefore": 80764,
+   "fileAfter": 42820,
+   "jsonBefore": 1364,
+   "jsonAfter": 8711,
+   "cat": "enemies"
+  },
+  {
+   "name": "charger_death_burn",
+   "src": "assets/sprites/enemies/v4/charger_death_burn.png",
+   "srcSize": [
+    1280,
+    704
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "charger_death_burn.png",
+     550,
+     759
+    ]
+   ],
+   "gpuBefore": 3604480,
+   "gpuAfter": 1669800,
+   "fileBefore": 133929,
+   "fileAfter": 53994,
+   "jsonBefore": 1456,
+   "jsonAfter": 8819,
+   "cat": "enemies"
+  },
+  {
+   "name": "peddler_death_collapse",
+   "src": "assets/sprites/enemies/v4/peddler_death_collapse.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "peddler_death_collapse.png",
+     309,
+     980
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1211280,
+   "fileBefore": 107951,
+   "fileAfter": 44246,
+   "jsonBefore": 1334,
+   "jsonAfter": 8573,
+   "cat": "enemies"
+  },
+  {
+   "name": "peddler_death_behead",
+   "src": "assets/sprites/enemies/v4/peddler_death_behead.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "peddler_death_behead.png",
+     274,
+     867
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 950232,
+   "fileBefore": 92813,
+   "fileAfter": 38073,
+   "jsonBefore": 1575,
+   "jsonAfter": 8820,
+   "cat": "enemies"
+  },
+  {
+   "name": "peddler_death_bisect",
+   "src": "assets/sprites/enemies/v4/peddler_death_bisect.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "peddler_death_bisect.png",
+     336,
+     800
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1075200,
+   "fileBefore": 111659,
+   "fileAfter": 43878,
+   "jsonBefore": 1393,
+   "jsonAfter": 8604,
+   "cat": "enemies"
+  },
+  {
+   "name": "peddler_death_pinned",
+   "src": "assets/sprites/enemies/v4/peddler_death_pinned.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 2,
+   "pages": [
+    [
+     "peddler_death_pinned.png",
+     347,
+     704
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 977152,
+   "fileBefore": 71163,
+   "fileAfter": 36271,
+   "jsonBefore": 1363,
+   "jsonAfter": 8663,
+   "cat": "enemies"
+  },
+  {
+   "name": "peddler_death_burn",
+   "src": "assets/sprites/enemies/v4/peddler_death_burn.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "peddler_death_burn.png",
+     292,
+     934
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1090912,
+   "fileBefore": 113764,
+   "fileAfter": 46305,
+   "jsonBefore": 1455,
+   "jsonAfter": 8716,
+   "cat": "enemies"
+  },
+  {
+   "name": "porter_death_collapse",
+   "src": "assets/sprites/enemies/v4/porter_death_collapse.png",
+   "srcSize": [
+    1600,
+    768
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "porter_death_collapse.png",
+     730,
+     710
+    ]
+   ],
+   "gpuBefore": 4915200,
+   "gpuAfter": 2073200,
+   "fileBefore": 167734,
+   "fileAfter": 71696,
+   "jsonBefore": 1332,
+   "jsonAfter": 8727,
+   "cat": "enemies"
+  },
+  {
+   "name": "porter_death_behead",
+   "src": "assets/sprites/enemies/v4/porter_death_behead.png",
+   "srcSize": [
+    1600,
+    768
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "porter_death_behead.png",
+     390,
+     1184
+    ]
+   ],
+   "gpuBefore": 4915200,
+   "gpuAfter": 1847040,
+   "fileBefore": 156113,
+   "fileAfter": 68294,
+   "jsonBefore": 1573,
+   "jsonAfter": 8954,
+   "cat": "enemies"
+  },
+  {
+   "name": "porter_death_bisect",
+   "src": "assets/sprites/enemies/v4/porter_death_bisect.png",
+   "srcSize": [
+    1600,
+    768
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "porter_death_bisect.png",
+     621,
+     724
+    ]
+   ],
+   "gpuBefore": 4915200,
+   "gpuAfter": 1798416,
+   "fileBefore": 171371,
+   "fileAfter": 69527,
+   "jsonBefore": 1391,
+   "jsonAfter": 8761,
+   "cat": "enemies"
+  },
+  {
+   "name": "porter_death_pinned",
+   "src": "assets/sprites/enemies/v4/porter_death_pinned.png",
+   "srcSize": [
+    1600,
+    768
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 4,
+   "pages": [
+    [
+     "porter_death_pinned.png",
+     550,
+     768
+    ]
+   ],
+   "gpuBefore": 4915200,
+   "gpuAfter": 1689600,
+   "fileBefore": 108651,
+   "fileAfter": 50859,
+   "jsonBefore": 1361,
+   "jsonAfter": 8740,
+   "cat": "enemies"
+  },
+  {
+   "name": "porter_death_burn",
+   "src": "assets/sprites/enemies/v4/porter_death_burn.png",
+   "srcSize": [
+    1600,
+    768
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "porter_death_burn.png",
+     529,
+     964
+    ]
+   ],
+   "gpuBefore": 4915200,
+   "gpuAfter": 2039824,
+   "fileBefore": 174796,
+   "fileAfter": 71042,
+   "jsonBefore": 1453,
+   "jsonAfter": 8833,
+   "cat": "enemies"
+  },
+  {
+   "name": "drummer_death_collapse",
+   "src": "assets/sprites/enemies/v4/drummer_death_collapse.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "drummer_death_collapse.png",
+     318,
+     1022
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1299984,
+   "fileBefore": 93166,
+   "fileAfter": 40230,
+   "jsonBefore": 1334,
+   "jsonAfter": 8570,
+   "cat": "enemies"
+  },
+  {
+   "name": "gore_parts_archer",
+   "src": "assets/sprites/fx/v5/gore_parts_archer.png",
+   "srcSize": [
+    592,
+    222
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "gore_parts_archer.png",
+     179,
+     303
+    ]
+   ],
+   "gpuBefore": 525696,
+   "gpuAfter": 216948,
+   "fileBefore": 24536,
+   "fileAfter": 8636,
+   "jsonBefore": 2034,
+   "jsonAfter": 6646,
+   "cat": "fx"
+  },
+  {
+   "name": "drummer_death_behead",
+   "src": "assets/sprites/enemies/v4/drummer_death_behead.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "drummer_death_behead.png",
+     293,
+     985
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1154420,
+   "fileBefore": 80372,
+   "fileAfter": 35266,
+   "jsonBefore": 1575,
+   "jsonAfter": 8821,
+   "cat": "enemies"
+  },
+  {
+   "name": "gore_parts_charger",
+   "src": "assets/sprites/fx/v5/gore_parts_charger.png",
+   "srcSize": [
+    768,
+    288
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "gore_parts_charger.png",
+     177,
+     313
+    ]
+   ],
+   "gpuBefore": 884736,
+   "gpuAfter": 221604,
+   "fileBefore": 32582,
+   "fileAfter": 11918,
+   "jsonBefore": 2035,
+   "jsonAfter": 6667,
+   "cat": "fx"
+  },
+  {
+   "name": "drummer_death_bisect",
+   "src": "assets/sprites/enemies/v4/drummer_death_bisect.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "drummer_death_bisect.png",
+     388,
+     752
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1167104,
+   "fileBefore": 105822,
+   "fileAfter": 41718,
+   "jsonBefore": 1393,
+   "jsonAfter": 8630,
+   "cat": "enemies"
+  },
+  {
+   "name": "gore_parts_peddler",
+   "src": "assets/sprites/fx/v5/gore_parts_peddler.png",
+   "srcSize": [
+    656,
+    246
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "gore_parts_peddler.png",
+     354,
+     211
+    ]
+   ],
+   "gpuBefore": 645504,
+   "gpuAfter": 298776,
+   "fileBefore": 29921,
+   "fileAfter": 10797,
+   "jsonBefore": 2034,
+   "jsonAfter": 6650,
+   "cat": "fx"
+  },
+  {
+   "name": "drummer_death_pinned",
+   "src": "assets/sprites/enemies/v4/drummer_death_pinned.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 4,
+   "pages": [
+    [
+     "drummer_death_pinned.png",
+     252,
+     1094
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1102752,
+   "fileBefore": 56113,
+   "fileAfter": 30929,
+   "jsonBefore": 1363,
+   "jsonAfter": 8637,
+   "cat": "enemies"
+  },
+  {
+   "name": "gore_parts_porter",
+   "src": "assets/sprites/fx/v5/gore_parts_porter.png",
+   "srcSize": [
+    592,
+    222
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "gore_parts_porter.png",
+     236,
+     196
+    ]
+   ],
+   "gpuBefore": 525696,
+   "gpuAfter": 185024,
+   "fileBefore": 21949,
+   "fileAfter": 8057,
+   "jsonBefore": 2032,
+   "jsonAfter": 6652,
+   "cat": "fx"
+  },
+  {
+   "name": "gore_parts_drummer",
+   "src": "assets/sprites/fx/v5/gore_parts_drummer.png",
+   "srcSize": [
+    624,
+    234
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "gore_parts_drummer.png",
+     131,
+     257
+    ]
+   ],
+   "gpuBefore": 584064,
+   "gpuAfter": 134668,
+   "fileBefore": 20056,
+   "fileAfter": 7190,
+   "jsonBefore": 2034,
+   "jsonAfter": 6663,
+   "cat": "fx"
+  },
+  {
+   "name": "gore_parts_bomber",
+   "src": "assets/sprites/fx/v5/gore_parts_bomber.png",
+   "srcSize": [
+    608,
+    228
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "gore_parts_bomber.png",
+     194,
+     211
+    ]
+   ],
+   "gpuBefore": 554496,
+   "gpuAfter": 163736,
+   "fileBefore": 20753,
+   "fileAfter": 7692,
+   "jsonBefore": 2032,
+   "jsonAfter": 6661,
+   "cat": "fx"
+  },
+  {
+   "name": "bomber_death_collapse",
+   "src": "assets/sprites/enemies/v4/bomber_death_collapse.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "bomber_death_collapse.png",
+     299,
+     965
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1154140,
+   "fileBefore": 82641,
+   "fileAfter": 34683,
+   "jsonBefore": 1331,
+   "jsonAfter": 8552,
+   "cat": "enemies"
+  },
+  {
+   "name": "bomber_death_behead",
+   "src": "assets/sprites/enemies/v4/bomber_death_behead.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "bomber_death_behead.png",
+     210,
+     987
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 829080,
+   "fileBefore": 67773,
+   "fileAfter": 28687,
+   "jsonBefore": 1572,
+   "jsonAfter": 8779,
+   "cat": "enemies"
+  },
+  {
+   "name": "bomber_death_bisect",
+   "src": "assets/sprites/enemies/v4/bomber_death_bisect.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "bomber_death_bisect.png",
+     94,
+     2566
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 964816,
+   "fileBefore": 90070,
+   "fileAfter": 33257,
+   "jsonBefore": 1390,
+   "jsonAfter": 8586,
+   "cat": "enemies"
+  },
+  {
+   "name": "bomber_death_pinned",
+   "src": "assets/sprites/enemies/v4/bomber_death_pinned.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 2,
+   "pages": [
+    [
+     "bomber_death_pinned.png",
+     327,
+     626
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 818808,
+   "fileBefore": 52665,
+   "fileAfter": 26074,
+   "jsonBefore": 1360,
+   "jsonAfter": 8640,
+   "cat": "enemies"
+  },
+  {
+   "name": "bomber_death_burn",
+   "src": "assets/sprites/enemies/v4/bomber_death_burn.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "bomber_death_burn.png",
+     275,
+     870
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 957000,
+   "fileBefore": 88920,
+   "fileAfter": 35075,
+   "jsonBefore": 1452,
+   "jsonAfter": 8696,
+   "cat": "enemies"
+  },
+  {
+   "name": "drummer_death_burn",
+   "src": "assets/sprites/enemies/v4/drummer_death_burn.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "drummer_death_burn.png",
+     360,
+     853
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1228320,
+   "fileBefore": 100552,
+   "fileAfter": 41316,
+   "jsonBefore": 1455,
+   "jsonAfter": 8709,
+   "cat": "enemies"
+  },
+  {
+   "name": "hero_execute_katana",
+   "src": "assets/sprites/player/v3/hero_execute_katana.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 4,
+   "pages": [
+    [
+     "hero_execute_katana.png",
+     205,
+     936
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 767520,
+   "fileBefore": 67085,
+   "fileAfter": 30410,
+   "jsonBefore": 13303,
+   "jsonAfter": 19271,
+   "cat": "player"
+  },
+  {
+   "name": "hero_execute_katana",
+   "src": "assets/sprites/weapons/v3/hero_execute_katana.png",
+   "srcSize": [
+    1552,
+    768
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_execute_katana.png",
+     137,
+     1097
+    ]
+   ],
+   "gpuBefore": 4767744,
+   "gpuAfter": 601156,
+   "fileBefore": 19649,
+   "fileAfter": 6740,
+   "jsonBefore": 9117,
+   "jsonAfter": 15127,
+   "cat": "weapons"
+  },
+  {
+   "name": "hero_execute_greatsword",
+   "src": "assets/sprites/player/v3/hero_execute_greatsword.png",
+   "srcSize": [
+    864,
+    1152
+   ],
+   "frames": 72,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_execute_greatsword.png",
+     325,
+     1500
+    ]
+   ],
+   "gpuBefore": 3981312,
+   "gpuAfter": 1950000,
+   "fileBefore": 162907,
+   "fileAfter": 74168,
+   "jsonBefore": 21589,
+   "jsonAfter": 34031,
+   "cat": "player"
+  },
+  {
+   "name": "hero_execute_greatsword",
+   "src": "assets/sprites/weapons/v3/hero_execute_greatsword.png",
+   "srcSize": [
+    2160,
+    2416
+   ],
+   "frames": 72,
+   "empty": 0,
+   "deduped": 1,
+   "pages": [
+    [
+     "hero_execute_greatsword.png",
+     109,
+     2860
+    ]
+   ],
+   "gpuBefore": 20874240,
+   "gpuAfter": 1246960,
+   "fileBefore": 93651,
+   "fileAfter": 22372,
+   "jsonBefore": 17615,
+   "jsonAfter": 30139,
+   "cat": "weapons"
+  },
+  {
+   "name": "hero_execute_dagger",
+   "src": "assets/sprites/player/v3/hero_execute_dagger.png",
+   "srcSize": [
+    864,
+    576
+   ],
+   "frames": 36,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_execute_dagger.png",
+     342,
+     798
+    ]
+   ],
+   "gpuBefore": 1990656,
+   "gpuAfter": 1091664,
+   "fileBefore": 74568,
+   "fileAfter": 40673,
+   "jsonBefore": 13422,
+   "jsonAfter": 20068,
+   "cat": "player"
+  },
+  {
+   "name": "hero_execute_dagger",
+   "src": "assets/sprites/weapons/v3/hero_execute_dagger.png",
+   "srcSize": [
+    1728,
+    768
+   ],
+   "frames": 36,
+   "empty": 0,
+   "deduped": 3,
+   "pages": [
+    [
+     "hero_execute_dagger.png",
+     84,
+     247
+    ]
+   ],
+   "gpuBefore": 5308416,
+   "gpuAfter": 82992,
+   "fileBefore": 14790,
+   "fileAfter": 3383,
+   "jsonBefore": 9013,
+   "jsonAfter": 15575,
+   "cat": "weapons"
+  },
+  {
+   "name": "hero_execute_bow",
+   "src": "assets/sprites/player/v3/hero_execute_bow.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_execute_bow.png",
+     524,
+     427
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 894992,
+   "fileBefore": 63169,
+   "fileAfter": 31492,
+   "jsonBefore": 10398,
+   "jsonAfter": 16394,
+   "cat": "player"
+  },
+  {
+   "name": "hero_execute_bow",
+   "src": "assets/sprites/weapons/v3/hero_execute_bow.png",
+   "srcSize": [
+    1536,
+    768
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "hero_execute_bow.png",
+     469,
+     58
+    ]
+   ],
+   "gpuBefore": 4718592,
+   "gpuAfter": 108808,
+   "fileBefore": 7732,
+   "fileAfter": 2232,
+   "jsonBefore": 8646,
+   "jsonAfter": 14588,
+   "cat": "weapons"
   }
  ]
 }

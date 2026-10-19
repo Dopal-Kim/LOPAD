@@ -15,7 +15,7 @@
 - 알파 0 픽셀의 RGB 는 0 으로 정규화(보이지 않는 값).
 
 사용: python3 build.py [--in-place] [--cats player,weapons,fx,enemies,bosses,structures] [--only 이름부분]
-                      [--pad 2] [--max 4096] [--no-dedup]
+                      [--pad 2] [--max 4096] [--no-dedup] [--ver v3|v4|v5]
 """
 from __future__ import annotations
 
@@ -394,13 +394,14 @@ def main():
     ap.add_argument("--no-dedup", action="store_true")
     ap.add_argument("--out", default=OUT, help="출력 루트(기본 out/sprites, --in-place 면 무시)")
     ap.add_argument("--in-place", action="store_true", help="assets/sprites 를 직접 교체(전 프레임 대조 통과 시)")
+    ap.add_argument("--ver", default="v3", help="판 폴더(v3 기본 · P21 fx/v5 · enemies/v4)")
     args = ap.parse_args()
 
     results, skipped, mixed = [], 0, []
     tmp_root = os.path.join(HERE, "out", "_inplace_tmp")
     for cat in args.cats.split(","):
-        src_dir = os.path.join(SRC, cat, "v3")
-        out_dir = os.path.join(tmp_root if args.in_place else args.out, cat, "v3")
+        src_dir = os.path.join(SRC, cat, args.ver)
+        out_dir = os.path.join(tmp_root if args.in_place else args.out, cat, args.ver)
         for jp in sorted(glob(os.path.join(src_dir, "*.json"))):
             pp = jp[:-5] + ".png"
             if args.only and args.only not in os.path.basename(jp):
