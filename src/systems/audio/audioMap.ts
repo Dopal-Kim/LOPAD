@@ -40,6 +40,8 @@ import { DROP_AUDIO_TRIGGERS } from './audioDrops';
 import { TRAINING_AUDIO_TRIGGERS } from './audioTraining';
 import { LOOP2_AUDIO_TRIGGERS, routeFloorActive } from './audioLoop2';
 import { P19_AUDIO_TRIGGERS, P19_SFX, swellRate } from './audioP19';
+import { P21_AUDIO_TRIGGERS } from './audioP21';
+import { deathVariantComing } from '../gore/goreHooks';
 import { BUILD_AUDIO_TRIGGERS, BUILD_SFX, hasBranch, isRapidVolley, katanaThrustSfx } from './audioBuild';
 export type { AudioTrigger } from './audioTrigger';
 
@@ -363,6 +365,8 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   ...LOOP2_AUDIO_TRIGGERS,
   // --- P19 (sound §14): 무기 타격 · 타격 반응 · 위험물 · 연속 처치 · 새 적 2종 (audioP19) ---
   ...P19_AUDIO_TRIGGERS,
+  // --- P21 (sound §15): 살·뼈 층 · 사망 변형 · 처형 · 주인공 상흔 · 저HP 심장 · 신음 (audioP21) ---
+  ...P21_AUDIO_TRIGGERS,
   // --- 주인공 공격·보조 동작 ---
   t<PlayerAttackPayload>({
     event: Events.PLAYER_ATTACKED,
@@ -547,10 +551,12 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   }),
   t<{ id?: string; elite?: boolean }>({
     event: Events.ENEMY_DIED,
-    note: '일반 적 사망 (60라운드 엘리트 = elite_die)',
+    note: '일반 적 사망 (60라운드 엘리트 = elite_die) · P21: 같은 적의 사망 변형이 따라오면 enemy_death 대신 body_fall (전용 사망음은 그대로)',
     sfx: (p) => {
       if (DEATH_BY_BLAST.has(p?.id ?? '')) return null;
-      const own = ENEMY_OWN_SFX[p?.id ?? '']?.death ?? SFX.enemyDeath;
+      const ownDeath = ENEMY_OWN_SFX[p?.id ?? '']?.death;
+      if (!ownDeath && !p?.elite && deathVariantComing(p?.id)) return null;
+      const own = ownDeath ?? SFX.enemyDeath;
       return p?.elite ? [BUILD_SFX.eliteDie, own] : own;
     },
   }),

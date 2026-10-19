@@ -23,3 +23,4 @@ export { SETTINGS, KEYBIND, RUNLOG, VRAM, SIM } from './settings';
 export { RARITY_LABEL } from './labels';
 export { INK_SMEAR } from './runEnd';
 export { DOORS, MENU_GUARD } from './doors';
+export { BRUTAL } from './brutal';

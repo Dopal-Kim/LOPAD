@@ -41,6 +41,11 @@ export class CombatFeel {
     EventBus.emit(Events.FEEL_SLOWMO, { kind: 'lastKill' } satisfies FeelSlowmoPayload);
   }
 
+  /** P21 처형 슬로 (dark-brutal §4) — 흔들림·히트스톱을 끈 설정이면 끈다 */
+  slowmo(scale: number, ms: number): void {
+    if (feelSettings.hitstop > 0) this.slow(scale, ms);
+  }
+
   private slow(scale: number, ms: number): void {
     const g = this.g;
     const world = g.physics.world;

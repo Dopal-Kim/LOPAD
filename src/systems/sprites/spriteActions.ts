@@ -174,6 +174,8 @@ export function overlayActionsFor(
   // 49라운드: 내리찍기·대쉬 공격은 무기 시트가 없으면 3타·attack, 뽑기·넣기·장전은 그 시트만 (없으면 휴대 표시)
   if (rest === 'slam' || rest === 'dashslash') return [rest, weaponComboAction(COMBO_HITS), 'attack'];
   if (rest === 'draw' || rest === 'sheathe' || rest === 'reload') return [rest];
+  // P21 처형 (art §37 `weapons/v3/hero_execute_<무기>` → 동작 execute): 그 시트만
+  if (rest === 'execute') return [rest];
   // 56라운드 Q9 활 당김 유지·놓기 (무기 시트가 활·화살을 그림)
   if ((BOW_DRAW_MOTIONS as readonly string[]).includes(rest)) return [rest, 'aim'];
   return art?.(rest) ?? [];

@@ -1,33 +1,47 @@
 {
   "_note": "50라운드 동적 조명 + 어둠 (결정 round-50 Q3, 계약 art §9). 수치는 전부 임시값(검수 대상) — parts/system/CHANGELOG.md 50라운드 절. 반경 = 월드 px(타일 16). 색 '#rrggbb'. 지역 조명은 regions 에 있는 지역만 켠다(Q4 시범: 외곽 거리 먼저). ?light=0 끔 · ?light=1 이면 모든 노드 전투장에 default 적용(검증용) · 52라운드 Q9: 밝기는 아트 목업(parts/art/work/v2_outer NOTES 3절) 기준 — 주변광 #424a66(53라운드 Q9 → 중립 숯빛 #575761), 감쇠 (1-d²)², 주인공 빛 #b0611a r85(도트 px = 월드 42.5) 0.55",
+  "_shapeAmbientMult": "P21 (dark-brutal §7, 아트 A 제안 3a5289a 적용): 지역 주변광(regions·default)은 제안 절대값. 형태 틀(arenas lighting.ambient·ambientByRegion — 전투 노드에서 지역값을 덮는다)에는 같은 비율(약 −23%)을 이 배율로 곱한다. 2차 헤드리스 실측 뒤 조정",
+  "shapeAmbientMult": 0.77,
   "regions": {
     "outer": {
-      "ambient": "#6b6b75",
-      "note": "외곽 거리: 53라운드 Q9 중립 숯빛 (0.34, 0.34, 0.38 — 키아트 숯빛, 청색 #424a66 폐기) → Q22~25 전투 바닥 밝기 상향 0.42/0.42/0.46 (테두리는 BorderView 가 Q9 명도로 눌러 유지). 가로등·모닥불·외벽 테두리 창빛이 살린다"
+      "ambient": "#4e5260",
+      "note": "P21 아트 A (옛 #6b6b75 — 53 Q9·Q22~25 중립 숯빛 상향)"
     },
     "waste": {
-      "ambient": "#787882",
-      "note": "53라운드 Q38 지역 보정(임시): 황무지는 따뜻한 광원 없이 회갈색 흙바닥이 평평해(헤드리스 화면 평균이 외곽과 비슷하지만 대비가 없음) 주변광을 약 12% 올림 0.47/0.47/0.51. 성문·양조·연회장은 default 그대로"
+      "ambient": "#5e626e",
+      "note": "P21 프로듀서 결정: 아트 제안 #565a66 은 절대 루마 0.09 로 너무 어두움 → #5e626e (옛 #787882)"
+    },
+    "hall": {
+      "ambient": "#4a4e5c",
+      "note": "P21 아트 A: 대리석 바닥이 밝아 기본보다 반 단 어둡게 — 촛대가 살린다"
     }
   },
   "default": {
-    "ambient": "#6b6b75",
-    "note": "53라운드 Q9 중립 숯빛 → Q22~25 밝기 상향 (외곽과 같은 값)"
+    "ambient": "#4e5260",
+    "note": "P21 아트 A: 0.42 → 약 0.33 (평균 −23%), 살짝 차갑게 (옛 #6b6b75)"
   },
   "player": {
-    "_note": "53라운드 Q22~25: 주인공 둘레가 잘 보이게 반경 43 → 58 · 세기 0.55 → 0.72 (임시)",
-    "color": "#b0611a",
-    "radius": 58,
-    "intensity": 0.72,
-    "flicker": 0.03
+    "_note": "P21 아트 A: 발밑 빛 웅덩이를 줄이고 불씨 쪽(붉게) — 몸 판독은 playerRim (옛 #b0611a r58 i0.72)",
+    "color": "#b8582a",
+    "radius": 50,
+    "intensity": 0.62,
+    "flicker": 0.04
+  },
+  "playerRim": {
+    "_note": "P21 아트 A 새 키: 가슴 높이 작은 차가운 빛 — 몸 윤곽만 밝힌다 (WorldSetup 이 주인공에 붙인다)",
+    "color": "#a9b4c8",
+    "radius": 20,
+    "intensity": 0.5,
+    "flicker": 0,
+    "offsetY": -34
   },
   "borderRegions": true,
   "_borderRegions": "53라운드 Q38: 5지역 모두 켬 — 외벽 테두리가 있는 지역은 regions 에 자기 값이 없으면 default(외곽과 같은 상향 밝기)를 주변광으로. 테두리 명도는 BorderView 가 Q9 값으로 유지",
   "mob": {
-    "_note": "53라운드 Q22~25 적 판독성: 적마다 몸 중심에 작고 약한 중립 빛 (어둠 속 윤곽·발밑을 살린다, 가까운 순 maxLights 안에서) — 임시값",
-    "color": "#d6d2c8",
-    "radius": 24,
-    "intensity": 0.34,
+    "_note": "53 Q22~25 적 판독 빛 · P21 아트 A: 0.34 → 0.5, 중립 → 차가운 회청 (어두운 바닥 위 적 윤곽 — 림)",
+    "color": "#aab2c4",
+    "radius": 26,
+    "intensity": 0.5,
     "flicker": 0,
     "offsetY": 9
   },
@@ -40,7 +54,8 @@
     "maxIntensity": 1.0
   },
   "vignette": {
-    "alpha": 0.5,
+    "_note": "P21 아트 A: grade.json vignette 로 옮김 (이중 비네트 금지 — ColorGrade 는 Canvas 경로에서도 비네트를 그린다)",
+    "alpha": 0,
     "inner": 0.5
   },
   "weaponFx": {
@@ -58,10 +73,10 @@
   "fallback": {
     "_note": "JSON light 가 없는 시트에 시스템이 다는 임시 광원 (시트 id 기준). 아트가 시트 JSON light 를 넣으면 그쪽이 우선",
     "bonfire": {
-      "color": "#ff9a3c",
-      "radius": 120,
-      "intensity": 0.9,
-      "flicker": 0.25,
+      "color": "#e06a28",
+      "radius": 104,
+      "intensity": 0.85,
+      "flicker": 0.3,
       "offsetY": 6
     },
     "still": {
@@ -84,38 +99,38 @@
       "flicker": 0.2
     },
     "set_outer_lamppost": {
-      "color": "#e8b858",
-      "radius": 75,
-      "intensity": 1.0,
-      "flicker": 0.06,
+      "color": "#c98a3c",
+      "radius": 62,
+      "intensity": 0.8,
+      "flicker": 0.08,
       "offsetY": 30
     },
     "set_outer_stall": {
-      "color": "#ffb866",
-      "radius": 72,
-      "intensity": 0.55,
-      "flicker": 0.06,
+      "color": "#d8904a",
+      "radius": 58,
+      "intensity": 0.45,
+      "flicker": 0.08,
       "offsetY": 14
     },
     "set_outer_plaza": {
-      "color": "#ff9a3c",
-      "radius": 120,
-      "intensity": 0.85,
-      "flicker": 0.25,
+      "color": "#e06a28",
+      "radius": 104,
+      "intensity": 0.8,
+      "flicker": 0.3,
       "offsetY": 4
     },
     "set_waste_fire_ring": {
-      "color": "#ff9a3c",
-      "radius": 120,
-      "intensity": 0.85,
-      "flicker": 0.25,
+      "color": "#e06a28",
+      "radius": 104,
+      "intensity": 0.8,
+      "flicker": 0.3,
       "offsetY": 4
     },
     "set_gate_brazier": {
-      "color": "#ffa040",
-      "radius": 100,
-      "intensity": 0.8,
-      "flicker": 0.22,
+      "color": "#e07030",
+      "radius": 88,
+      "intensity": 0.75,
+      "flicker": 0.26,
       "offsetY": 16
     }
   }

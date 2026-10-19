@@ -249,6 +249,8 @@ export class WorldSetup {
     g.border?.matchAmbient(lighting.enabled ? lighting.ambientHex : null);
     // P19 S2: 형태 틀 고정 광원 (길을 따라 놓인 등불·화로 — data/lighting.json fallback 키)
     const reg = lightRegistryOf(g);
+    // P21 아트 A: 주인공 가슴 높이 차가운 림 (몸 윤곽 — 바닥보다 몸이 밝게 읽히게)
+    if (LIGHTING.playerRim) reg.add(LIGHTING.playerRim, { x: g.player.x, y: g.player.y, anchor: g.player });
     for (const l of g.nodeArena?.shape?.lights ?? []) {
       const def = LIGHTING.fallback[l.kind];
       if (def) reg.add(def, { x: l.x * TILE, y: l.y * TILE });
@@ -284,8 +286,16 @@ export class WorldSetup {
     const base = lightingAmbientFor(g.nodeArena?.regionId, flag, Boolean(g.nodeArena || g.lab), hasBorder, LIGHTING);
     // P19 S2 (P19 F 휘도 ≥ 55): 형태 틀 주변광 덮어쓰기 (조명이 켜진 지역에서만)
     const own = g.nodeArena?.shape?.ambient;
-    return base && own ? { ...base, ambient: own } : base;
+    // P21 (계약 dark-brutal §7): 지역값은 아트 A 절대값, 형태 틀 덮어쓰기에는 같은 비율(shapeAmbientMult)
+    return base && own ? { ...base, ambient: scaleHex(own, LIGHTING.shapeAmbientMult ?? 1) } : base;
   }
+}
+
+/** '#rrggbb' 각 채널 × k (0~255 로 자름) */
+function scaleHex(hex: string, k: number): string {
+  const v = parseInt(hex.slice(1), 16);
+  const ch = (sh: number) => Math.min(255, Math.round(((v >> sh) & 0xff) * k));
+  return '#' + ((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0');
 }
 
 /** 62 루프 2 E: 외벽 테두리에 그릴 서·동 문 (출구·입구 문 가운데 y — ArenaDoors 와 같은 자리) */

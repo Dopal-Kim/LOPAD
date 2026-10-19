@@ -6,7 +6,7 @@
  * - 연속 처치 (ENEMY_DIED → COMBO_STREAK)
  * 같은 프레임 같은 적은 KNOCKED(피격 순간) → WALL_SLAM(그 뒤 update) 순서.
  */
-import { FEEL, REACTION, TILE } from '../../core/Constants';
+import { BRUTAL, FEEL, REACTION, TILE } from '../../core/Constants';
 import {
   EventBus,
   Events,
@@ -91,6 +91,8 @@ export class HitReactions {
     if (mob.canStagger(this.g.time.now) && overcomesPoise(r.power, poise)) {
       mob.stagger(REACTION.FLINCH_MS);
       this.count('stagger');
+      // P21 (dark-brutal §4): 버팀이 깨지면 잠시 처형 가능
+      if (poise > 0) mob.poiseBrokenUntil = this.g.time.now + BRUTAL.EXEC.BROKEN_WINDOW_MS;
       const p: EnemyStaggeredPayload = {
         id,
         x: mob.x,
@@ -227,6 +229,8 @@ export class HitReactions {
     if (out === 'none') return;
     mob.stopShove();
     this.count('fell');
+    // P21: 곧 오는 처치의 사망 변형 (물 = drown · 불 = burn)
+    this.g.brutal?.gore.markFell(mob, zone);
     const p: EnemyFellPayload = { id: mob.spriteId, x: mob.x, y: mob.y, zone };
     EventBus.emit(Events.ENEMY_FELL, p);
     if (out === 'die') {

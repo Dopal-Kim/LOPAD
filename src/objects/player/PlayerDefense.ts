@@ -2,6 +2,7 @@
  * 플레이어 피격 (56라운드 6-1 — Player.ts 에서 분리): 패링 · 56라운드 Q7 퍼펙트 가드(피해 0·튕겨내지 않음·문구) · 가드 감소(울분) ·
  * 슈퍼아머 · 무적 · 넉백 · 사망. 판정 규칙은 `systems/defense`(Phaser 의존 없음).
  */
+import { heroWoundStage } from '../../systems/gore/rules';
 import { COLORS, FEEL } from '../../core/Constants';
 import {
   EventBus,
@@ -149,6 +150,7 @@ export class PlayerDefense {
       ...(armored || absorbed ? { armored: true } : {}),
       // 61라운드 계약 sound §9: 일반 가드로 막고 남은 피해 → 음향 guard_block
       ...(outcome.kind === 'guarded' ? { guarded: true } : {}),
+      woundStage: heroWoundStage(gameState.hp, gameState.maxHp),
     };
     EventBus.emit(Events.PLAYER_DAMAGED, payload);
     if (gameState.hp <= 0) {

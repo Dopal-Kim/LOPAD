@@ -23,6 +23,7 @@ import { rollCrit } from '../../systems/economy';
 import { hitShake, killHitstopMs, shakesOnHit, weaponHitstopMs } from '../../systems/hitFeel';
 import { defaultReaction, strikeReaction, type StrikeReaction } from '../../systems/reactions';
 import { HitReactions } from './HitReactions';
+import { settings } from '../../systems/settings';
 import { ReactionFx } from './ReactionFx';
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import { FX_ACTION, fxDrawScale, radiusFitScale } from '../../systems/sprites/spriteDefs';
@@ -58,6 +59,8 @@ export interface HitOptions {
   env?: boolean;
   /** P19 무기가 아닌 피해 (폭발·불·위험물·구조물 — 반응은 그대로, 무기 타격음만 없음 · sound §14) */
   hazard?: boolean;
+  /** P21 처형 막타 (dark-brutal §4 — 사망 변형은 무기별 처형 변형) */
+  execute?: boolean;
 }
 
 export class GameCombat {
@@ -304,6 +307,7 @@ export class GameCombat {
       dirY: ny,
       heavy: opts.heavy,
       weapon: opts.env || opts.hazard ? undefined : gameState.weapon.id,
+      cause: opts.execute ? 'execute' : opts.hazard ? 'hazard' : opts.env ? 'env' : undefined,
     });
     if (opts.tick) {
       g.numbers.show(hitX, hitY, dmg, 'tick');
@@ -335,7 +339,8 @@ export class GameCombat {
           opts.critFx ? { id: opts.critFx, x: c.x, y: c.y - mob.visual.hitLiftPx } : null,
           { weaponId: weapon.id, heavy, backswing: opts.backswing, rotateLeft: opts.rotateLeft },
         );
-    g.hitFx.blood(c.x, c.y, backX, backY, nx, ny);
+    // P21: 고어 0 은 붉은 피 대신 먹·재 (GoreFx) — 기존 피 얼룩 시트는 고어 1 이상에서만
+    if (settings.current().gore > 0) g.hitFx.blood(c.x, c.y, backX, backY, nx, ny);
     if (opts.crit && !opts.noImpactFx) g.screenFx.crit();
     // 62 P1-1: 처치 타는 히트스톱을 더 길게 (일반 적 — 보스 처치는 BossFlow 연출). P19 다이어트: 환경 피해는 부른 쪽이 정한다
     if (died && !isBoss) g.hitStop.request(now, killHitstopMs(feel, heavy), true);
@@ -469,6 +474,8 @@ export class GameCombat {
     if (!pr.active || pr.reflected) return;
     const source = { dirX: pr.body.velocity.x, dirY: pr.body.velocity.y };
     const result = this.g.player.takeHit(pr.attack, this.g.time.now, source);
+    // P21 (dark-brutal §3): 원거리 피격마다 박힌 화살 1대
+    if (result === 'hit') this.g.brutal?.wounds.addArrow(source.dirX, source.dirY);
     if (result === 'parried') {
       pr.reflect(PLAYER_DATA.parry.reflectDamageMult + gameState.passives.total('reflectMult'));
       this.onParried(pr.x, pr.y);

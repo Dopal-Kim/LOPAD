@@ -19,6 +19,7 @@ import type { EnemyHazardApi } from '../systems/hazards/enemyHazardTypes';
 import { EntityVisual, placeholderTexture } from './EntityVisual';
 import { LIGHTING } from '../data';
 import { lightRegistryOf } from '../systems/lighting/lightRegistry';
+import { goreHooksOf, type DamageCause } from '../systems/gore/goreHooks';
 
 type Body = Phaser.Physics.Arcade.Body;
 
@@ -79,6 +80,8 @@ export interface DamageInfo {
   heavy?: boolean;
   /** P19 (sound §14): 주인공 무기 적중의 무기 id — 환경 피해면 없음 */
   weapon?: string;
+  /** P21 (dark-brutal §5): 무기 아닌 피해의 갈래 (사망 변형 — 불 위험물 burn 등) · 처형 막타 */
+  cause?: DamageCause;
 }
 
 /** 전투 개체 공통부. 시트(`<id>_*`)가 있으면 애니메이션 스프라이트, 없으면 단색 사각형. */
@@ -88,8 +91,10 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   /** 60라운드: 엘리트 HP ×2.5 로 늘릴 수 있다 (`scaleMaxHp`) */
   maxHp: number;
   readonly visual: EntityVisual;
-  /** P19: 쓰러질 때 남기는 그림 동작 (술독병이 스스로 터지면 explode) */
+  /** P19: 쓰러질 때 남기는 그림 동작 (술독병이 스스로 터지면 explode). P21: 사망 변형 시트가 있으면 `death_<변형>` */
   corpseAction = 'death';
+  /** P21 (dark-brutal §4): 이 시각(씬 시계)까지 버팀이 깨진 상태 — 처형 가능 (HitReactions 가 stagger 때 정한다) */
+  poiseBrokenUntil = -Infinity;
   /** 적·보스 id (= 시트 이름). 이벤트 페이로드에 쓴다 */
   readonly spriteId: string;
   /** 47라운드: 이동 속도 배율 (독주 웅덩이 등 환경). 일반 적만, AI 가 정한 속도에 곱한다 */
@@ -524,6 +529,7 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   /** 데미지를 받는다. 사망하면 true. `info` 는 효과음 분기(치명·틱) */
   takeDamage(amount: number, info: DamageInfo = {}): boolean {
     if (!this.active) return false;
+    const hpBefore = this.hp;
     this.hp -= amount;
     const died = this.hp <= 0;
     const payload: EnemyDamagedPayload = {
@@ -535,6 +541,19 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
       weapon: info.weapon,
     };
     EventBus.emit(Events.ENEMY_DAMAGED, payload);
+    // P21 (dark-brutal §3·§5): 상처·피·사망 변형 (onDeath 가 ENEMY_DIED 를 낸 뒤 DEATH_VARIANT 가 나가도록 GoreFx 가 순서를 맞춘다)
+    goreHooksOf(this.scene)?.onMobDamaged(this, {
+      amount,
+      hpBefore,
+      died,
+      crit: Boolean(info.crit),
+      tick: Boolean(info.tick),
+      heavy: Boolean(info.heavy),
+      dirX: info.dirX,
+      dirY: info.dirY,
+      weapon: info.weapon,
+      cause: info.cause,
+    });
     if (died) {
       this.onDeath();
       this.visual.spawnCorpse(this.corpsePop(info), this.corpseAction);

@@ -16,6 +16,8 @@ export const SETTINGS = {
     keys: { up: 'W', down: 'S', left: 'A', right: 'D', dash: 'SPACE', interact: 'E', potion: 'Q' },
     hitstop: true,
     textScale: 1,
+    // P21 (계약 dark-brutal §1): 고어 2 전체 · 1 줄임 · 0 끔
+    gore: 2,
   },
 } as const;
 

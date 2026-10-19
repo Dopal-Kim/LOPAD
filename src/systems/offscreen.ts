@@ -16,7 +16,9 @@ export interface OffscreenMob {
 const ids = new WeakMap<object, number>();
 let nextId = 1;
 
-/** 적마다 같은 번호 (개체가 사라지면 함께 잊힌다) */
+/** 적마다 같은 번호 (개체가 사라지면 함께 잊힌다) — P21 처형 표식 uid 도 같은 번호 */
+export const mobUid = (m: object): number => idOf(m);
+
 function idOf(m: object): number {
   let id = ids.get(m);
   if (id === undefined) ids.set(m, (id = nextId++));

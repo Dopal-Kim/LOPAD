@@ -17,6 +17,7 @@ import {
 } from '../../contract/ui';
 import type { BossActionPayload, BossBreakPayload, EnemyIncomingPayload } from '../../core/EventBus';
 import { P19_EVENTS } from '../../core/eventsP19';
+import { P21_EVENTS } from '../../core/eventsP21';
 import { worldToLogicalScreen } from '../../systems/display';
 import { offscreenEnemies } from '../../systems/offscreen';
 import type { Mob } from '../../objects/Mob';
@@ -69,6 +70,13 @@ export class UiRelay {
     snap.camera = this.g.cam.toUi();
     // P19 S3 (계약 free-combat §4): 화면 밖 적 (UI 가장자리 표식)
     snap.offscreen = offscreenEnemies(this.g.cameras.main.worldView, this.g.player, this.g.mobs.getChildren() as Mob[]);
+    // P21 (계약 dark-brutal §2): 주인공 상처 · 처형 표식 자리
+    const b = this.g.brutal;
+    if (b) {
+      snap.player = { wound: b.wounds.toUi() };
+      const cam = this.g.cameras.main;
+      snap.executable = b.execution.toUi().map((e) => ({ uid: e.uid, screen: worldToLogicalScreen(cam, e.x, e.y) }));
+    }
     return snap;
   }
 
@@ -172,6 +180,29 @@ export class UiRelay {
         __system.emit(
           UI_EVENTS[k],
           // UI 반응 팝: 월드 x·y 가 있으면 논리 화면 좌표(960×540, 카메라 줌·스크롤 반영)를 붙인다
+          typeof p.x === 'number' && typeof p.y === 'number'
+            ? { ...p, screen: worldToLogicalScreen(this.g.cameras.main, p.x, p.y) }
+            : p,
+        ),
+      this,
+    ]);
+  }
+
+  /**
+   * P21 (계약 dark-brutal §2): 처형 표식·처형·주인공 상처·저HP 를 `ui:` 접두로 중계 (x·y 가 있으면 screen 을 붙인다 — p19Relays 와 같은 규칙)
+   */
+  p21Relays(): [event: string, fn: (p: never) => void, ctx: object][] {
+    const pairs = [
+      [P21_EVENTS.ENEMY_EXECUTABLE, UI_EVENTS.ENEMY_EXECUTABLE],
+      [P21_EVENTS.PLAYER_EXECUTE, UI_EVENTS.PLAYER_EXECUTE],
+      [P21_EVENTS.PLAYER_WOUNDED, UI_EVENTS.PLAYER_WOUNDED],
+      [P21_EVENTS.LOW_HP, UI_EVENTS.LOW_HP],
+    ] as const;
+    return pairs.map(([from, to]) => [
+      from,
+      (p: { x?: number; y?: number }) =>
+        __system.emit(
+          to,
           typeof p.x === 'number' && typeof p.y === 'number'
             ? { ...p, screen: worldToLogicalScreen(this.g.cameras.main, p.x, p.y) }
             : p,

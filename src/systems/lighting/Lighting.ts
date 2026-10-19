@@ -16,6 +16,7 @@ import { RES } from '../display';
 import { LIGHTING } from '../../data';
 import type { LightingAmbient } from '../../data/types';
 import { flickerFactor, hexColor, lightFalloff, pickLights, rotationCover, type LightPick } from './lightMath';
+import { ungradedOf } from '../fx/colorGrade';
 import { dropLightRegistry, lightRegistryOf, type LightRegistry, type LightSource } from './lightRegistry';
 
 const TEX_LIGHT = 'light_radial';
@@ -199,6 +200,8 @@ export class Lighting {
             .image(0, 0, TEX_GLOW)
             .setBlendMode(Phaser.BlendModes.ADD)
             .setDepth(DEPTH.LIGHTMAP + DEPTH.LIGHT_LAYER_STEP);
+          // P21 (dark-brutal §7): 빛 번짐(위험물·불빛)은 보정 없는 층 — 원래 색으로
+          ungradedOf(this.scene)?.add(img);
           this.glows.push(img);
         }
         img

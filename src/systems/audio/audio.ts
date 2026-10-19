@@ -50,6 +50,8 @@ import { LazyAudio } from './audioLazy';
 import type { BossPhasePayload, DoorOpenedPayload, NodeEnteredPayload } from '../../core/EventBus';
 import type { CombatAlivePayload } from '../../core/eventsP19';
 import { CombatLayerGate } from './audioP19';
+import { goreGainOf } from './audioP21';
+import { settings } from '../settings';
 
 /** 실제 구현체(WebAudio / HTML5 / NoAudio)는 모두 setVolume 을 가진다 */
 type Snd = Phaser.Sound.BaseSound & { setVolume(value: number): unknown };
@@ -324,6 +326,9 @@ export class AudioSystem {
     }
     // 61라운드 §9 변주: 원본 트리거 → variants 중 로드된 것, 직전과 다른 것
     const group = groupOf(req);
+    // P21 (sound §15): 고어 설정 0·1 — 살·피 층 끄기·낮추기 (mixing.gore.levels)
+    const goreGain = goreGainOf(this.mix.gore?.levels, group, settings.current().gore);
+    if (goreGain <= 0) return false;
     const loadedVariants = (req.variants ?? []).filter((v) => this.loaded.has(v));
     const pick =
       loadedVariants.length > 0 ? (pickVariant(loadedVariants, this.lastVariant.get(group), Math.random()) ?? id) : id;
@@ -343,7 +348,7 @@ export class AudioSystem {
     const jitter = jitterApplies({ ...entry, priority }) ? jitterRate(Math.random(), rateJitterOf(this.mix)) : 1;
     const rate = jitter * (opts.rate ?? 1);
     const delayMs = Math.max(0, opts.delayMs ?? 0);
-    const base = sfxGain(this.mix, entry) * Math.max(0, opts.gain ?? 1) * dbToGain(stackDb);
+    const base = sfxGain(this.mix, entry) * Math.max(0, opts.gain ?? 1) * dbToGain(stackDb) * goreGain;
     const snd = sm.add(pick, {
       volume: base * this.bank.gainFor(priority, now),
       rate,

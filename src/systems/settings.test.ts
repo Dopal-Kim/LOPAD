@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { DEFAULT_FEEL, feelSettings, setFeel } from './feel';
 import { emptyMeta, type MetaData } from './meta';
 import {
@@ -41,7 +43,20 @@ describe('설정 (61라운드 계약 §15)', () => {
       keys: { up: 'W', down: 'S', left: 'A', right: 'D', dash: 'SPACE', interact: 'E', potion: 'Q' },
       hitstop: true,
       textScale: 1,
+      gore: 2,
     });
+  });
+
+  it('P21 고어 기본값은 계약 UI_DEFAULT_SETTINGS.gore 와 같고, 0·1·2 밖의 값은 버린다', () => {
+    // contract/ui 는 Phaser 를 불러 테스트에서 직접 import 하지 않는다 — 원문에서 기본값 블록을 읽어 비교
+    const src = readFileSync(resolve(__dirname, '../contract/ui.ts'), 'utf8');
+    const block = src.slice(src.indexOf('export const UI_DEFAULT_SETTINGS'));
+    const m = /\bgore: (\d)/.exec(block.slice(0, block.indexOf('});')));
+    expect(Number(m?.[1])).toBe(DEFAULT_SETTINGS.gore);
+    expect(sanitizeSettings({ gore: 1 }).gore).toBe(1);
+    expect(sanitizeSettings({ gore: 0 }).gore).toBe(0);
+    expect(sanitizeSettings({ gore: 3 }).gore).toBe(2);
+    expect(sanitizeSettings({ gore: '1' }).gore).toBe(2);
   });
 
   it('다듬기: 숫자는 0~1 로 자르고 형식이 틀린 칸은 기본값', () => {

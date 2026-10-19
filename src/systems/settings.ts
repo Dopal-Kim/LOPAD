@@ -5,12 +5,17 @@
  * - 저장은 메타 세이브(`lopad.meta` 의 `settings`) — 런 세이브와 달리 사망·새 런에도 남는다.
  */
 import { KEYBIND, SETTINGS } from '../core/Constants';
-import type { UiBindAction, UiKeyBindings, UiSettings, UiTextScale } from '../contract/ui';
+import type { UiBindAction, UiGoreLevel, UiKeyBindings, UiSettings, UiTextScale } from '../contract/ui';
 import { setFeel, type FeelSettings } from './feel';
 import { metaStore, type MetaData } from './meta';
 
-/** 시스템 안에서는 62 D 확장 칸(keys·hitstop·textScale)도 늘 채워져 있다 */
-export type GameSettings = UiSettings & { keys: UiKeyBindings; hitstop: boolean; textScale: UiTextScale };
+/** 시스템 안에서는 62 D 확장 칸(keys·hitstop·textScale)·P21 gore 도 늘 채워져 있다 */
+export type GameSettings = UiSettings & {
+  keys: UiKeyBindings;
+  hitstop: boolean;
+  textScale: UiTextScale;
+  gore: UiGoreLevel;
+};
 
 export interface VolumeSettings {
   master: number;
@@ -22,6 +27,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettings> = Object.freeze({
   ...SETTINGS.DEFAULT,
   keys: { ...SETTINGS.DEFAULT.keys },
   textScale: SETTINGS.DEFAULT.textScale as UiTextScale,
+  gore: SETTINGS.DEFAULT.gore as UiGoreLevel,
 });
 
 /** 키 재설정 동작 순서 (겹침 검사 차례) */
@@ -56,6 +62,8 @@ export function keyLabel(key: string): string {
 const textScaleOf = (v: unknown, fallback: UiTextScale): UiTextScale =>
   typeof v === 'number' && KEYBIND.TEXT_SCALES.includes(v) ? (v as UiTextScale) : fallback;
 
+const goreOf = (v: unknown, fallback: UiGoreLevel): UiGoreLevel => (v === 0 || v === 1 || v === 2 ? v : fallback);
+
 const clamp01 = (v: unknown, fallback: number): number =>
   typeof v === 'number' && Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : fallback;
 const bool = (v: unknown, fallback: boolean): boolean => (typeof v === 'boolean' ? v : fallback);
@@ -74,6 +82,7 @@ export function sanitizeSettings(raw: unknown, base: Readonly<GameSettings> = DE
     keys: sanitizeKeys(r.keys, base.keys),
     hitstop: bool(r.hitstop, base.hitstop),
     textScale: textScaleOf(r.textScale, base.textScale),
+    gore: goreOf(r.gore, base.gore),
   };
 }
 

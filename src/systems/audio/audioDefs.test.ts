@@ -43,6 +43,7 @@ import { P13_SFX } from './audioDrops';
 import { P14_SFX } from './audioTraining';
 import { LOOP2_FALLBACK_SFX, loop2SfxIds } from './audioLoop2';
 import { p19SfxIds } from './audioP19';
+import { p21SfxIds } from './audioP21';
 import { TRAIT_ACTS } from '../../data/growthTypes';
 import { RESONANCE_SFX } from '../growth/traitArt';
 import { ARCHIVED_SFX, BUILD_SFX, GROWTH_SFX, buildSfxIds } from './audioBuild';
@@ -268,6 +269,7 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
       ...LOOP2_FALLBACK_SFX,
       // P19 (계약 sound §14): 무기 타격 · 타격 반응 · 위험물 · 연속 처치 · 새 적 2종
       ...p19SfxIds(),
+      ...p21SfxIds(),
     ]);
     // 60라운드 Q6 보관 3종은 연결하지 않는다
     for (const id of ARCHIVED_SFX) expect(used.has(id), id).toBe(false);

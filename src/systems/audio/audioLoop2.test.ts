@@ -9,9 +9,11 @@ import { Events } from '../../core/EventBus';
 import { UI_EVENTS } from '../../contract/ui';
 import { LOOP2_SFX, doorWalkRate, doorWalkSfx, loop2Moments, trialWinDelayMs } from './audioLoop2';
 
-/** 이벤트에 걸리는 트리거들의 효과음 후보 (when 통과분만, 후보 목록은 그대로) */
+/** 이벤트에 걸리는 트리거들의 효과음 후보 (when 통과분만, 후보 목록은 그대로 — 루프 정지만 하는 줄(P21 심장 박동 끄기)은 뺀다) */
 function fire(event: string, payload: unknown) {
-  return AUDIO_TRIGGERS.filter((tr) => tr.event === event && (!tr.when || tr.when(payload as never))).map((tr) => ({
+  return AUDIO_TRIGGERS.filter(
+    (tr) => tr.event === event && tr.sfx !== undefined && (!tr.when || tr.when(payload as never)),
+  ).map((tr) => ({
     sfx: typeof tr.sfx === 'function' ? tr.sfx(payload as never) : tr.sfx,
     delay: tr.delayMs ? tr.delayMs(payload as never) : 0,
     rate: tr.rate ? tr.rate(payload as never) : 1,

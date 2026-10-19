@@ -4,9 +4,11 @@ import type { ComboFollowUpDef, HitShapeSpec } from '../data/comboTypes';
 import { LOOP2D_EVENTS } from './eventsLoop2D';
 import { LOOP2E_EVENTS } from './eventsLoop2E';
 import { P19_EVENTS } from './eventsP19';
+import { P21_EVENTS } from './eventsP21';
 export type * from './eventsLoop2D';
 export type * from './eventsLoop2E';
 export type * from './eventsP19';
+export type * from './eventsP21';
 
 /** 씬·시스템 간 유일한 통신 경로. 직접 참조 금지. */
 export const EventBus = new Phaser.Events.EventEmitter();
@@ -235,6 +237,8 @@ export const Events = {
   ...LOOP2E_EVENTS,
   /** P19 자유 전투 반응 (core/eventsP19.ts — 계약 free-combat §1) */
   ...P19_EVENTS,
+  /** P21 어두운 톤·잔혹 전투·상흔 (core/eventsP21.ts — 계약 dark-brutal §2) */
+  ...P21_EVENTS,
   /** 62 루프 2 시스템 C: 기억을 떠올렸다 (`MemoryUnlockedPayload` — 음향 memory_unlock, 계약 sound §13) */
   MEMORY_UNLOCKED: 'memory:unlocked',
 } as const;
@@ -604,6 +608,8 @@ export type PlayerDamagedPayload = {
   armored?: boolean;
   /** 61라운드 계약 sound §9: 가드로 막고 남은 피해 — 음향 guard_block (hit_player 대신). 내는 곳 = PlayerDefense(무기 쪽) */
   guarded?: boolean;
+  /** P21 (sound §15): 이 피해 뒤 주인공 상처 단계 (dark-brutal §3 — 음향 hero_ember_hiss 조건) */
+  woundStage?: 0 | 1 | 2 | 3;
 };
 export type RoomEnteredPayload = { roomId: string; type: string };
 export type TrialClearedPayload = { roomId: string; cleared: number; total: number };

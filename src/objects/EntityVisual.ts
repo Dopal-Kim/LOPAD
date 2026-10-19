@@ -7,6 +7,7 @@
  *   동작을 바꿀 때 그 시트의 배율·피벗으로 스프라이트 배율·원점을 맞추고, 물리 바디는 월드 크기가 그대로이도록 다시 맞춘다
  */
 import Phaser from 'phaser';
+import { goreHooksOf } from '../systems/gore/goreHooks';
 import { DEPTH, FEEL, SPRITES, TEXTURES, entityDepth } from '../core/Constants';
 import { spriteLibrary } from '../systems/sprites/sprites';
 import {
@@ -554,6 +555,11 @@ export class EntityVisual {
     return ms;
   }
 
+  /** P21: 진행 중인 일회성 동작을 끝낸다 (처형 회복 캔슬) → 다음 loop() 에서 idle/walk */
+  endOneShot(): void {
+    this.busyUntil = 0;
+  }
+
   /** 유지·반복 해제 → 다음 loop() 에서 idle/walk 로 돌아간다 */
   release(): void {
     if (this.holdUntil < 0) return;
@@ -623,6 +629,8 @@ export class EntityVisual {
     const shadow = this.shadow;
     this.shadow = null; // 시체와 함께 사라진다
     if (pop) this.popCorpse(corpse, shadow, pop);
+    // P21 (dark-brutal §6): Game 씬이면 시체는 노드가 끝날 때까지 남는다 (상한·정리는 GoreFx). 보스는 처치 연출이 정한다
+    if (this.corpseHoldMs === null && goreHooksOf(scene)?.keepCorpse(this.name, corpse, shadow)) return;
     const targets = shadow ? [corpse, shadow] : [corpse];
     scene.tweens.add({
       targets,

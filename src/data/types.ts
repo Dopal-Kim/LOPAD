@@ -917,7 +917,28 @@ export interface LightingAmbient {
   note?: string;
 }
 
+/** P21 월드 색 보정 (data/grade.json — 계약 dark-brutal §7) */
+export interface GradeData {
+  /** Phaser saturate 인자 (0 그대로 · −1 무채) · 대비 (0.5 기준 1 + contrast) · 명도 곱 — 의미는 src/systems/fx/gradeMath.ts */
+  saturation: number;
+  contrast: number;
+  brightness: number;
+  /** 행렬 오프셋으로 더하는 색 */
+  shadowTint: string;
+  vignette: { strength: number; radius: number };
+  grain: { amount: number; fps: number };
+  /** 지역 id → 위 값 일부 덮어쓰기 */
+  byRegion?: Record<string, Partial<Omit<GradeData, 'byRegion' | 'lowHp' | 'title'>>>;
+  lowHp: { saturation: number; vignetteColor: string; pulseHz: number };
+  /** 타이틀(UI 가 읽는다) */
+  title?: Record<string, unknown>;
+}
+
 export interface LightingData {
+  /** P21 (계약 dark-brutal §7): 형태 틀 주변광(arenas lighting.ambient — 지역값을 덮는다)에 곱하는 배율 (없으면 1) */
+  shapeAmbientMult?: number;
+  /** P21 아트 A: 주인공 가슴 높이 차가운 림 빛 (없으면 안 단다) */
+  playerRim?: LightDefData;
   regions: Record<string, LightingAmbient>;
   default: LightingAmbient;
   player: LightDefData;

@@ -233,4 +233,7 @@ export function exposeGameDebug(g: Game): void {
   // 62 루프 2 C: 층 끝·죽음·결산 검증 (`__lopadRunEnd.*` — ?debug 일 때만)
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug'))
     (window as unknown as { __lopadRunEnd?: unknown }).__lopadRunEnd = runEndDebug(g);
+  // P21: 피·상처·처형·색 보정 요약 (`__lopadBrutal()` — ?debug 일 때만)
+  if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug'))
+    (window as unknown as { __lopadBrutal?: unknown }).__lopadBrutal = () => g.brutal.summary();
 }

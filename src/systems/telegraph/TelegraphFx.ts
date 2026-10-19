@@ -28,6 +28,7 @@ import {
   type Facing,
 } from '../sprites/spriteDefs';
 import { PathTelegraphs } from './pathTelegraph';
+import { ungradedOf } from '../fx/colorGrade';
 import {
   auraLabel,
   drawCircle,
@@ -122,8 +123,27 @@ export class TelegraphFx {
     return Boolean(tex && this.scene.textures.exists(tex));
   }
 
+  /**
+   * P21 (계약 dark-brutal §7): 예고 색은 보정 뒤에도 원래 색 — 만든 개체를 보정 없는 층(`ungradedOf`)으로 옮긴다 (층이 없으면 그대로)
+   */
+  private ug<T>(fn: () => T): T {
+    const g = ungradedOf(this.scene);
+    return g ? g.capture(fn) : fn();
+  }
+
   /** 선: 시작점 (x, y) 에서 angle 방향으로 lengthPx */
   line(
+    x: number,
+    y: number,
+    angle: number,
+    lengthPx: number,
+    durationMs: number,
+    opts: TelegraphOptions = {},
+  ): TelegraphHandle {
+    return this.ug(() => this.lineNow(x, y, angle, lengthPx, durationMs, opts));
+  }
+
+  private lineNow(
     x: number,
     y: number,
     angle: number,
@@ -165,6 +185,16 @@ export class TelegraphFx {
 
   /** 원: 중심 (x, y), 반지름 radiusPx */
   circle(x: number, y: number, radiusPx: number, durationMs: number, opts: TelegraphOptions = {}): TelegraphHandle {
+    return this.ug(() => this.circleNow(x, y, radiusPx, durationMs, opts));
+  }
+
+  private circleNow(
+    x: number,
+    y: number,
+    radiusPx: number,
+    durationMs: number,
+    opts: TelegraphOptions,
+  ): TelegraphHandle {
     const m = this.roundMarker('circle', x, y, radiusPx, durationMs, 0, 'down', opts);
     this.paintTier(m, opts);
     if (!m.progress) {
@@ -192,8 +222,20 @@ export class TelegraphFx {
     durationMs: number,
     opts: TelegraphOptions = {},
   ): TelegraphHandle {
+    return this.ug(() => this.coneNow(x, y, angle, halfAngleRad, radiusPx, durationMs, opts));
+  }
+
+  private coneNow(
+    x: number,
+    y: number,
+    angle: number,
+    halfAngleRad: number,
+    radiusPx: number,
+    durationMs: number,
+    opts: TelegraphOptions,
+  ): TelegraphHandle {
     if (Phaser.Math.RadToDeg(halfAngleRad) * 2 > ENEMY_FX.CONE_MAX_SPREAD_DEG)
-      return this.circle(x, y, radiusPx, durationMs, opts);
+      return this.circleNow(x, y, radiusPx, durationMs, opts);
     const dir = facingOf(Math.cos(angle), Math.sin(angle), 'down');
     const m = this.roundMarker('cone', x, y, radiusPx, durationMs, halfAngleRad, dir, opts);
     m.angle = angle;
@@ -205,7 +247,7 @@ export class TelegraphFx {
 
   /** 54라운드: 꺾은선 예고 (points 를 잇는 선, 끝에 화살촉, opts.aura 면 첫 점에 수렴 오라) */
   path(points: readonly Point[], durationMs: number, opts: TelegraphOptions = {}): TelegraphPathHandle {
-    return this.paths.create(points, durationMs, opts);
+    return this.ug(() => this.paths.create(points, durationMs, opts));
   }
 
   /** 61라운드: 예고를 어둠(라이트맵) 위로 올리기 · 내리기 */

@@ -38,6 +38,8 @@ export interface AudioEntry {
 }
 
 export interface AudioMixing {
+  /** P21 (sound §15): settings.gore 단계별 끄기(mute)·낮추기(gainDb) — 원본 id 기준 (변주 포함) */
+  gore?: { levels?: Record<string, { mute?: string[]; gainDb?: Record<string, number> }> };
   masterDb: number;
   sfxBusDb: number;
   bgmBusDb: number;

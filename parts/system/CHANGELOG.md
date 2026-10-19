@@ -2286,3 +2286,86 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 - 부두 크레인 `stage_dock_crane`·테라스 계단·술창고 술통 더미·회랑 봉화(stage_*), 술통 줄 `hazard_cask_row`(3×1 — 술통 구조물은 1×1)·`hazard_pool`(미리 깔린 웅덩이는 LiquorPools 그림) 은 연결 안 함 — 자리·크기·동작이 기존 구조물과 달라 새 구조물 종류가 필요.
 - 증류기 무대 중심 `stage_still` 의 warn/vent/broken 동작(증기 3초 피해)은 그림 idle 만.
 - 흉벽은 짐 상자 동작이라 한 번에 부서지고 금(cracked) 단계·낙하 틈 규칙은 없음.
+
+## P21 시스템 1차 — 어두운 톤 · 잔혹 전투 · 상흔 (2026-10-19, 62 전권 위임 · 인터뷰 없음)
+근거: `parts/producer/decisions/2026-10-19-P21-dark-brutal.md`, 계약 `parts/producer/contracts/dark-brutal.md`(전체) · `free-combat.md` §1(중계 규칙) · `sound-assets.md` §15. 도영 님 원문 "19세 게임처럼 … 어둡고 칙칙하고 두려운 … 전투 양상도 … 잔인해지고 진짜 현실 전투 같게 … 피해 입으면 상흔도 … 보여야". 작업 도중 받은 추가 지시: 음향 P21 연결(48ffc5b — 연결 표 `parts/sound/README.md` P21 절, 메인 지시로 읽음) · 아트 A 색 보정·조명 제안 적용(3a5289a — `parts/art/work/dark21/{grade,lighting}_proposal.json`, 메인 지시로 읽음).
+
+### 1. 구성
+| 어디 | 무엇 |
+|---|---|
+| `src/contract/ui.ts` 'P21' 절 | `UiGoreLevel` · `UiSettings.gore?` · `UI_DEFAULT_SETTINGS.gore = 2` · 중계 이벤트 `ui:enemy-executable`(`UiEnemyExecutable{screen,id,uid,x,y,on}`)·`ui:player-execute`(`UiPlayerExecute{screen,target,x,y,weapon,ms,impactMs?}`)·`ui:player-wounded`(`UiPlayerWounded{stage,arrows}`)·`ui:low-hp`(`UiLowHp{on,ratio}`) · `UiSnapshot.player?.wound` · `UiSnapshot.executable?: {uid, screen}[]`(계약 §2 조정 722719b — 처형 가능한 적 전부, 공격 키 대상은 `ui:enemy-executable{on:true}` 하나) |
+| `src/core/eventsP21.ts` | 내부 이벤트 7 (§2 표 그대로) + 페이로드. 계약 밖 선택 필드: `ENEMY_DEATH_VARIANT.armored·elite`(음향 body_fall_armor·전용 사망음), `PLAYER_EXECUTE.impactMs`(결정타 시각), `PLAYER_WOUNDED.rose·arrowAdded`(음향 층) · `PLAYER_DAMAGED.woundStage`(음향 hero_ember_hiss) |
+| `src/core/constants/brutal.ts` `BRUTAL` | 상처 경계·스탬프 수·절뚝 −10%·처형(0.45초 무적·슬로 0.3배 120ms·줌 펀치·사거리 1.2칸·반각 60°·버팀 깨짐 뒤 700ms·각성 ×2)·데칼 160·시체 24·웅덩이 1.5초·임시 그림 색 |
+| `src/systems/gore/rules.ts`(+test) | 순수 규칙: 상처 단계(주인공·적) · 스탬프 수 · 적중 결(cut) · 분출 양 · 사망 변형 선택 · 고어 반영 · 처형 변형 · 처형 조건(`execDistance`) · 상한 목록 `CappedList` · 고어 피 양 |
+| `src/systems/gore/goreHooks.ts` | 씬별 연결점(WeakMap): `Mob.takeDamage`·`LabDummy`·`EntityVisual.spawnCorpse` 가 씬의 GoreFx 를 부른다(다른 씬은 기존 그대로) · 음향용 `markDeathVariant`/`deathVariantComing` |
+| `src/scenes/game/brutal/*` | `Brutal`(묶음 — Game create·update) · `GoreFx`(분출·데칼·벽 튐·상처 스탬프·피 젖음·피 방울·절뚝·사망 변형·웅덩이·잘린 조각·시체 지속) · `HeroWounds`(단계·박힌 화살·타르/불씨/재·불씨 흘림·저HP) · `Execution`(대상 고르기·표식·처형) · `brutalArt`(시트 이름 — §8) |
+| `src/systems/fx/colorGrade.ts` · `gradeMath.ts`(+test) · `data/grade.json` | 월드 카메라 색 보정·비네트·그레인·저HP · 보정 없는 층(둘째 카메라) |
+| `src/systems/audio/audioP21.ts`(+test) | 음향 연결 표 (아래 5) |
+| 그 밖 | `Mob`(DamageInfo.cause · poiseBrokenUntil · 훅) · `GameCombat`(cause 전달 · 고어 0 은 옛 피 시트 끔 · 원거리 피격 → 화살) · `HitReactions`(버팀 깨짐 표시 · 낙하 구역 표시) · `Progression.onKill(…, growthMult)` · `CombatFeel.slowmo` · `offscreen.mobUid` · `ScreenFx.desatSink` · `TelegraphFx`(만든 개체를 보정 없는 층으로) · `Lighting`(빛 번짐을 보정 없는 층으로) · `WorldSetup`(형태 틀 주변광 배율·주인공 림) · `SheetRequest.file`(이름이 `<이름>_<동작>` 이 아닌 시트) · `settings`(gore 다듬기) · `DebugHooks`(`window.__lopadBrutal()` — ?debug) |
+
+### 2. 규칙 (계약 §3~§6 — 결정한 세부)
+- 주인공 단계는 PLAYER_DAMAGED·HEALED 때 현재 HP 로 다시 계산(회복하면 내려감). 박힌 화살은 투사체 피격 결과가 'hit' 일 때(패링·무시 제외) 1대, 앵커 순서 back·shoulderL·shoulderR·thigh·arm, 씬 재시작(노드 전환)으로 사라짐. 노드 첫 프레임에 저HP 를 다시 알린다(심장 박동 재개).
+- 적 단계는 오를 때만(회복 없음). 스탬프는 공격이 들어온 쪽에 붙고 몸을 따라간다. 피 젖음은 다른 상태 색(경직·예고)이 없을 때만 곱 틴트. stage 2 는 걷는 동안 0.4초마다 바닥 방울 + `speedMult ×0.9`. 군주는 단계 이벤트만(절뚝·틴트 없음).
+- 처형 조건의 '버팀 깨짐' = HitReactions 가 stagger(버팀 > 0)를 낸 뒤 700ms(움찔 시간이 짧아 따로 — 1차). 앞 = 조준 방향(`Player.aimAngle`) 부채꼴 반각 60°, 거리 = 몸 중심 사이 − 대상 몸 반지름 ≤ 1.2칸. 공격 키를 누른 프레임에 주인공이 'normal' 이면 처형: 동작 = 처형 시트 `timingMs.total`(450ms, `skill`), 무적 0.45초, 대상 굳힘, 결정타 = `timingMs.hitAt`(칼 90 · 대검 180 · 단검 155 · 활 130ms — 시트가 없으면 0.55 지점)에 슬로 0.3배 120ms · 줌 펀치 · 남은 HP + 최대 HP 40% 피해(넘친 피해 — 큰 분출) → 일반 처치(Progression) · 각성 ×2. 그림 = 주인공 동작 `<무기>_execute`(+ 무기 오버레이 동작 `execute` — `overlayActionsFor` 에 'execute' 줄) → 없으면 그 무기 마지막 연격(`<무기>_combo3…1`) → `attack`. 단검 '뒤로 돌아'는 자리 이동 없이 동작 그림만. **회복 캔슬(시스템 결정, 봇 측정 뒤)**: 결정타 + 80ms 부터 이동·대쉬 입력이 처형 회복을 끊는다(`Execution.cancelFrom`, 무적 0.45초는 그대로) — 처음 판(캔슬 없음)은 봇이 처형마다 0.45초 묶여 칼·단검 정지 % 가 0.2~12 → 18~40 으로 올랐다(아래 7).
+- 사망 변형: 칼·대검 넘친 피해 ≥ 30% · 활 + 맞은 방향 1.5칸 안 벽 · 불 = 위험물 피해가 틱(불 웅덩이)이거나 0.6초 안·4칸 안 폭발/점화 · 낙하 구역 fire · 물 = 낙하 구역 water. 군주는 collapse 이벤트만(시체는 BossFlow). 술독병 폭발 시체(explode)는 그대로.
+- 데칼: 바닥 깊이 0.92(그림자 0.9 위·개체 1 아래) — 라이트맵 아래라 어둠에 잠긴다. 넘치면 오래된 것부터 1초에 알파 0. 웅덩이 0.915 · 1.5초 스케일 0.3 → 1. 벽 튐 = 맞은 방향 1칸 안 벽(분출 양 ≥ 2). 시체(잘린 조각 포함) 24 넘으면 오래된 것부터 3초에 어둡게(밝기 → 0.3)·투명하게. 노드 전환 = 씬 재시작으로 전부 비움.
+- 고어: 2 전체 · 1 = 데칼·방울 1/3(확률 반올림) + 검붉은 틴트, 절단 → collapse, 조각 없음 · 0 = 먹·재 입자(`ink_ash_burst` 또는 점), 데칼·웅덩이·스탬프·옛 피 시트 없음, 사망 변형 collapse, 처형은 같은 동작. 음향은 manifest `mixing.gore.levels`(끄기·낮추기)를 `audio.playSfx` 가 적용.
+
+### 3. 화면 톤 (§7 — 아트 A 값 적용 뒤)
+- `data/grade.json` = 아트 A 제안(`_` 키 뺌): saturation −0.42 · contrast 0.04 · brightness 0.95 · shadowTint #050609 · vignette 0.4/0.45 · grain 0.045/12fps · byRegion(brewery −0.3 · waste 밝기 1.1·대비 0.08·채도 −0.3) · lowHp(−0.8 · #3a0b08 · 1.2Hz) · title(UI 가 읽음). 의미는 아트 `_semantics` 그대로 `gradeMath.gradeMatrix`: Phaser `saturate` 와 같은 평균 기준 채도 → (in − 0.5)(1 + c) + 0.5 → 곱 → 틴트 더함, `ColorMatrix.set()` 한 장(Phaser `contrast()` 안 씀). 처음 만든 1차 값(채도 0.65 배율 등 내 의미)은 버림.
+- 비네트: Phaser Vignette postFX 는 모양이 달라 안 쓰고 ×(1 − strength·smoothstep(radius, 1, d)) 를 구운 화면 그림(480×270, 원형) — WebGL·Canvas 같음. `lighting.json vignette.alpha = 0`(이중 금지).
+- 저HP: 채도를 lowHp.saturation 으로 0.4초 전환, 비네트를 vignetteColor 그림으로 바꿔 0.6 ↔ 1.0 맥동. 아트 메모 'UI 피 비네트와 겹치면 UI 우선' — UI 쪽 구현을 보고 2차에서 끌지 정한다(지금은 켜 둠).
+- `ScreenFx` 채도 감소(보스 국면·히트스톱)는 더 이상 따로 ColorMatrix 를 붙이지 않고 보정 행렬의 채도 배율에 곱한다(`desatSink`) — 보정이 꺼지면(`?grade=0`) 옛 방식.
+- 보정 없는 층: 월드 카메라 다음에 그리는 둘째 카메라('ungraded') + Layer. 예고 마커(TelegraphFx 선·원·부채꼴·경로 — 만드는 동안 씬에 더해진 개체를 옮김)·광원 빛 번짐(위험물·불빛)·주인공 불씨가 이 층. 둘째 카메라는 층 밖 모든 개체를 cameraFilter 로 무시(씬에 더해질 때마다 표시), 스크롤·배율·기울기는 월드 카메라를 따른다. 그래서 예고는 라이트맵·개체 위에 그려진다(어둠에도 묻히지 않음). 주인공 눈은 몸 그림 안이라 따로 못 뺌 — 2차 아트 시트(눈·불씨 층) 필요.
+- 조명(아트 A 제안 + 프로듀서): default·outer #4e5260 · hall #4a4e5c · waste **#5e626e** · player #b8582a r50 i0.62 · 새 `playerRim` #a9b4c8 r20 i0.5 offsetY −34(WorldSetup 이 주인공에 붙임) · mob #aab2c4 r26 i0.5 · 횃불 계열 fallback 작고 깊게 · 위험물·예고·무기 fx·혼불 그대로. 전투 노드는 형태 틀 주변광(arenas `lighting.ambient`, 대부분 #bcbcc6)이 지역값을 덮으므로 같은 비율 `shapeAmbientMult 0.77` 을 곱한다 — 2차 헤드리스 측정으로 맞출 값.
+- `?grade=0` = 보정·비네트·그레인·둘째 카메라 없음(저HP 이벤트는 그대로).
+
+### 4. 아트 시트 연결 (아트 B d7c5e10 · art §37 · `parts/art/work/gore21/NOTES.md` — 메인 지시로 읽음) · 폴백
+| 시트 | 쓰는 법 | 없을 때 |
+|---|---|---|
+| `fx/v5/blood_spray_{cut}` | FxPool 재생, 행 = `amount<1~3>`(고어 1 = amount1 + 어둡게), `angle` = 진행 방향, 무작위 flipY. 바닥 데칼 = json `decalHint`(수·거리 도트·`spawnAtFrame` 시각) 만큼 진행 방향 바닥(발 높이)에 | 원 방울이 날아가 떨어진 자리에 원 데칼 |
+| `blood_decal_floor` | 정지 그림, 결(`byCut`)·`drag`·`limp` 프레임 중 하나, `directional` 프레임은 피가 날아간 방향으로 회전, 나머지 무작위 회전·flipX | 틴트한 원 |
+| `blood_pool` | 시체 밑 스프라이트, 행 v0~v2 무작위 재생 → 마지막 프레임 유지(스케일 트윈 없음), 깊이 0.915 | 겹친 원 1.5초 스케일 0.3 → 1 |
+| `blood_decal_wall` | 6 중 하나, 회전 없음·flipX, 깊이 = 그 벽 자리 개체 깊이 아래. 흘러내린 줄을 벽 앞면 높이로 자르지 않음(shortcut — 벽 앞면 높이 API 필요) | 원 |
+| `blood_drip` | stage 2 걷는 동안 0.4초마다 상처 높이(발 − `floorDots`)에서 재생 + 발밑 `limp` 데칼 | 발밑 원 |
+| `wound_cut` | 결별 `byCut` 프레임, 베기만 칼길 쪽 ±30°, 적 몸 바로 위 깊이, 맞은 쪽(−dir) 가장자리 안쪽, 적이 좌우를 바꾸면 거울 | 검붉은 막대 |
+| `gore_parts_<적>` | 고어 2 · behead → head · bisect → arm(윗몸은 사망 변형 시트가 그림 — 시트 없으면 upper+arm). 적 피벗 + `spawnFromEnemyPivot`(좌우 거울), `physicsHint` 시간·속도·높이·튐 1번, 나는 동안 열 50ms 회전 → `restFrame`, 착지 데칼 + 끌린 자국(drag). 시체 수에 포함 | 조각 없음 |
+| `enemies/v4/<적>_death_<변형>` | collapse 포함 5변형을 시체 동작으로(고어 1·2, 술독병 폭발 시체는 그대로). dummy(징집병)·군주는 시트 없음 → 원래 death | 원래 death (불탐 = 그을린 틴트) |
+| `player/v3/hero_wound<n>_player_<몸 시트>` | 지금 올라온 주인공 몸 시트마다 요청(20개만 있음). 현재 단계 시트 하나를 몸과 같은 프레임·원점·배율·좌우로 몸 바로 위(무기 오버레이 아래)에. 그 몸 시트에 상흔이 없으면(특수기·처형·죽음) 숨김 | 상흔 시트가 하나도 없으면 몸 곱 틴트(단계별 재빛) |
+| `arrowAnchors`(상흔 json) + `fx/v5/stuck_arrow` | 화살마다 앵커 이름(back→shoulderL→shoulderR→thigh→arm), 몸 프레임 번호 → 방향 행·열 → 앵커 `{x,y,frame,flipX,depth}` — 위치 = 피벗 기준 도트 × 몸 배율(좌우 반전 반영), above = 몸·상흔 위 / below = 몸 뒤, null·상흔 없는 몸 시트 = 숨김 | 어두운 막대(임시 자리) |
+| `tar_ember_hit` · `ash_chips` | 주인공 피격(막지 않음) = 맞은 방향 회전 + 숯 부스러기 1회. 상흔 1·2·3 단 = 1.2~2 · 0.8~1.2 · 0.5~0.8초마다 숯 부스러기. 불씨 점(가산·보정 없는 층)은 2단 이상 계속 | 검은 점 + 재 점 + 불씨 |
+| `player/v3/hero_execute_<무기>` + `weapons/v3/hero_execute_<무기>` | 주인공 동작 `<무기>_execute` · 무기 동작 `execute`(같은 프레임 — 기존 오버레이 동기), json `timingMs` 로 길이·결정타 | 마지막 연격 시트 |
+| `ink_ash_burst` | 고어 0 분출 대신(회전·flipY, 데칼 없음) | 먹·재 점 |
+- 로드: `brutalArt.brutalSheetRequests` → `lazySheets.loadSheetsNow`(Game create — 매니페스트에 있는 것만, 씬 재시작 사이 텍스처 유지). 이름이 `<이름>_<동작>` 이 아닌 파일은 `SheetRequest.file`(fx `v5/<id>`, 상흔 `hero_wound<n>_player_<동작>`, 처형 `hero_execute_<무기>`).
+- 헤드리스 확인(가짜 시계, 칼, c3r0): 적 8 중 4 상처·2 처치 + 처형 1 → 분출 시트 8회·데칼 30·behead 3·시체 3, 처형 동작 `katana_execute`, 페이지 오류 0, 보정 층 개체 24.
+
+### 5. 음향 연결 (`audioP21.ts` — sound §15 · 음향 README P21 표)
+- enemy:gore → 살 층(amount −3/0/+1.5dB, 무기 없음 −3, 무기별 속도) · amount ≥ 2 → blood_splat 110ms (3 = +2dB·0.92). 벽 튐 적중의 두 번째 blood_splat 은 안 함(페이로드에 벽 표시가 없음 — 2차 후보).
+- ENEMY_DIED: 같은 적의 사망 변형이 같은 순간(50ms) 오면 enemy_death 를 쉬고 death-variant 가 body_fall(갑옷 = `charger` 방패·통 갑옷 엘리트 → body_fall_armor, 큰 적 porter·charger 0.9, pinned −6dB) + 변형 층(behead·bisect dismember · pinned arrow_stick +2dB 0.8 · burn hazard_ignite −6dB 1.1 · drown 없음). 전용 사망음(peddler·porter·drummer·bomber·엘리트)은 enemy_death 자리 그대로·body_fall 생략.
+- player:execute → execute_hit 를 `impactMs`(처형 시트 timingMs.hitAt) 늦춰(결정타 프레임 — 덕킹은 manifest 3줄이 그 소리에 걸린다), 단검은 flesh_stab +3dB 0.9 같은 순간.
+- PLAYER_DAMAGED(막지 않음) → hero_crack · woundStage ≥ 2 → hero_ember_hiss(3 = 0.92) · player:wounded rose → hero_crack 0.85(3 = +2dB), 2·3 → hero_ember_hiss 0.9 · arrowAdded → arrow_stick −3dB 1.1.
+- player:low-hp on → heartbeat_loop(페이드 인 400ms, 속도 HP 0.25 → 1.0 · ≤ 0.10 → 1.15, 피격마다 갱신) · off → 600ms 페이드 · PLAYER_DIED → 1.1초.
+- enemy:wounded → enemy_groan_1|2 80ms 늦게(큰 적 0.88 · 그 밖 1.06 · 군주 제외). 위치 감쇠는 오디오 매니저에 없어 안 함.
+- 테스트: `audioDefs`(새 31 id 연결) · `audioMix`(타이틀 `bgm/title_dark` · 덕킹 18규칙 + 처형·심장 박동 줄 확인) · `audioLoop2`(루프 정지만 하는 줄은 후보 비교에서 뺌) · 새 `audioP21.test`(3).
+
+### 6. 검사 · 봇 지표
+- 전체(워킹 트리 — UI P21 변경 포함): `tsc --noEmit` 0 · `eslint .` 0 · `vitest run` 178파일 1328건 통과 · `vite build` 통과. prettier 는 바꾼 src·data 만.
+- 새·바꾼 테스트: `systems/gore/rules.test`(12 — 상처 단계·사망 변형·고어 반영·처형 조건·상한 목록) · `systems/fx/gradeMath.test`(4) · `systems/audio/audioP21.test`(3) · `settings.test`(gore 기본값을 계약 원문과 대조) · `audioDefs`·`audioMix`·`audioLoop2` 갱신. `mapgen.test` '바닥은 모두 벽…' 은 칸마다 expect(수만 번)라 부하 큰 전체 실행에서 5초를 넘던 것 → 어긋난 칸을 모아 한 번에 비교(메인 14:01 실행의 1건 실패).
+- 봇 `npm run bot:metrics`(무기 4 × 노드 4, 가짜 시계, 같은 시드). 기준 = HEAD(P21 시스템 전, 3a5289a) 빌드 · P21 = 회복 캔슬 넣은 최종 빌드.
+
+| 지표 (중앙값 — 칼/대검/단검/활) | 기준 | P21 첫 판(캔슬 없음) | P21 최종 |
+|---|---|---|---|
+| 클리어 s | 28.2 / 25.8 / 31.0 / 32.3 | 32.8 / 28.0 / 34.4 / 35.5 | 31.7 / 24.8 / 37.6 / 33.5 (칼 c3r0 미완 1판 제외) |
+| 정지 % | 10.0 / 12.9 / 0.7 / 3.5 | 21.4 / 14.1 / 27.6 / 5.1 | 18.0 / 18.0 / 14.9 / 3.9 |
+| 동시 공격 평균 | 0.65 / 0.53 / 0.67 / 0.30 | 0.70 / 0.47 / 0.72 / 0.30 | 0.53 / 0.52 / 0.64 / 0.30 |
+| 히트스톱 % | 6.6 / 5.3 / 6.0 / 8.6 | 5.5 / 5.2 / 4.9 / 8.3 | 6.3 / 5.0 / 5.2 / 7.6 |
+| 활성 평균 · 공백 | 5.3~6.5 · ≤ 0.58s | 4.4~6.4 · ≤ 0.69s | 4.3~6.7 · ≤ 0.58s (미완 판 제외) |
+- 읽기: 처형(0.45초 잠금)이 봇의 연타마다 걸려 근접 무기 **정지 %** 가 올랐다 — 결정타 뒤 이동·대쉬 캔슬로 일부 되돌렸지만 칼·대검 18% · 단검 14.9% 로 합격선(≤ 15%) 경계·밖(기준 0.7~13). 활은 영향 없음. 클리어 시간·히트스톱·공백은 크게 다르지 않다. 동시 공격(1.2~2.0)·환경(≥ 8)은 기준부터 미달(P19 2단계와 같음).
+- **미완 1판**: P21 최종 전체 실행의 칼 c3r0 이 26 중 17 처치 뒤 살아 있는 적 0·웨이브 진행 없음으로 180초 상한(같은 빌드 단독 재실행 1판은 16 처치·정지 94% 로 또 미완, 그 뒤 4판은 37.6~40.4초 정상). 기준·P21 첫 판에서는 없었다. 원인 미확정 — 의심: 처형·회복 캔슬과 방 상태 머신의 처치 집계(onMobDied) 사이 또는 봇 길 찾기. 다음 루프 사람 플레이에서 '적이 다 죽었는데 웨이브가 안 넘어감'·'제자리에서 못 움직임'을 확인 항목으로.
+- 헤드리스 화면: 보정 층(둘째 카메라)·비네트·그레인 렌더 정상, 페이지 오류 0. 명도·채도 실측은 2차 통합 몫.
+
+### 7. 남은 것
+- 고어 0·1 은 단위 테스트(규칙·음향)만 — 화면은 헤드리스로 안 봄. 저HP 가장자리 맥박은 UI 피 비네트와 겹칠 수 있음(아트 메모: 겹치면 UI 우선 — UI 구현 확인 뒤 끌지 결정).
+- 주인공 눈·상흔 불빛 픽셀(emissiveColors)은 몸·상흔 그림 안이라 보정을 받는다 — 보정 없는 층으로 빼려면 아트가 빛 층을 따로 줘야 한다.
+- 벽 튐 데칼 흘러내림을 벽 앞면 높이로 자르지 않음 · 처형 단검 '뒤로 돌아' 자리 이동 없음 · 상흔 오버레이는 무기 오버레이 아래(대검 칸에서 가려짐 — 의도) · 적 신음 위치 감쇠 없음 · 벽 튐 적중의 두 번째 blood_splat 없음.
+- 형태 틀 주변광 배율 0.77 · 아트 A 보정 값은 헤드리스 명도 측정(목표 루마 0.20~0.26) 뒤 조정.

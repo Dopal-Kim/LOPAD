@@ -32,7 +32,8 @@ describe('61라운드 계약 sound §9 믹싱', () => {
     expect(resolveBgmFor(manifest, 1, 'boss', 'combat', 1)).toBe('bgm/f1_boss_p1');
     expect(resolveBgmFor(manifest, 1, 'boss', 'combat', 3)).toBe('bgm/f1_boss_p3');
     expect(resolveBgmFor(manifest, 1, 'boss', 'combat', 9)).toBe('bgm/f1_boss_p3');
-    expect(resolveBgmFor(manifest, 1, 'title', 'journey', 1)).toBe('bgm/title');
+    // P21 (sound §15): 타이틀 = title_dark (옛 bgm/title 은 폴백)
+    expect(resolveBgmFor(manifest, 1, 'title', 'journey', 1)).toBe('bgm/title_dark');
     expect(resolveBgmFor(manifest, 2, null, 'journey', 1)).toBe('bgm/floor_low');
     expect(resolveBgmFor(manifest, 2, 'boss', 'combat', 2)).toBe('bgm/boss');
   });
@@ -85,7 +86,7 @@ describe('61라운드 계약 sound §9 믹싱', () => {
     });
   });
 
-  it('실제 매니페스트 믹싱: 상한 12·UI 2 · 덕킹 15규칙(보스 예고 → 효과음 −6·BGM −3, 피격 → 효과음 −3 150ms)', () => {
+  it('실제 매니페스트 믹싱: 상한 12·UI 2 · 덕킹 18규칙(보스 예고 → 효과음 −6·BGM −3, 피격 → 효과음 −3 150ms)', () => {
     const mix = mixingOf(manifest);
     expect(voiceLimitsOf(mix)).toMatchObject({ maxSfx: 12, maxUi: 2, perGroupMax: 3 });
     const rules = parseDucking(mix.ducking);
@@ -93,7 +94,19 @@ describe('61라운드 계약 sound §9 믹싱', () => {
     // 61 단계 6: 전환음 → 효과음 −8·BGM −4, 도장 → 효과음(1 이하) −4 (줍기류 대상 규칙은 그룹 대상이라 아직 해석 안 함)
     // 62 루프 2 (sound §13): 막타 슬로모 → 효과음 −5·BGM −4 280ms · 사망 슬로모 → 효과음 −10·BGM −12 · 층 끝 → BGM −6
     // P19 (sound §14): 벽꽝·볼링 → 효과음 −3 120ms · 큰 폭발 → 효과음 −4 200ms · BGM −3 300ms
-    expect(rules).toHaveLength(15);
+    // P21 (sound §15): 처형 → 효과음(≤2) −9 · BGM −6 300ms · 심장 박동 → BGM −2.5
+    expect(rules).toHaveLength(18);
+    expect(
+      ducksFor(rules, { group: 'sfx/execute_hit', priority: 3 })
+        .map((r) => [r.target.bus, r.db])
+        .sort(),
+    ).toEqual([
+      ['bgm', -6],
+      ['sfx', -9],
+    ]);
+    expect(ducksFor(rules, { group: 'sfx/heartbeat_loop', priority: 3 }).map((r) => [r.target.bus, r.db])).toEqual([
+      ['bgm', -2.5],
+    ]);
     for (const g of ['sfx/wall_slam_wall', 'sfx/wall_slam_prop', 'sfx/wall_slam_pillar', 'sfx/enemy_bowl'])
       expect(
         ducksFor(rules, { group: g, priority: 3 }).map((r) => [r.target.bus, r.db, r.holdMs]),

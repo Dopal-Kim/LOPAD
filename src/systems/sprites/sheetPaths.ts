@@ -42,6 +42,11 @@ export interface SheetRequest {
   category: SpriteCategory;
   name: string;
   action: string;
+  /**
+   * P21: 파일 이름이 `<이름>_<동작>` 이 아닌 시트 (확장자 없이, 분류 폴더 기준 — 예 `hero_wound1_player_idle` · `v5/blood_drip`).
+   * 등록 이름·동작은 name·action 그대로 (주인공 처형 시트를 player 동작으로 쓰는 등)
+   */
+  file?: string;
 }
 
 /** 로드 대상: 주인공 6동작, 이름 목록(적·보스 id)별 5동작, 무기 id 별 attack 오버레이, 이펙트 id 목록, 구조물 시트 id 목록 */
@@ -90,6 +95,7 @@ export function wantedSheets(
 
 /** `sprites/<분류>/<이름>_<동작>.json` (매니페스트·URL 공통 상대 경로). 이펙트는 `sprites/fx/<이름>.json` */
 export function sheetJsonPath(r: SheetRequest): string {
+  if (r.file) return `${ASSETS.SPRITES_DIR}/${r.category}/${r.file}.json`;
   if (r.category === 'fx' || r.category === 'structures' || r.category === 'items')
     return `${ASSETS.SPRITES_DIR}/${r.category}/${r.name}.json`;
   return `${ASSETS.SPRITES_DIR}/${r.category}/${r.name}_${r.action}.json`;

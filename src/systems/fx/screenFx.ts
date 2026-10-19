@@ -70,6 +70,10 @@ export class ScreenFx {
   private edgeImg: Phaser.GameObjects.Image | null = null;
   private edgeState: { alpha0: number; start: number; ms: number } | null = null;
   private edgeCount = 0;
+  /**
+   * P21 (계약 dark-brutal §7): 월드 색 보정(ColorGrade)이 켜져 있으면 채도 감소를 그 행렬에 합친다 — 이 클래스는 ColorMatrix 를 붙이지 않는다
+   */
+  desatSink: ((v: number) => void) | null = null;
 
   constructor(private readonly scene: Phaser.Scene) {
     this.webgl = scene.sys.game.renderer.type === Phaser.WEBGL;
@@ -216,6 +220,10 @@ export class ScreenFx {
 
   /** v > 0 이면 채도 감소를 켜고(WebGL: ColorMatrix 를 그때 붙임), 0 이면 떼어 평소에는 후처리 패스가 없다 */
   private applyDesat(v: number): void {
+    if (this.desatSink) {
+      this.desatSink(v);
+      return;
+    }
     if (this.webgl) {
       if (v <= 0) {
         this.removeMatrix();

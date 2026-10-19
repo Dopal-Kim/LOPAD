@@ -138,6 +138,8 @@ export const UI_EVENTS = {
   ...loop2CEvents(),
   /** P19 S1 자유 전투 반응 이벤트 (아래 'P19 S1' 절) */
   ...p19S1Events(),
+  /** P21 어두운 톤·잔혹 전투·상흔 이벤트 (아래 'P21' 절 — 계약 dark-brutal.md §2) */
+  ...p21Events(),
 } as const;
 
 /**
@@ -1119,6 +1121,8 @@ export const UI_DEFAULT_SETTINGS: Readonly<UiSettings> = Object.freeze({
   keys: { up: 'W', down: 'S', left: 'A', right: 'D', dash: 'SPACE', interact: 'E', potion: 'Q' },
   hitstop: true,
   textScale: 1,
+  // P21 (계약 dark-brutal §1): 고어 2 전체 · 1 줄임 · 0 끔
+  gore: 2,
 });
 
 /** 60라운드 §14.8 소모품 칸 */
@@ -1986,4 +1990,80 @@ export interface UiOffscreenEnemy {
 export interface UiSnapshot {
   /** P19 S3: 카메라 화면(worldView) 밖에 있는 살아 있는 적. 없으면 [] (게임 씬 밖이면 생략) */
   offscreen?: UiOffscreenEnemy[];
+}
+
+// ═════════════════════════════════════════════════════════════════
+// P21 어두운 톤 · 잔혹 전투 · 상흔 (계약 dark-brutal.md §1·§2). 시스템 내부 이벤트를 같은 이름의 `ui:` 접두로 중계한다
+// (free-combat §1 과 같은 규칙 — x·y 가 있으면 논리 화면 좌표 `screen` 을 붙인다).
+// ═════════════════════════════════════════════════════════════════
+
+/** P21 §1 고어 설정: 2 전체(기본) · 1 줄임(절단·잘린 조각 없음, 피 1/3·더 어둡게) · 0 끔(먹·재 입자, 데칼·사망 변형 없음) */
+export type UiGoreLevel = 0 | 1 | 2;
+
+export interface UiSettings {
+  /** P21 §1 고어 (기본 2). 스냅샷에는 늘 들어 있다 */
+  gore?: UiGoreLevel;
+}
+
+/** P21 이벤트 키 (UI_EVENTS 에 펼쳐 넣는다) */
+function p21Events() {
+  return {
+    /** 처형 대상(공격 키가 처형이 되는 적 하나) 켜기·끄기 (`UiEnemyExecutable`) — 바뀔 때만, on:false 는 즉시 숨김 (위치는 스냅샷 `executable`) */
+    ENEMY_EXECUTABLE: 'ui:enemy-executable',
+    /** 처형 시작 (`UiPlayerExecute`) — 끝나면 일반 처치 이벤트 */
+    PLAYER_EXECUTE: 'ui:player-execute',
+    /** 주인공 상처 단계가 바뀜 · 화살이 박힘 (`UiPlayerWounded`) */
+    PLAYER_WOUNDED: 'ui:player-wounded',
+    /** HP ≤ 25% 진입·이탈 (`UiLowHp`) */
+    LOW_HP: 'ui:low-hp',
+  } as const;
+}
+
+export interface UiEnemyExecutable {
+  /** 논리 화면 좌표 (960×540, 카메라 반영 — 적 발밑). on false 면 마지막 자리 */
+  screen: { x: number; y: number };
+  /** 적 종류 id */
+  id: string;
+  /** 이 씬 안의 개체 번호 (`UiOffscreenEnemy.id` 와 같은 번호 — 켜기·끄기 짝 맞추기) */
+  uid: number;
+  x: number;
+  y: number;
+  on: boolean;
+}
+
+export interface UiPlayerExecute {
+  /** 논리 화면 좌표 (대상 자리) */
+  screen: { x: number; y: number };
+  /** 대상 적 종류 id */
+  target: string;
+  x: number;
+  y: number;
+  weapon: 'katana' | 'greatsword' | 'dagger' | 'bow';
+  /** 처형 동작 길이 */
+  ms: number;
+  /** 시작 → 결정타 ms (시스템 추가 — 결정타 순간 연출용) */
+  impactMs?: number;
+}
+
+export interface UiPlayerWounded {
+  /** 0 성함 · 1 (≤75%) 가는 균열 · 2 (≤50%) 균열 벌어짐 · 3 (≤25%) 크게 갈라짐 */
+  stage: 0 | 1 | 2 | 3;
+  /** 몸에 박힌 화살 수 (0~5, 노드가 바뀌면 0) */
+  arrows: number;
+}
+
+export interface UiLowHp {
+  on: boolean;
+  /** HP 비율 0~1 */
+  ratio: number;
+}
+
+export interface UiSnapshot {
+  /** P21 §2: 주인공 상처 (게임 씬 밖이면 생략) */
+  player?: { wound: UiPlayerWounded };
+  /**
+   * P21 §2 조정: 지금 처형 가능한 적들 — 개체 uid · 화면 좌표(발밑, 논리 960×540). 없으면 [] (게임 씬 밖이면 생략).
+   * 공격 키가 처형으로 바뀌는 대상은 그중 `ui:enemy-executable{on:true}` 를 받은 것 하나 (가장 가까운 적)
+   */
+  executable?: { uid: number; screen: { x: number; y: number } }[];
 }

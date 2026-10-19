@@ -89,7 +89,8 @@ export class Progression {
 
   // --- 처치 · 개성 ---
 
-  onKill(mob: Mob, kind: KillKind): void {
+  /** growthMult: P21 처형 처치 = 각성 게이지 ×2 (dark-brutal §4) */
+  onKill(mob: Mob, kind: KillKind, growthMult = 1): void {
     const g = this.g;
     gameState.kills += 1;
     // 47라운드: 판돈 종·룰렛 '배수 판' 배율
@@ -107,7 +108,8 @@ export class Progression {
           (1 + gameState.passives.total('personalityMult')) *
           km.personalityMult *
           g.build.combat.personalityMult() *
-          em,
+          em *
+          growthMult,
       ),
     );
     // 57라운드 빌드 축: 처치 사건 (연쇄·표식·상흔·취기·저주 궤짝·갈래)

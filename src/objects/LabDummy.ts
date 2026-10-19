@@ -4,6 +4,7 @@
  * 움직이지 않고(넉백·밀쳐내기 무시) 접촉 피해도 없다. 개성·골드를 주지 않는다.
  */
 import Phaser from 'phaser';
+import { goreHooksOf } from '../systems/gore/goreHooks';
 import { ENEMY_FX, FEEDBACK, LAB, COLORS } from '../core/Constants';
 import { EventBus, Events, type EnemyDamagedPayload } from '../core/EventBus';
 import { Mob, type DamageInfo, type MobContext } from './Mob';
@@ -97,6 +98,19 @@ export class LabDummy extends Mob {
       tick: Boolean(info.tick),
       weapon: info.weapon,
     } satisfies EnemyDamagedPayload);
+    // P21: 시험장 허수아비도 피·튐은 보인다 (죽지 않으니 상처 단계·사망 변형은 없음)
+    goreHooksOf(this.scene)?.onMobDamaged(this, {
+      amount,
+      hpBefore: this.hp,
+      died: false,
+      crit: Boolean(info.crit),
+      tick: Boolean(info.tick),
+      heavy: Boolean(info.heavy),
+      dirX: info.dirX,
+      dirY: info.dirY,
+      weapon: info.weapon,
+      cause: info.cause,
+    });
     // 56라운드 Q36: 호박 반투명 80ms (히트스톱에 늘어나지 않음)
     this.visual.flashOverlay(COLORS.MOB_HURT, FEEDBACK.MOB_HURT.ALPHA, FEEDBACK.MOB_HURT.MS, FEEDBACK.MOB_HURT.ADD);
     return false;

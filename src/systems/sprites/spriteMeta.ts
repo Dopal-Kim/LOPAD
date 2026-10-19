@@ -41,7 +41,8 @@ export function v3Only(r: Pick<SheetRequest, 'category' | 'name'>): boolean {
  */
 export function sheetJsonCandidates(r: SheetRequest): string[] {
   // 61 G: v3 전용 묶음도 v4(각성 외형) 가 있으면 먼저
-  if (v3Only(r)) return [sheetJsonPathTier(r, ASSETS.V4_DIR), sheetJsonPathTier(r, ASSETS.V3_DIR)];
+  // P21: 파일 이름을 정한 시트(file)는 v3 전용 묶음이어도 기존 폴더까지 본다
+  if (v3Only(r) && !r.file) return [sheetJsonPathTier(r, ASSETS.V4_DIR), sheetJsonPathTier(r, ASSETS.V3_DIR)];
   return [...SHEET_TIERS.map((t) => sheetJsonPathTier(r, t)), sheetJsonPath(r)];
 }
 

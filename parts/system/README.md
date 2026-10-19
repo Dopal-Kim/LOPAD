@@ -71,6 +71,10 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 - 사연 `bundle/EventNode`(NPC·말 걸기·아이콘 줄 `systems/bundle2/eventIcons`·결과 컷 `bundle/eventArt`) · 장터 `ShopStalls`(+ 순수 `systems/loop2d/stallRules`) · `Economy`(상인 말 걸기 shopTalk·외상) · 나가기 `RunExit`(자동 저장·이어하기 `restoreSuspend`·런 포기) · 로딩 `loadingReport`·`NodePrefetch`(HTTP 캐시 미리 받기) · 세트피스·그을음 `world/heroSetpiece`+`heroDressing` · 웨이브 방향 `systems/waveSides` · 로딩 팁 `systems/loadingTips`+`data/loading.json` · 설정 키 `systems/settings`(keys·hitstop·textScale) · 전체화면 `systems/fullscreen`.
 - 디버그: 타이틀에서도 `__lopad.cmd()` = 계약 명령(`hasSave`·`continueRun`·`saveAndQuit`·`abandonRun`·`setFullscreen`).
 
+### P21 어두운 톤 · 잔혹 전투 · 상흔 (계약 dark-brutal · CHANGELOG 'P21 시스템 1차' 절)
+- `scenes/game/brutal/*`: `Brutal`(묶음) · `GoreFx`(피·데칼·상처·시체·사망 변형) · `HeroWounds`(주인공 상흔·박힌 화살·저HP) · `Execution`(처형) · `brutalArt`(아트 시트 이름 §8). 순수 규칙 `systems/gore/rules` · 연결점 `systems/gore/goreHooks`.
+- 화면 톤 `systems/fx/colorGrade`(+ `gradeMath`) ← `data/grade.json` — 월드 카메라 ColorMatrix·비네트·그레인·저HP, 보정 없는 층 `ungradedOf(scene)`(예고·빛 번짐·불씨). `?grade=0` 끔. 음향 `systems/audio/audioP21`. 디버그 `window.__lopadBrutal()`(?debug).
+
 ### `src/world/`
 - `TileWorld`(타일맵·문·출구) · `QuarterView`(쿼터뷰 벽) · `tileskin`(타일셋 해석) · `border`/`BorderView`(외벽 테두리, 지역 노드 진입 때 지연 로드) · `bigProps*`(큰 소품 배치) · `SetPieceView`·`StructureView` · `floorFeatures` · `quarterScale`(64도트 = 1칸 환산)
 
@@ -96,7 +100,8 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 | `bundle2.json` | 2차 묶음(노드 보상·위험·이벤트·숨은 노드·상점·성소·등급·엘리트·파훼·소모품) |
 | `story.json` | 문구(스토리 파트 텍스트 팩 — 61: 단서·무기 한마디·만취 대사·이름 번짐) |
 | `narrative.json` | 61 서사 연결 수치·서사 소품 배치 · 62 시작 의식 `ritual`(안내·획 규칙·왜·결과 한 줄·회피 시험 과제·탄생 전장 소품 — 검증 `src/data/ritual.ts`, 의식 문구 숫자 금지) |
-| `palette.json` · `lighting.json` | 층 램프 · 동적 조명 |
+| `palette.json` · `lighting.json` | 층 램프 · 동적 조명 (P21: `shapeAmbientMult` 형태 틀 주변광 배율 · `playerRim` 주인공 림) |
+| `grade.json` | P21 월드 색 보정 (아트 A 값 — 의미 `src/systems/fx/gradeMath.ts`) |
 | `training.json` | 61 단계 6 수련장: 방 8(무기·준비물·과제 조건) · 대표 개성 · 수치 · 문장(스토리 팩 text 복사) |
 | `buildExclude.json` | 배포 빌드에서 뺄 에셋 경로 패턴(원본 보관) |
 

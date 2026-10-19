@@ -72,6 +72,7 @@ import { BirthFlow } from './game/BirthFlow';
 import { exposeGameDebug } from './game/DebugHooks';
 import { Economy } from './game/Economy';
 import { createFx } from './game/FxWiring';
+import { Brutal } from './game/brutal/Brutal';
 import { GameCamera } from './game/GameCamera';
 import { GameCombat } from './game/GameCombat';
 import { LabMode } from './game/LabMode';
@@ -164,6 +165,8 @@ export class Game extends Phaser.Scene {
   /** 62라운드 P1-1 처치 슬로모·P2-13 가장자리 섬광 · P1-4 적 가독성(림·HP 막대) — 둘 다 씬 종료 때 스스로 정리 */
   combatFeel: CombatFeel;
   readability: MobReadability;
+  /** P21 피·상처·처형·화면 톤 (scenes/game/brutal — 씬 종료 때 스스로 정리) */
+  brutal: Brutal;
   /** 50라운드 동적 조명 + 어둠 (지역 조명이 없으면 꺼진 채) */
   lighting: Lighting;
   readonly hitStop = new HitStop();
@@ -327,6 +330,7 @@ export class Game extends Phaser.Scene {
 
     this.createActors();
     createFx(this, floor);
+    this.brutal = new Brutal(this);
     // 55라운드 Q14 ②: 지연 효과음(휘두름 소리)도 씬 시계로 — 히트스톱 동안 함께 멈춘다
     audio.setDelayScheduler((ms, fire) => this.time.delayedCall(ms, fire));
     this.menu = new TextMenu(this);
@@ -601,6 +605,7 @@ export class Game extends Phaser.Scene {
       [Events.HAZARD_EXPLODED, c.reactionFx.onExploded, c.reactionFx],
       [Events.ENEMY_STAGGERED, c.reactionFx.onStaggered, c.reactionFx],
       ...ui.p19Relays(),
+      ...ui.p21Relays(),
     ];
     for (const [event, fn, ctx] of this.subs) EventBus.on(event, fn, ctx);
   }
@@ -686,6 +691,8 @@ export class Game extends Phaser.Scene {
     input = this.structures.adjustAim(input, time);
     this.player.sprintAllowed = !this.director.inCombat;
     this.build.update(time);
+    // P21: 처형 가능한 적이 있으면 공격 키가 처형으로 (처형 중에는 입력을 막는다)
+    input = this.brutal.execution.filterInput(input, time);
     this.player.update(input, time, delta);
     this.motion.update(time);
     this.cam.update(false, delta);
@@ -738,6 +745,7 @@ export class Game extends Phaser.Scene {
     for (const child of [...this.mobs.getChildren()]) (child as Mob).update(ctx);
     // P19: 날아가는 적의 낙하·벽꽝·볼링
     c.reactions.update();
+    this.brutal.update(time);
     this.bundle.lateUpdate(time);
     this.telegraph.update(time);
     for (const child of this.projectiles.getChildren()) (child as Projectile).tick(time);

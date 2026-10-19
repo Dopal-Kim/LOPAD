@@ -10,6 +10,7 @@ import personalityJson from '../../data/personality.json';
 import storyJson from '../../data/story.json';
 import paletteJson from '../../data/palette.json';
 import lightingJson from '../../data/lighting.json';
+import gradeJson from '../../data/grade.json';
 import { validateCombo } from './validateCombo';
 import { checkPatternParams, isBossPatternName, resolvePatternParams, type BossPatternName } from './bossPatterns';
 import { validateBossShow } from './bossShowTypes';
@@ -19,6 +20,7 @@ import type {
   EnemyTable,
   LightDefData,
   LightingAmbient,
+  GradeData,
   LightingData,
   PaletteData,
   PersonalityData,
@@ -489,6 +491,7 @@ export function validateLighting(d: LightingData): LightingData {
   amb(d.default, 'lighting.default');
   validateLight(d.player, 'lighting.player');
   if (d.mob) validateLight(d.mob, 'lighting.mob');
+  if (d.playerRim) validateLight(d.playerRim, 'lighting.playerRim');
   validateLight(d.weaponFx, 'lighting.weaponFx');
   validateLight(d.telegraph, 'lighting.telegraph');
   for (const [id, l] of Object.entries(d.fallback))
@@ -501,3 +504,20 @@ export function validateLighting(d: LightingData): LightingData {
 }
 
 export const LIGHTING: LightingData = validateLighting(lightingJson as unknown as LightingData);
+
+/** P21 색 보정 (계약 dark-brutal §7): 숫자·색 형식 확인 */
+export function validateGrade(d: GradeData): GradeData {
+  for (const k of ['saturation', 'contrast', 'brightness'] as const) assertNumber(d[k], `grade.${k}`);
+  if (!HEX.test(d.shadowTint)) throw new Error('[data] grade.shadowTint 형식 오류');
+  assertNumber(d.vignette?.strength, 'grade.vignette.strength');
+  assertNumber(d.vignette?.radius, 'grade.vignette.radius');
+  assertNumber(d.grain?.amount, 'grade.grain.amount');
+  assertNumber(d.grain?.fps, 'grade.grain.fps');
+  assertNumber(d.lowHp?.saturation, 'grade.lowHp.saturation');
+  assertNumber(d.lowHp?.pulseHz, 'grade.lowHp.pulseHz');
+  if (d.lowHp.vignetteColor !== '' && !HEX.test(d.lowHp.vignetteColor))
+    throw new Error('[data] grade.lowHp.vignetteColor 형식 오류');
+  return d;
+}
+
+export const GRADE: GradeData = validateGrade(gradeJson as unknown as GradeData);

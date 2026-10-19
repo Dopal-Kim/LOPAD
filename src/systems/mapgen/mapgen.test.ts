@@ -125,6 +125,8 @@ describe('generateFloor', () => {
 
   it('바닥은 모두 벽 또는 바닥으로만 둘러싸인다 (빈 공간 노출 없음)', () => {
     const L = floorOf('walls');
+    // 칸마다 expect 를 부르면 수만 번이라 부하가 큰 전체 실행에서 5초를 넘는다 — 어긋난 칸만 모아 한 번에 본다
+    const voids: string[] = [];
     for (let y = 0; y < L.heightTiles; y++) {
       for (let x = 0; x < L.widthTiles; x++) {
         if (!walkable(L.tiles[y][x])) continue;
@@ -134,11 +136,11 @@ describe('generateFloor', () => {
           [0, 1],
           [0, -1],
         ]) {
-          const t = L.tiles[y + dy]?.[x + dx];
-          expect(t, `void next to floor at ${x},${y}`).not.toBe(TileId.Void);
+          if (L.tiles[y + dy]?.[x + dx] === TileId.Void) voids.push(`${x},${y}`);
         }
       }
     }
+    expect(voids, 'void next to floor').toEqual([]);
   });
 
   it('cellRoom 은 방 셀만 담는다', () => {
