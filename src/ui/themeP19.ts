@@ -38,16 +38,16 @@ export const OFFSCREEN = {
 export const POP = {
   /** 동시에 떠 있는 팝 상한 (넘으면 가장 오래된 것부터 지운다 — 과하지 않게) */
   max: 4,
-  /** 나타남 · 머묾 · 사라짐 */
-  inMs: 60,
+  /** 나타남 · 머묾 · 사라짐 (P21: 덜 튀게 — 들어옴 60 → 120, 뜸 10 → 4, 문자 12 → 10) */
+  inMs: 120,
   holdMs: 420,
-  outMs: 220,
+  outMs: 260,
   /** 머무는 동안 위로 뜨는 px */
-  rise: 10,
+  rise: 4,
   /** 맞은 자리 위로 */
-  lift: 18,
+  lift: 16,
   /** 그림 문자 한 변 · 숫자와 사이 */
-  glyph: 12,
+  glyph: 10,
   gap: 3,
   depth: 5,
 } as const;
@@ -62,8 +62,8 @@ export const COMBO = {
   /** 마지막 처치 뒤 머묾 (windowMs 가 오면 그 값) · 사라짐 */
   holdMs: 1500,
   outMs: 260,
-  /** 새 처치마다 숫자 튀어오름 px */
-  bump: 3,
+  /** 새 처치마다 숫자 튀어오름 px (P21: 3 → 1) */
+  bump: 1,
   depth: 8,
 } as const;
 

@@ -5,9 +5,13 @@
 import {
   DEFAULT_TITLE_SPEC,
   EMBER_ROWS,
+  TITLE_EMBERS,
+  TITLE_IMAGES,
   TITLE_UI,
+  TITLE_WEATHER,
   TITLE_WEAPONS,
   type EmitterSpec,
+  type ExtraLayerSpec,
   type FogSpec,
   type TitleSpec,
   type VoiceSpec,
@@ -67,6 +71,7 @@ export function readTitleSpec(title: unknown, embers: unknown, fog: unknown, fra
   const spec: TitleSpec = structuredCloneSpec(D);
   if (t) {
     const layers = Array.isArray(t.layers) ? (t.layers as unknown[]).map(obj) : [];
+    spec.extras = readExtraLayers(layers);
     for (const l of layers) {
       if (!l || typeof l.key !== 'string') continue;
       if (l.key === 'title_bg_far') spec.layers.far = num(l.parallax, D.layers.far);
@@ -137,6 +142,8 @@ export function readTitleSpec(title: unknown, embers: unknown, fog: unknown, fra
       const out = { ...D.logo.dots };
       for (const w of TITLE_WEAPONS) out[w] = pair(dots?.[w], D.logo.dots[w]);
       spec.logo = { x: num(lg.x, D.logo.x), y: num(lg.y, D.logo.y), w: size[0], h: size[1], splitY, dots: out };
+      if (letters && letters.length >= 4 && letters.every((v) => typeof v === 'number'))
+        spec.logoBox = [letters[0], letters[1], letters[2], letters[3]];
     }
     // art §30: 성문 자리 · 로고 쓰기 마스크
     const gate = obj(t.gate);
@@ -208,45 +215,168 @@ export function readTitleSpec(title: unknown, embers: unknown, fog: unknown, fra
     if (Array.isArray(e.emitters)) {
       const out: EmitterSpec[] = [];
       for (const raw of e.emitters as unknown[]) {
-        const o = obj(raw);
-        if (!o || typeof o.name !== 'string') continue;
-        const d = D.emitters.find((x) => x.name === o.name) ?? D.emitters[0];
-        const rows = Array.isArray(o.rows)
-          ? (o.rows as unknown[]).map((r) => (rowNames as string[]).indexOf(String(r))).filter((r) => r >= 0)
-          : d.rows;
-        if (!rows.length) continue;
-        const wts =
-          Array.isArray(o.weights) && o.weights.length === rows.length
-            ? (o.weights as unknown[]).map((w) => Math.max(0, num(w, 1)))
-            : rows.map(() => 1);
-        const area = obj(o.area);
-        const vel = obj(o.velocity);
-        const drift = parseDrift(o.drift, { amp: d.driftAmp, ms: d.driftMs });
-        const voice = o.name === 'voices' || typeof o.origins === 'string';
-        out.push({
-          name: o.name,
-          rows,
-          weights: wts,
-          area: area
-            ? { x: num(area.x, 0), y: num(area.y, 0), w: num(area.w, 0), h: num(area.h, 0) }
-            : voice
-              ? null
-              : d.area,
-          voice,
-          rate: parseRange(o.rate, d.rate),
-          life: pair(o.lifespanMs, d.life),
-          vx: pair(vel?.x, d.vx),
-          vy: pair(vel?.y, d.vy),
-          driftAmp: drift.amp,
-          driftMs: drift.ms,
-          alphaMax: parseAlphaMax(o.alpha, d.alphaMax),
-          layer: o.name === 'city' || (typeof o.depth === 'string' && o.depth.includes('far')) ? 'city' : 'near',
-        });
+        const em = readEmitter(raw, rowNames as string[]);
+        if (em) out.push(em);
       }
       if (out.length) spec.emitters = out;
     }
   }
+  if (t) readWeather(t, spec);
   return spec;
+}
+
+/** 방출기 하나 (title_fx_embers.json · title.json ash 공통). 행 이름을 모르면 null */
+function readEmitter(raw: unknown, rowNames: string[]): EmitterSpec | null {
+  const D = DEFAULT_TITLE_SPEC;
+  const o = obj(raw);
+  if (!o || typeof o.name !== 'string') return null;
+  const d = D.emitters.find((x) => x.name === o.name) ?? D.emitters[0];
+  const rows = Array.isArray(o.rows)
+    ? (o.rows as unknown[]).map((r) => rowNames.indexOf(String(r))).filter((r) => r >= 0)
+    : d.rows;
+  if (!rows.length) return null;
+  const wts =
+    Array.isArray(o.weights) && o.weights.length === rows.length
+      ? (o.weights as unknown[]).map((w) => Math.max(0, num(w, 1)))
+      : rows.map(() => 1);
+  const area = obj(o.area);
+  const vel = obj(o.velocity);
+  const drift = parseDrift(o.drift, { amp: d.driftAmp, ms: d.driftMs });
+  const voice = o.name === 'voices' || typeof o.origins === 'string';
+  return {
+    name: o.name,
+    rows,
+    weights: wts,
+    area: area ? { x: num(area.x, 0), y: num(area.y, 0), w: num(area.w, 0), h: num(area.h, 0) } : voice ? null : d.area,
+    voice,
+    rate: parseRange(o.rate, d.rate),
+    life: pair(o.lifespanMs, d.life),
+    vx: pair(vel?.x, d.vx),
+    vy: pair(vel?.y, d.vy),
+    driftAmp: drift.amp,
+    driftMs: drift.ms,
+    alphaMax: parseAlphaMax(o.alpha, d.alphaMax),
+    layer: o.name === 'city' || (typeof o.depth === 'string' && o.depth.includes('far')) ? 'city' : 'near',
+  };
+}
+
+/** title.json `layers[]` 에서 그 key 의 depth */
+function layerDepth(t: Obj, key: string, d: number): number {
+  const l = (Array.isArray(t.layers) ? (t.layers as unknown[]) : []).map(obj).find((x) => x?.key === key);
+  return num(l?.depth, d);
+}
+
+/** "0 → 0.8 (0.6s) → 0 (마지막 1.5s)" → 최대 0.8 · 들어옴 600 · 나감 1500 */
+export function parseFade(text: unknown, d: { max: number; inMs: number; outMs: number }): typeof d {
+  if (typeof text !== 'string') return d;
+  const m = /→\s*([\d.]+)\s*\(\s*([\d.]+)\s*s\s*\)\s*→\s*0\s*\([^\d]*([\d.]+)\s*s/.exec(text);
+  return m ? { max: clamp01(Number(m[1])), inMs: Number(m[2]) * 1000, outMs: Number(m[3]) * 1000 } : d;
+}
+
+/** P21 날씨 (title.json rain·crows·ash). 그림 층 항목(layers 의 title_fx_rain#far 등)의 depth 를 쓴다 */
+function readWeather(t: Obj, spec: TitleSpec): void {
+  const rain = obj(t.rain);
+  if (rain && Array.isArray(rain.instances)) {
+    spec.rain = [];
+    (rain.instances as unknown[]).forEach((raw, i) => {
+      const o = obj(raw);
+      if (!o) return;
+      const layer = i === 0 || String(o.name ?? '').includes('far') ? 'far' : 'near';
+      const v = obj(o.speedPxPerSec);
+      spec.rain.push({
+        layer,
+        depth: layerDepth(t, `title_fx_rain#${layer}`, layer === 'far' ? 2.3 : 9.7),
+        scale: Math.max(0.1, num(o.scale, 1)),
+        alpha: clamp01(num(o.alpha, 0.4)),
+        vx: num(v?.x, 0),
+        vy: num(v?.y, 0),
+      });
+    });
+  }
+  const c = obj(t.crows);
+  if (c) {
+    const f = obj(c.flights);
+    const piv = obj(c.pivot);
+    const fw = num(c.frameWidth, 72);
+    const fh = num(c.frameHeight, 48);
+    const path = typeof f?.path === 'string' ? f.path : '';
+    const ys = /y\s*([\d.]+)\s*~\s*([\d.]+)/.exec(path);
+    const sway = /±\s*([\d.]+)\s*px/.exec(path);
+    const per = /주기\s*([\d.]+)\s*s/.exec(path);
+    spec.crows = {
+      frameW: fw,
+      frameH: fh,
+      frames: Math.max(1, num(c.frames, 6)),
+      fps: Math.max(1, num(c.fps, 11)),
+      pivot: [num(piv?.x, fw / 2), num(piv?.y, fh / 2)],
+      intervalMs: pair(f?.intervalMs, [7000, 15000]),
+      count: pair(f?.count, [1, 3]),
+      spread: pair(f?.spreadPx, [40, 120]),
+      y: ys ? [Number(ys[1]), Number(ys[2])] : [160, 520],
+      swayPx: sway ? Number(sway[1]) : 30,
+      swayMs: per ? Number(per[1]) * 1000 : 1400,
+      speed: pair(f?.speedPxPerSec, [150, 230]),
+      scale: pair(f?.scale, [0.5, 1]),
+      nearScale: 0.75,
+      depthFar: layerDepth(t, 'title_fx_crow#far', 2.6),
+      depthNear: layerDepth(t, 'title_fx_crow#near', 9.5),
+    };
+  }
+  const a = obj(t.ash);
+  if (a && Array.isArray(a.emitters)) {
+    const rowNames = Array.isArray(a.rows) ? (a.rows as unknown[]).map(String) : ['ash_s', 'ash_l'];
+    const fw = num(a.frameWidth, 18);
+    const fh = num(a.frameHeight, 18);
+    const emitters = (a.emitters as unknown[])
+      .map((e) => readEmitter(e, rowNames))
+      .filter((e): e is EmitterSpec => Boolean(e))
+      .map((e) => ({ ...e, layer: 'near' as const, voice: false }));
+    const first = obj((a.emitters as unknown[])[0]);
+    const fade = parseFade(first?.alpha, { max: 0.8, inMs: 600, outMs: 1500 });
+    if (emitters.length)
+      spec.ash = {
+        sheet: {
+          frameW: fw,
+          frameH: fh,
+          perRow: Math.max(1, num(a.framesPerRow, 8)),
+          pivot: [fw / 2, fh / 2],
+          fps: Math.max(1, num(a.fps, 8)),
+          rowNames,
+        },
+        emitters: emitters.map((e) => ({ ...e, alphaMax: fade.max })),
+        scale: pair(first?.scale, [1, 1]),
+        inMs: fade.inMs,
+        outMs: fade.outMs,
+        depth: layerDepth(t, 'title_fx_ash', 9.3),
+      };
+  }
+}
+
+/** 이미 아는 그림 파일 (기존 층 — 따로 그린다) */
+const KNOWN_IMAGES = new Set<string>([...TITLE_IMAGES, TITLE_EMBERS, ...TITLE_WEATHER]);
+const BLENDS = ['NORMAL', 'ADD', 'MULTIPLY', 'SCREEN'] as const;
+
+/** P21: title.json `layers[]` 에서 아는 파일 밖의 그림 층만 (깊이 순) */
+export function readExtraLayers(layers: (Obj | null)[]): ExtraLayerSpec[] {
+  const out: ExtraLayerSpec[] = [];
+  for (const l of layers) {
+    const file = typeof l?.image === 'string' ? l.image : '';
+    const m = /^([A-Za-z0-9_-]+)\.png$/.exec(file);
+    if (!l || !m || KNOWN_IMAGES.has(m[1])) continue;
+    const blend = BLENDS.find((b) => b === String(l.blendMode ?? '').toUpperCase()) ?? 'NORMAL';
+    out.push({
+      image: m[1],
+      depth: num(l.depth, 9.5),
+      parallax: num(l.parallax, 1),
+      blend,
+      x: num(l.x, 0),
+      y: num(l.y, 0),
+      alpha: clamp01(num(l.alpha, 1)),
+      speed: num(l.speedPxPerSec, 0),
+      flicker: l.flicker === true,
+    });
+  }
+  return out.sort((a, b) => a.depth - b.depth);
 }
 
 function structuredCloneSpec(s: TitleSpec): TitleSpec {
@@ -270,6 +400,23 @@ export function voiceLevel(tMs: number, v: Pick<VoiceSpec, 'periodMs' | 'offsetM
 /** 세기 → 알파 (꺼진 동안도 최소값 유지) */
 export function voiceAlpha(level: number, alpha: [number, number]): number {
   return alpha[0] + (alpha[1] - alpha[0]) * clamp01(level);
+}
+
+/**
+ * P21 불씨 일렁임 배율 (1 − amp … 1): 느린 두 사인을 겹치고, `dipEveryMs` 마다 짧게 꺼질 듯 잦아든다.
+ * `seed` 로 불씨마다 위상을 엇갈린다. 모션 줄이기면 부르는 쪽이 1 을 쓴다.
+ */
+export function emberFlicker(
+  tMs: number,
+  seed: number,
+  f: { amp: number; msA: number; msB: number; dipEveryMs: number; dipMs: number; dip: number },
+): number {
+  const a = Math.sin((2 * Math.PI * (tMs + seed * 397)) / f.msA);
+  const b = Math.sin((2 * Math.PI * (tMs + seed * 131)) / f.msB);
+  let k = 1 - f.amp * (0.5 + 0.25 * a + 0.25 * b);
+  const local = mod(tMs + seed * 1777, f.dipEveryMs);
+  if (local < f.dipMs) k *= 1 - (1 - f.dip) * Math.sin((Math.PI * local) / f.dipMs);
+  return clamp01(k);
 }
 
 /** 이 세기 이상이면 그 무기에서 불티가 난다 */
@@ -551,4 +698,23 @@ export function metaAutoEnter(m: {
   // 62 루프 2 UI E: 계약 C 기억 장('meta' 줄마다 `line.memory`)은 고를 것이 없어도 보여 준다 (지금 무엇이 흐릿한지 보는 장)
   if (m.id !== 'meta' || m.lines.some((l) => Boolean(l.memory))) return false;
   return m.lines.every((l) => !l.enabled || l.key === 'enter');
+}
+
+/**
+ * P21 까마귀 떼가 날 높이 (아트 px): `r` 0~1 로 [y0, y1] 안에서 고르되, 출렁임(±sway)·몸 높이까지 로고 글자 상자
+ * (`box` = [x0, y0, x1, y1], 화면 px)와 겹치면 상자 아래쪽 남은 구간으로 옮긴다. 남은 구간이 없으면 null(이번엔 날지 않음).
+ */
+export function crowFlightY(
+  r: number,
+  range: [number, number],
+  box: [number, number, number, number] | null,
+  sway: number,
+  bodyH: number,
+): number | null {
+  const pad = sway + bodyH / 2;
+  const [a, b] = range;
+  const y = a + clamp01(r) * (b - a);
+  if (!box || y + pad < box[1] || y - pad > box[3]) return y;
+  const lo = box[3] + pad + 1;
+  return lo > b ? null : lo + clamp01(r) * (b - lo);
 }

@@ -24,3 +24,11 @@ export const P19_EVENTS = {
   HAZARD_EXPLODED: contractEvent('HAZARD_EXPLODED', 'ui:hazard-exploded'),
   COMBO_STREAK: contractEvent('COMBO_STREAK', 'ui:combo-streak'),
 } as const;
+
+/** P21 어두운 톤 · 잔혹 전투 (계약 dark-brutal §2 — 시스템이 `ui:` 로 중계, 처형 표식은 screen 포함) */
+export const P21_EVENTS = {
+  ENEMY_EXECUTABLE: contractEvent('ENEMY_EXECUTABLE', 'ui:enemy-executable'),
+  PLAYER_EXECUTE: contractEvent('PLAYER_EXECUTE', 'ui:player-execute'),
+  PLAYER_WOUNDED: contractEvent('PLAYER_WOUNDED', 'ui:player-wounded'),
+  LOW_HP: contractEvent('LOW_HP', 'ui:low-hp'),
+} as const;

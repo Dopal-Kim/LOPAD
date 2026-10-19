@@ -5,6 +5,7 @@ import { withControlExtras } from './structView';
 import { R60_TEXT, type R60TextKey } from './textBuild';
 import { R61_TEXT, type R61TextKey } from './textR61';
 import { R62_TEXT, type R62TextKey } from './textR62';
+import { P21_TEXT, type P21TextKey } from './textP21';
 import { GROWTH_TEXT, type GrowthTextKey } from './textGrowth';
 import { STORY_TEXT, type StoryTextKey } from './textStory';
 import { TRAINING_TEXT, type TrainingTextKey } from './textTraining';
@@ -300,6 +301,11 @@ export function boundControlsLine(b: KeyBinds, potionName: string): string {
 /** 62 루프 2 설정·일시정지·로딩 문구 (textR62.ts, 임시값). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */
 export function r62Text(key: R62TextKey): string {
   return uiText('hud', key, R62_TEXT[key]);
+}
+
+/** P21 잔혹 묘사 안내·고어 설정 문구 (textP21.ts, 임시값 — 스토리 66 팩이 `hud.<키>` 로 바꾼다) */
+export function p21Text(key: P21TextKey): string {
+  return uiText('hud', key, P21_TEXT[key]);
 }
 
 /** 61라운드 단계 2·3 서사 표시·보스 UI 틀 문구 (textStory.ts STORY_TEXT, 임시값). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */

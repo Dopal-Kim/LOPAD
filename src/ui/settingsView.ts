@@ -7,19 +7,32 @@ import { DEFAULT_KEYS, type KeyActionId, type KeyBinds, KEY_ACTIONS, readKeyBind
  * 62 루프 2 (P1-16): 탭 넷(화면·소리·조작·접근성) + 전체화면 · 소리 끄기 · 키 재설정 · 글자 크기 · 히트스톱 끄기.
  * 계약에 새로 들어올 필드(시스템 D 추가 중 — 가정): `hitstop: boolean`(기본 true) · `keys: KeyBinds`(keyBindView).
  * 전체화면(브라우저)·소리 끄기(§11.3 setMuted)·글자 크기(UI 보기 설정 uiPrefs)는 `UiSettings` 밖 값이라 화면이 따로 읽고 쓴다.
+ * P21 (contracts/dark-brutal §1): `gore: 2 | 1 | 0` — 전체(기본) · 줄임 · 끔. 계약 코드에 아직 없으면 이 사본이 기본 2 를 채운다.
  */
+export type GoreLevel = 0 | 1 | 2;
+export const GORE_DEFAULT: GoreLevel = 2;
+/** 화면 왼쪽부터 (전체 · 줄임 · 끔) — 갈래 번호 i ↔ gore 2 − i */
+export const GORE_LEVELS: readonly GoreLevel[] = [2, 1, 0];
+
+/** 아무 값 → 고어 단계 (모르면 기본 2) */
+export function goreLevel(v: unknown): GoreLevel {
+  return v === 0 || v === 1 || v === 2 ? v : GORE_DEFAULT;
+}
+
 export interface SettingsValues extends UiSettings {
   /** 히트스톱(타격 순간 멈춤) 켜기 — 계약 필드 가정 */
   hitstop: boolean;
   /** 키 재설정 — 계약 필드 가정 */
   keys: KeyBinds;
+  /** P21 잔혹 묘사 단계 */
+  gore: GoreLevel;
 }
 
 export type SliderId = 'shake' | 'master' | 'bgm' | 'sfx';
 export type ToggleId = 'flash' | 'tilt' | 'damageNumbers' | 'hitstop';
 /** `UiSettings` 밖 켜고 끄기 (화면이 직접 읽고 바꾼다) */
 export type LocalToggleId = 'fullscreen' | 'muted';
-export type ChoiceId = 'textSize';
+export type ChoiceId = 'textSize' | 'gore';
 export type SettingId = SliderId | ToggleId;
 export type ActionId = 'resetKeys' | 'reset' | 'close';
 export type SettingsTab = 'screen' | 'sound' | 'controls' | 'access';
@@ -42,6 +55,7 @@ export const TAB_ROWS: Readonly<Record<SettingsTab, readonly SettingRow[]>> = {
   screen: [
     { id: 'fullscreen', kind: 'local' },
     { id: 'damageNumbers', kind: 'toggle' },
+    { id: 'gore', kind: 'choice' },
   ],
   sound: [
     { id: 'master', kind: 'slider' },
@@ -108,9 +122,14 @@ export function percentText(v: number): string {
   return `${Math.round(clamp01(v) * 100)}%`;
 }
 
-/** 계약 기본값 + 새 필드 기본값 (히트스톱 켬 · 기본 키) */
+/** 계약 기본값 + 새 필드 기본값 (히트스톱 켬 · 기본 키 · 고어 전체) */
 export function withDefaults(fallback: Readonly<UiSettings>): SettingsValues {
-  return { ...fallback, hitstop: true, keys: { ...DEFAULT_KEYS } };
+  return {
+    ...fallback,
+    hitstop: true,
+    keys: { ...DEFAULT_KEYS },
+    gore: goreLevel((fallback as { gore?: unknown }).gore),
+  };
 }
 
 /**
@@ -130,6 +149,7 @@ export function normalizeSettings(raw: unknown, fallback: Readonly<UiSettings>):
     if (typeof v === 'boolean') out[id] = v;
   }
   out.keys = readKeyBinds(r.keys);
+  if (r.gore !== undefined) out.gore = goreLevel(r.gore);
   // 계약 D 글자 크기 (1 | 1.25) — 그대로 실어 둔다 (UI 읽는 글 배율은 uiPrefs)
   if (typeof r.textScale === 'number' && Number.isFinite(r.textScale))
     (out as { textScale?: number }).textScale = r.textScale;
@@ -174,6 +194,7 @@ export function sameSettings(a: SettingsValues, b: SettingsValues): boolean {
     SLIDERS.every((id) => a[id] === b[id]) &&
     TOGGLES.every((id) => a[id] === b[id]) &&
     sameBinds(a.keys, b.keys) &&
+    a.gore === b.gore &&
     (a as { textScale?: unknown }).textScale === (b as { textScale?: unknown }).textScale
   );
 }

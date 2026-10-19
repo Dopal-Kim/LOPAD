@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { ART_H, ART_W, TITLE_UI, type EmitterSpec, type TitleSpec } from './themeTitle';
+import { ART_H, ART_W, TITLE_UI, type EmitterSpec, type SheetSpec } from './themeTitle';
 import { emberAlpha, pickWeighted } from './titleView';
 
 /**
@@ -35,9 +35,16 @@ export class EmberField {
     private scene: Phaser.Scene,
     private container: Phaser.GameObjects.Container,
     private texKey: string,
-    private spec: TitleSpec,
+    private sheet: SheetSpec,
     private emitters: EmitterSpec[],
     private cap: number,
+    /** P21: 속도 배율 · 크기 범위 · 알파 들어옴/나감 ms (젖은 재는 따로) */
+    private look: { speedK: number; scale: [number, number]; inMs: number; outMs: number } = {
+      speedK: TITLE_UI.dark.emberSpeedK,
+      scale: [1, 1],
+      inMs: 300,
+      outMs: 1200,
+    },
   ) {}
 
   /** 지금 살아 있는 불티 수 */
@@ -81,8 +88,8 @@ export class EmberField {
         }));
       }
     }
-    const perFrame = 1000 / this.spec.embers.fps;
-    const perRow = this.spec.embers.perRow;
+    const perFrame = 1000 / this.sheet.fps;
+    const perRow = this.sheet.perRow;
     for (const e of this.pool) {
       if (!e.alive) continue;
       e.age += dt;
@@ -96,7 +103,7 @@ export class EmberField {
       const sway = Math.sin(e.ph + (2 * Math.PI * e.age) / e.period) * e.amp;
       e.img
         .setPosition(Math.round(e.x + sway), Math.round(e.y))
-        .setAlpha(emberAlpha(e.age, e.life, e.alphaMax))
+        .setAlpha(emberAlpha(e.age, e.life, e.alphaMax, this.look.inMs, this.look.outMs))
         .setFrame(e.row * perRow + ((e.frame0 + Math.floor(e.age / perFrame)) % perRow));
     }
   }
@@ -122,10 +129,10 @@ export class EmberField {
     let e = this.pool.find((p) => !p.alive);
     if (!e) {
       if (this.pool.length >= this.cap) return;
-      const [px, py] = this.spec.embers.pivot;
+      const [px, py] = this.sheet.pivot;
       const img = this.scene.add
         .image(0, 0, this.texKey, 0)
-        .setOrigin(px / this.spec.embers.frameW, py / this.spec.embers.frameH)
+        .setOrigin(px / this.sheet.frameW, py / this.sheet.frameH)
         .setBlendMode(Phaser.BlendModes.ADD)
         .setVisible(false);
       this.container.add(img);
@@ -152,16 +159,17 @@ export class EmberField {
     // 컨테이너 원점 = 화면 가운데
     e.x = x - ART_W / 2;
     e.y = y - ART_H / 2;
-    e.vx = rand(em.vx[0], em.vx[1]);
-    e.vy = rand(em.vy[0], em.vy[1]);
+    // P21: 불티는 재처럼 느리게 (look.speedK)
+    e.vx = rand(em.vx[0], em.vx[1]) * this.look.speedK;
+    e.vy = rand(em.vy[0], em.vy[1]) * this.look.speedK;
     e.age = 0;
     e.life = rand(em.life[0], em.life[1]);
     e.amp = rand(em.driftAmp[0], em.driftAmp[1]);
     e.period = rand(em.driftMs[0], em.driftMs[1]);
     e.ph = Math.random() * Math.PI * 2;
     e.alphaMax = em.alphaMax;
-    e.frame0 = Math.floor(Math.random() * this.spec.embers.perRow);
-    e.img.setVisible(true).setAlpha(0);
+    e.frame0 = Math.floor(Math.random() * this.sheet.perRow);
+    e.img.setVisible(true).setAlpha(0).setScale(rand(this.look.scale[0], this.look.scale[1]));
   }
 
   destroy(): void {

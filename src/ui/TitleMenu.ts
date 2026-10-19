@@ -3,14 +3,15 @@ import { GlowText, RING } from './glow';
 import { takeKey } from './keyGate';
 import { playUiSound } from './uiSound';
 import { NinePanel } from './kit';
-import { FLOOR1_RAMP, SEPIA, hexToNum } from './theme';
+import { SEPIA, hexToNum } from './theme';
+import { DARK } from './themeP21';
 import { ART_TO_LOGIC, TITLE_EMBERS, TITLE_UI, titleKey, type TitleSpec } from './themeTitle';
-import { clamp01, hotkeyIndex, menuFrameSize, stepIndex, type TitleItem } from './titleView';
+import { clamp01, emberFlicker, hotkeyIndex, menuFrameSize, stepIndex, type TitleItem } from './titleView';
 
 /**
  * 62 타이틀 메뉴 (아트 §29): 왼쪽 아래 족자 9-slice 틀(`title_menu_frame`, 여백 48) 안 세로 목록.
  * 줄 = Container → Graphics(선택 할로 띠) → GlowText (phaser 스킬 버튼 패턴, Container 가 입력을 받는다).
- * 글자색: 기본 S5(1px S4) · 선택 #faeec0(할로 #d67a11 α0.5 + 그늘 S2) · 비활성 S4. 선택 줄 왼쪽에 작은 불씨(호박 m 프레임 루프).
+ * 글자색 (P21): 기본 흐린 뼈빛 · 선택 뼈빛(검붉은 할로 α0.5 + 먹 그늘) · 비활성 꺼진 뼈빛. 선택 줄 왼쪽에 작은 불씨(호박 m 프레임 루프, 일렁임).
  * 조작: ↑↓·W/S · Enter·스페이스 · 숫자 1~n(보이는 순서) · 마우스 올리기(고름)·누르기(실행).
  */
 interface Row {
@@ -24,13 +25,16 @@ interface Row {
 }
 
 const L = ART_TO_LOGIC;
-const AMBER = FLOOR1_RAMP[5];
+/** P21: 고른 줄 띠 = 마른 피 (옛 호박 #d67a11) */
+const BAND = TITLE_UI.bandHex;
 /** 불씨 커서 배율 (논리) — 시트 24px 를 화면 2배로 (정수 배율) */
 const CURSOR_SCALE = 1;
 
 export class TitleMenu {
   private rows: Row[] = [];
   private frame: Phaser.GameObjects.GameObject & { setAlpha(a: number): unknown };
+  /** P21: 족자 그림(세피아·금빛 막대)을 먹으로 한 겹 눌러 어둡게 — 글자 아래 */
+  private shade: Phaser.GameObjects.Rectangle;
   private cursor?: Phaser.GameObjects.Image;
   private hint: GlowText;
   private idx: number;
@@ -86,6 +90,10 @@ export class TitleMenu {
       );
       this.frame = g;
     }
+    this.shade = scene.add
+      .rectangle(this.rect.x, this.rect.y, this.rect.w, this.rect.h, hexToNum(DARK.ink), 1)
+      .setOrigin(0, 0)
+      .setDepth(D + 0.5);
     const rowW = Math.round(size.w * L);
     const rowH = Math.round(M.rowH * L);
     items.forEach((item, i) => {
@@ -161,6 +169,7 @@ export class TitleMenu {
     this.appear = p;
     const lift = (1 - p) * 6;
     this.frame.setAlpha(p);
+    this.shade.setAlpha(p * TITLE_UI.dark.frameShade);
     if ('y' in this.frame) (this.frame as unknown as { y: number }).y = Math.round(this.rect.y + lift);
     const n = this.rows.length;
     this.rows.forEach((r, i) => {
@@ -254,7 +263,7 @@ export class TitleMenu {
       else this.scene.tweens.add({ targets: r.text, x: tx, duration: 90, ease: 'Sine.easeOut' });
       r.band.clear();
       if (sel && r.item.enabled) {
-        // 할로 띠: 호박 α 계단이 오른쪽으로 옅어진다 (픽셀 단위 정수)
+        // 할로 띠: 마른 피 α 계단이 오른쪽으로 옅어진다 (픽셀 단위 정수)
         const x0 = Math.round(M.bandInset * L);
         const w = Math.round(r.c.width - M.bandInset * L * 2);
         const h = Math.round(M.bandH * L);
@@ -263,9 +272,9 @@ export class TitleMenu {
         const seg = Math.ceil(w / steps);
         for (let k = 0; k < steps; k++) {
           const a = 0.34 * (1 - k / steps);
-          r.band.fillStyle(hexToNum(AMBER), a).fillRect(x0 + k * seg, y0 + 2, Math.min(seg, w - k * seg), h - 4);
-          r.band.fillStyle(hexToNum(AMBER), a * 0.5).fillRect(x0 + k * seg, y0, Math.min(seg, w - k * seg), 2);
-          r.band.fillStyle(hexToNum(AMBER), a * 0.5).fillRect(x0 + k * seg, y0 + h - 2, Math.min(seg, w - k * seg), 2);
+          r.band.fillStyle(hexToNum(BAND), a).fillRect(x0 + k * seg, y0 + 2, Math.min(seg, w - k * seg), h - 4);
+          r.band.fillStyle(hexToNum(BAND), a * 0.5).fillRect(x0 + k * seg, y0, Math.min(seg, w - k * seg), 2);
+          r.band.fillStyle(hexToNum(BAND), a * 0.5).fillRect(x0 + k * seg, y0 + h - 2, Math.min(seg, w - k * seg), 2);
         }
         r.band.setAlpha(0.55);
       }
@@ -288,6 +297,8 @@ export class TitleMenu {
       // 호박 m 행 (시트 행 1) 10fps 루프
       const row = Math.max(0, this.spec.embers.rowNames.indexOf('amber_m'));
       this.cursor.setFrame(row * per + (Math.floor(t / (1000 / this.spec.embers.fps)) % per));
+      // P21: 커서 불씨도 일렁인다 (등장 알파 × 일렁임)
+      this.cursor.setAlpha(clamp01(this.appear * 2 - 1) * emberFlicker(t, 3, TITLE_UI.dark.flicker));
     }
     if (this.noticeUntil && t >= this.noticeUntil) {
       this.noticeUntil = 0;
@@ -300,6 +311,7 @@ export class TitleMenu {
     for (const r of this.rows) r.c.destroy();
     this.rows = [];
     this.frame.destroy();
+    this.shade.destroy();
     this.cursor?.destroy();
     this.hint.destroy();
   }

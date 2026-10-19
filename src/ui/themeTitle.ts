@@ -26,6 +26,8 @@ export const TITLE_IMAGES = [
 ] as const;
 export type TitleImage = (typeof TITLE_IMAGES)[number];
 export const TITLE_EMBERS = 'title_fx_embers';
+/** P21 날씨 그림 (title.json rain·crows·ash 가 쓴다 — 없으면 404 로 건너뜀) */
+export const TITLE_WEATHER = ['title_fx_rain', 'title_fx_crow', 'title_fx_ash'] as const;
 export const TITLE_JSONS = ['title', 'title_fx_embers', 'title_fx_fog', 'title_menu_frame'] as const;
 /** UI 가 읽는 텍스처·JSON 키 (시스템 키와 겹치지 않게 접두어) */
 export const titleKey = (name: string): string => `ui-title-${name}`;
@@ -39,22 +41,25 @@ export const ART_TO_LOGIC = 0.5;
 
 /** UI 판단 값 (62라운드 — 데모 검토 대상) */
 export const TITLE_UI = {
-  /** 등장: 그림이 다 읽힌 뒤 기준 (ms). 3초 안에 메뉴까지 */
+  /**
+   * 등장: 그림이 다 읽힌 뒤 기준 (ms). P21: 느리게 — 어둠이 오래 머물다 걷히고, 글이 늦게 떠오른다(5초 안에 메뉴까지,
+   * 아무 키·클릭이면 바로). 옛 값: 검은 150 · 걷힘 1400 · 로고 850 · 메뉴 1900 · 끝 2600
+   */
   intro: {
-    blackMs: 150,
-    revealMs: 1400,
+    blackMs: 600,
+    revealMs: 2800,
     /** 모션 줄이기: 붓질 대신 걷히는 페이드 */
-    fadeMs: 600,
-    logoAt: 850,
-    logoMs: 1100,
-    subAt: 1450,
-    subMs: 600,
-    dotsAt: 1900,
-    dotGapMs: 140,
-    dotMs: 240,
-    menuAt: 1900,
-    menuMs: 400,
-    endMs: 2600,
+    fadeMs: 800,
+    logoAt: 1600,
+    logoMs: 1600,
+    subAt: 2700,
+    subMs: 1000,
+    dotsAt: 3400,
+    dotGapMs: 260,
+    dotMs: 500,
+    menuAt: 3600,
+    menuMs: 900,
+    endMs: 4800,
   },
   /** 붓질 덮개 해상도 (논리 960×540 의 절반) */
   veilW: 480,
@@ -82,9 +87,34 @@ export const TITLE_UI = {
    * 파고들며 가장자리부터 먹이 덮는다. 덮인 뒤 시스템 명령.
    */
   /** 파고들기 (중심 = spec.gate — art §30 title.json gate) */
-  dive: { ms: 900, zoom: 3.4, pull: 1, lightHex: '#e8b858' },
+  /** P21: 성문 빛은 금빛 대신 검붉은 잉걸 (밝은 섬광 없음) */
+  dive: { ms: 1100, zoom: 3.4, pull: 1, lightHex: '#741d12', lightAlpha: 0.1 },
   /** '아무 키나 누른다' (점검 T3): 숨쉬듯 깜빡임 주기 */
   promptBlinkMs: 1800,
+  /**
+   * P21 어두운 연출 (UI 몫 — 그림 자체의 명도는 아트 A):
+   *  - 안개·재 흐름 배율(느리게) · 불티 속도 배율
+   *  - 불씨 깜빡임(무기 불씨·발광·메뉴 커서): 두 사인 겹친 느린 일렁임 + 가끔 꺼질 듯 잦아듦
+   *  - 비·까마귀·젖은 재 (title.json rain·crows·ash — 아트 A P21)
+   *  - 가장자리 먹 비네트: 안개 앞·로고 뒤
+   */
+  dark: {
+    fogSpeedK: 0.45,
+    emberSpeedK: 0.6,
+    flicker: { amp: 0.28, msA: 1700, msB: 610, dipEveryMs: 5300, dipMs: 260, dip: 0.55 },
+    /** 점등 순간 반짝임 (옛 0.6 — 밝은 섬광 줄임) */
+    dotPop: 0.15,
+    /** 까마귀는 로고가 다 써진 뒤부터 */
+    crowStartMs: 4500,
+    /** 모션 줄이기: 먼 비 정지 알파 · 재 초당 */
+    reducedRainAlpha: 0.25,
+    reducedAshRate: 1,
+    vignette: { alpha: 0.82, depth: 10.5 },
+    /** 메뉴 족자 위 먹 한 겹 알파 (족자 그림이 아직 밝은 세피아 — 아트가 어둡게 다시 그리면 0 으로) */
+    frameShade: 0.45,
+  },
+  /** 메뉴 고른 줄 띠 색 (P21: 호박 대신 마른 피) */
+  bandHex: '#5a110c',
   /** 버전 표기 (오른쪽 아래) */
   version: 'v0.62 데모',
 } as const;
@@ -130,8 +160,80 @@ export interface EmitterSpec {
   layer: 'city' | 'near';
 }
 
+/**
+ * P21: title.json `layers[]` 에 아트가 새로 넣은 그림 층 (비·재·까마귀·피 웅덩이 등 — 아는 파일 밖의 `image`).
+ * 화면 px 왼쪽 위 (x,y) · Phaser 깊이 = title.json depth(기존 층과 같은 번호 체계) · 패럴랙스 · 블렌드 · 알파 ·
+ * `speedPxPerSec` 이 0 이 아니면 가로로 흐르는 반복 그림(안개와 같은 방식) · `flicker` 면 불씨처럼 일렁인다.
+ */
+export interface ExtraLayerSpec {
+  /** 텍스처 이름 = image 파일 이름 (.png 뺌) */
+  image: string;
+  depth: number;
+  parallax: number;
+  blend: 'NORMAL' | 'ADD' | 'MULTIPLY' | 'SCREEN';
+  x: number;
+  y: number;
+  alpha: number;
+  speed: number;
+  flicker: boolean;
+}
+
+/** 작은 그림 시트 (불티·젖은 재) */
+export interface SheetSpec {
+  frameW: number;
+  frameH: number;
+  perRow: number;
+  pivot: [number, number];
+  fps: number;
+  rowNames: string[];
+}
+
+/** P21 비 (title.json `rain.instances` — 가로·세로로 흐르는 반복 그림) */
+export interface RainSpec {
+  depth: number;
+  /** far = 먼 층 패럴랙스 · near = 주인공 층 */
+  layer: 'far' | 'near';
+  scale: number;
+  alpha: number;
+  vx: number;
+  vy: number;
+}
+
+/** P21 까마귀 떼 (title.json `crows`) */
+export interface CrowSpec {
+  frameW: number;
+  frameH: number;
+  frames: number;
+  fps: number;
+  pivot: [number, number];
+  intervalMs: [number, number];
+  count: [number, number];
+  spread: [number, number];
+  y: [number, number];
+  swayPx: number;
+  swayMs: number;
+  speed: [number, number];
+  scale: [number, number];
+  /** 이 배율 미만 = 먼 층 */
+  nearScale: number;
+  depthFar: number;
+  depthNear: number;
+}
+
+/** P21 젖은 재 (title.json `ash`) */
+export interface AshSpec {
+  sheet: SheetSpec;
+  emitters: EmitterSpec[];
+  scale: [number, number];
+  inMs: number;
+  outMs: number;
+  depth: number;
+}
+
 export interface TitleSpec {
   layers: { far: number; mid: number; near: number };
+  /** P21: title.json 의 새 층 (없으면 []) */
+  extras: ExtraLayerSpec[];
   parallax: { maxX: number; maxY: number; lerp: number; cover: number; driftMs: number; driftAmp: number };
   hero: { x: number; y: number; w: number; h: number; feetY: number; breathMs: number; scaleY: [number, number] };
   glow: { x: number; y: number; alpha: [number, number] };
@@ -146,9 +248,15 @@ export interface TitleSpec {
     /** 무기 불씨 4개 (화면 좌표) */
     dots: Record<TitleWeapon, [number, number]>;
   };
+  /** 로고 글자 상자 (로고 그림 안 [x0, y0, x1, y1] — title.json logo.lettersBox, 까마귀가 피한다). 없으면 null */
+  logoBox: [number, number, number, number] | null;
   menu: { x: number; y: number; w: number; h: number; slice: number; insetX: number; insetY: number };
   fog: FogSpec[];
-  embers: { frameW: number; frameH: number; perRow: number; pivot: [number, number]; fps: number; rowNames: string[] };
+  embers: SheetSpec;
+  /** P21 날씨 층 (title.json rain·crows·ash — 없으면 빈 값) */
+  rain: RainSpec[];
+  crows: CrowSpec | null;
+  ash: AshSpec | null;
   emitters: EmitterSpec[];
   /** art §30: 성문(첫 생으로 파고들 자리) — 화면 px · 그 층 */
   gate: { x: number; y: number; layer: 'far' | 'mid' | 'near' };
@@ -160,6 +268,11 @@ export const EMBER_ROWS = ['amber_s', 'amber_m', 'amber_l', 'katana', 'greatswor
 
 export const DEFAULT_TITLE_SPEC: TitleSpec = {
   layers: { far: 0.15, mid: 0.4, near: 1.0 },
+  extras: [],
+  logoBox: null,
+  rain: [],
+  crows: null,
+  ash: null,
   parallax: { maxX: 28, maxY: 10, lerp: 0.035, cover: 1.03, driftMs: 24000, driftAmp: 0.35 },
   hero: { x: 1359, y: 450, w: 237, h: 567, feetY: 1014, breathMs: 4200, scaleY: [1.0, 1.008] },
   glow: { x: 1323, y: 408, alpha: [0.55, 1.0] },

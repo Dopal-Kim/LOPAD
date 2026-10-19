@@ -17,6 +17,9 @@ import { GROGGY, WGAUGE } from './theme';
 import { COMBAT_HUD as C } from './themeR61';
 import { DIET } from './themeAlerts';
 import { COMBAT_DIM } from './themeP19';
+import { crackPaths, type Wound } from './p21View';
+import { hexToNum } from './theme';
+import { WOUND_HUD } from './themeP21';
 
 /** 62 P1-15: 각성 띠가 있으면 체력 줄 아래로 이만큼 더 (띠 3 + 틈 2 + 눈금) */
 const BAND_ROW_EXTRA = DIET.growthBandH + DIET.growthBandGap + DIET.bigTickOut;
@@ -74,6 +77,9 @@ export class CombatHud {
   /** P19 ④G: 묶음 전체를 담는 층 (전투 중 반투명) */
   private layer: Phaser.GameObjects.Layer;
   private dimTo = 1;
+  /** P21: 주인공 상흔 → 체력 막대 균열·새는 불씨·박힌 화살 획 */
+  private cracks: Phaser.GameObjects.Graphics;
+  private wound: Wound = { stage: 0, arrows: 0 };
 
   constructor(
     private scene: Phaser.Scene,
@@ -100,6 +106,7 @@ export class CombatHud {
     this.goldText = this.glow('', 'ink_body');
     this.growth = new GrowthBand(scene);
     this.resDot = new ResourceDot(scene);
+    this.cracks = scene.add.graphics();
     // 위에서 만든 것 전부를 층 하나로 (층 알파가 아이들 알파에 곱해진다 — 깜빡임 알파는 그대로)
     this.layer = scene.add.layer(scene.children.list.filter((o) => !before.has(o)));
     this.relayout({ big: false, sub: false, growth: false });
@@ -160,10 +167,11 @@ export class CombatHud {
     const low = hpLow(s.hp, s.maxHp, C.hpLowRatio);
     this.dim(s.inCombat && !low ? COMBAT_DIM.alpha : 1);
     const blinkOn = Math.floor(now / C.hpBlinkMs) % 2 === 0;
+    // P21: 저HP 숫자는 피 글 · 깜빡임은 얕게 (튀지 않게)
     this.hpText
       .setText(`${s.hp} / ${s.maxHp}`)
-      .setGlowStyle(low ? 'ink_accent' : 'ink_body')
-      .setAlpha(low && !blinkOn ? 0.55 : 1);
+      .setGlowStyle(low ? 'ink_blood' : 'ink_body')
+      .setAlpha(low && !blinkOn ? 0.7 : 1);
     let right = this.hpText.x + this.hpText.displayWidth;
     // ---- 2행 무기 + 고유 자원 하나
     const grog = this.groggyOf(s);
@@ -235,6 +243,37 @@ export class CombatHud {
     if (cv) this.carry.setPosition(C.left + this.w - C.padX - this.carry.boxW, t + r.weapon + (gv ? 1 : 0));
   }
 
+  /** P21 (dark-brutal §3): 상흔 단계·박힌 화살 수 */
+  setWound(w: Wound): void {
+    this.wound = w;
+    this.drawCracks();
+  }
+
+  /** 체력 막대 위 균열 (단계마다 늘어남) · 단계 2 부터 균열 끝 불씨 · 하트 위 박힌 화살 획 */
+  private drawCracks(): void {
+    const g = this.cracks.clear();
+    const { stage, arrows } = this.wound;
+    const x = C.left + C.padX + ICON_COL;
+    const y = this.top + this.rows.hp + 1;
+    const h = SLICE.gaugeBoss.h;
+    for (const pts of crackPaths(WOUND_HUD.cracks[stage] ?? 0, C.hpW, h)) {
+      g.lineStyle(1, hexToNum(WOUND_HUD.crack), 0.9);
+      for (let k = 1; k < pts.length; k++)
+        g.lineBetween(x + pts[k - 1].x + 0.5, y + pts[k - 1].y, x + pts[k].x + 0.5, y + pts[k].y);
+      if (stage >= WOUND_HUD.emberFrom) {
+        const e = pts[pts.length - 1];
+        g.fillStyle(hexToNum(WOUND_HUD.ember), 1).fillRect(x + e.x, y + e.y, 1, 1);
+      }
+    }
+    // 박힌 화살: 하트 위에 기운 짧은 획 (최대 5)
+    const n = Math.min(WOUND_HUD.arrowsMax, arrows);
+    const hx = C.left + C.padX;
+    for (let i = 0; i < n; i++) {
+      const ax = hx + 2 + i * 3;
+      g.lineStyle(1, hexToNum(WOUND_HUD.arrow), 1).lineBetween(ax, y - 1, ax + 2, y - 5);
+    }
+  }
+
   /** P19 ④G: 전투 중 반투명 (체력 낮음이면 또렷하게) */
   private dim(alpha: number): void {
     if (alpha === this.dimTo) return;
@@ -266,6 +305,7 @@ export class CombatHud {
     this.hpIcon.setPosition(x, t + this.rows.hp);
     this.hpGauge.setPositionX(x + ICON_COL).setPositionY(t + this.rows.hp + 1);
     this.hpText.setPosition(x + ICON_COL + C.hpW + 6, t + this.rows.hp);
+    this.drawCracks();
   }
 
   /** 무기 아이콘 (이름 매핑 + 텍스처가 있을 때만). 있으면 true */

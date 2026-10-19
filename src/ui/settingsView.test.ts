@@ -16,6 +16,8 @@ import {
   sliderFromRatio,
   stepSlider,
   toggleSetting,
+  goreLevel,
+  GORE_LEVELS,
 } from './settingsView';
 
 /** 계약 `UI_DEFAULT_SETTINGS` 와 같은 값 (계약 코드는 Phaser 를 불러 테스트에서 직접 쓰지 않는다) */
@@ -75,7 +77,7 @@ describe('settingsView', () => {
 
   it('62 루프 2 탭: 화면 · 소리 · 조작 · 접근성, 탭마다 끝줄(되돌리기·덮기), 커서는 돌아간다', () => {
     expect(SETTINGS_TABS).toEqual(['screen', 'sound', 'controls', 'access']);
-    expect(TAB_ROWS.screen.map((r) => r.id)).toEqual(['fullscreen', 'damageNumbers']);
+    expect(TAB_ROWS.screen.map((r) => r.id)).toEqual(['fullscreen', 'damageNumbers', 'gore']);
     expect(TAB_ROWS.sound.map((r) => r.id)).toEqual(['master', 'bgm', 'sfx', 'muted']);
     expect(TAB_ROWS.controls.map((r) => r.id)).toEqual([
       'up',
@@ -98,6 +100,19 @@ describe('settingsView', () => {
     expect(cycleTab('access', 1)).toBe('screen');
     expect(moveCursor(0, -1, 5)).toBe(4);
     expect(moveCursor(4, 1, 5)).toBe(0);
+  });
+
+  it('P21 고어 3단: 기본 전체(2), 모르는 값은 2, 스냅샷 값을 읽고 비교에 넣는다', () => {
+    expect(DEFAULT_SETTINGS.gore).toBe(2);
+    expect(goreLevel(1)).toBe(1);
+    expect(goreLevel(0)).toBe(0);
+    expect(goreLevel(5)).toBe(2);
+    expect(goreLevel(undefined)).toBe(2);
+    expect(GORE_LEVELS).toEqual([2, 1, 0]);
+    const n = normalizeSettings({ gore: 0 }, CONTRACT_DEFAULTS)!;
+    expect(n.gore).toBe(0);
+    expect(normalizeSettings({ gore: 'x' }, CONTRACT_DEFAULTS)!.gore).toBe(2);
+    expect(sameSettings(n, DEFAULT_SETTINGS)).toBe(false);
   });
 
   it('히트스톱 켜고 끄기 · 키 묶음 바꾸기 (같으면 같은 객체)', () => {

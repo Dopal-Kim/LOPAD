@@ -60,6 +60,7 @@ import { DeathVeil, ExitArrow } from './HudLoop2E';
 import { setEchoHeads, traitEchoHeads } from './noticeEcho';
 import { preloadMapGhost } from './mapGhost';
 import { HudP19 } from './HudP19';
+import { HudP21 } from './HudP21';
 import type { AlertKind } from './alertPlan';
 
 /** P19 ④G: 전투 중에는 가운데 글 띠에 개성·안내를 띄우지 않고 전투 뒤로 미룬다 */
@@ -146,6 +147,8 @@ export class HudScene extends Phaser.Scene {
   private exitArrow?: ExitArrow;
   /** P19 1-U: 화면 밖 적 표식 · 반응 팝 · 연속 처치 · 처음 보는 적 카드 (HudP19.ts) */
   private p19?: HudP19;
+  /** P21: 저HP 피 비네트 · 처형 표식 · 처형 가장자리 · 상흔 (HudP21.ts) */
+  private p21?: HudP21;
   /** 마지막 STATE 의 inCombat (알림 미루기) */
   private inCombat = false;
 
@@ -215,6 +218,7 @@ export class HudScene extends Phaser.Scene {
     this.deathVeil = new DeathVeil(this, () => {
       this.alerts.clear();
       this.p19?.clear();
+      this.p21?.clear();
       this.narr?.story.reset();
       this.toasts?.clear();
       this.peek?.hide();
@@ -261,8 +265,13 @@ export class HudScene extends Phaser.Scene {
       snapshot: () => withDebug(uiCommands.getUiSnapshot()),
     });
     this.p19.subscribe((e, h) => this.on(e, h));
+    this.p21 = new HudP21(this, { wound: (w) => this.combat?.setWound(w) });
+    this.p21.subscribe((e, h) => this.on(e, h));
     for (const e of [UI_EVENTS.TRANSITION_BEGIN, UI_EVENTS.ROUTE_NODE_ENTERED, UI_EVENTS.RUN_ENDED])
-      this.on(e, () => this.p19?.clear());
+      this.on(e, () => {
+        this.p19?.clear();
+        this.p21?.clear();
+      });
     this.training.subscribe((e, h) => this.on(e, h));
     // 53라운드 계약: 튜토리얼 단계 카드 · 적 등장 예고('주의' 경고, Q49·Q60)
     this.on(UI_EVENTS.TUTORIAL_STEP, (p: unknown) => this.onTutorialStep(p));
@@ -386,6 +395,8 @@ export class HudScene extends Phaser.Scene {
       this.loop2F = undefined;
       this.p19?.destroy();
       this.p19 = undefined;
+      this.p21?.destroy();
+      this.p21 = undefined;
       this.training = undefined;
       this.labGuide = undefined;
       this.peek?.destroy();
@@ -859,6 +870,7 @@ export class HudScene extends Phaser.Scene {
     this.training?.render(s, overlay);
     this.exitArrow?.render(s, overlay || this.birth.active || Boolean(this.deathVeil?.down), si, this.time.now);
     this.p19?.render(s, overlay || this.birth.active || Boolean(this.deathVeil?.down) || doorBusy);
+    this.p21?.render(s, overlay || this.birth.active || Boolean(this.deathVeil?.down));
     // 62 P0-6: 위 가운데 알림 줄 (오래 기다린 것 버림 · 자리 나면 띄움 · 위 끝 바뀌면 옮김)
     this.alerts.tick();
     this.challenge?.tick(s.statuses?.find((st) => st.id === 'ring') ?? null, si);

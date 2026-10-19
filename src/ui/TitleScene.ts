@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { UI_SCREEN, uiCommands } from '../contract/ui';
 import { debugExpose, installUiDebug, uiDebugEnabled } from './debug';
 import { GlowText } from './glow';
+import { GoreNotice, safeStorage } from './GoreNotice';
+import { goreNoticeSeen } from './p21View';
 import { keyTaken, takeKey } from './keyGate';
 import { DARK_BG, ensureImage, fontsReady, preloadKit, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
@@ -12,7 +14,7 @@ import { MemoryBookView } from './MemoryBook';
 import { openGate } from './choiceArm';
 import { l2eText } from './textLoop2E';
 import { currentSettings } from './settingsStore';
-import { r49Text, r61Text, trainingText, uiText } from './text';
+import { p21Text, r49Text, r61Text, trainingText, uiText } from './text';
 import { hexToNum } from './theme';
 import { TitleArt } from './TitleArt';
 import { TitleMenu } from './TitleMenu';
@@ -22,6 +24,7 @@ import {
   TITLE_JSONS,
   TITLE_UI,
   TITLE_URL,
+  TITLE_WEATHER,
   titleJsonKey,
   titleKey,
   type TitleSpec,
@@ -49,7 +52,7 @@ let woken = false;
 const MASK_KEY = 'paint/brush_reveal_2';
 const VEIL_KEY = 'ui-title-veil';
 
-type Phase = 'load' | 'intro' | 'prompt' | 'menu' | 'dive' | 'gone';
+type Phase = 'load' | 'intro' | 'prompt' | 'notice' | 'menu' | 'dive' | 'gone';
 
 /**
  * 62라운드 타이틀 (아트 §29 · 경쟁력 점검 T1~T8). 키아트 3층 패럴랙스 · 주인공 호흡·발광 · 무기 목소리 빛 9.6초 순환 · 불티 ·
@@ -69,6 +72,8 @@ export class TitleScene extends Phaser.Scene {
   private settings?: SettingsPanel;
   /** 62 루프 2 UI E: 일기장 '기억' 장 (계약 C `memory.book()` — MemoryBook) */
   private memoryView?: MemoryBookView;
+  /** P21: 첫 실행 잔혹 묘사 안내 (한 번) */
+  private goreNotice?: GoreNotice;
   private items: TitleItem[] = [];
   private fallbackLogo?: GlowText;
   private prompt?: GlowText;
@@ -109,6 +114,7 @@ export class TitleScene extends Phaser.Scene {
     this.phase = 'load';
     this.settings = undefined;
     this.memoryView = undefined;
+    this.goreNotice = undefined;
     this.menu = undefined;
     this.art = undefined;
     this.introT = 0;
@@ -146,6 +152,8 @@ export class TitleScene extends Phaser.Scene {
     this.settings = undefined;
     this.memoryView?.destroy();
     this.memoryView = undefined;
+    this.goreNotice?.destroy();
+    this.goreNotice = undefined;
     this.menu?.destroy();
     this.menu = undefined;
     this.art?.destroy();
@@ -153,9 +161,12 @@ export class TitleScene extends Phaser.Scene {
     // 성능: 큰 타이틀 그림은 타이틀에서만 쓴다 — 씬이 다 내려간 뒤 텍스처를 놓는다 (다시 오면 다시 읽는다, 브라우저 캐시)
     const textures = this.textures;
     const sys = this.sys;
+    const spec = this.spec;
     setTimeout(() => {
       if (sys.isActive()) return;
-      for (const n of [...TITLE_IMAGES, TITLE_EMBERS]) if (textures.exists(titleKey(n))) textures.remove(titleKey(n));
+      const extras = spec?.extras.map((e) => e.image) ?? [];
+      for (const n of [...TITLE_IMAGES, TITLE_EMBERS, ...TITLE_WEATHER, ...extras])
+        if (textures.exists(titleKey(n))) textures.remove(titleKey(n));
       if (textures.exists(VEIL_KEY)) textures.remove(VEIL_KEY);
     }, 0);
   };
@@ -165,7 +176,7 @@ export class TitleScene extends Phaser.Scene {
 
   private loadTitleArt(done: () => void): void {
     const load = this.load;
-    for (const n of TITLE_IMAGES)
+    for (const n of [...TITLE_IMAGES, ...TITLE_WEATHER])
       if (!this.textures.exists(titleKey(n))) load.image(titleKey(n), `${TITLE_URL}${n}.png`);
     if (!this.textures.exists(titleKey(TITLE_EMBERS)))
       load.spritesheet(titleKey(TITLE_EMBERS), `${TITLE_URL}${TITLE_EMBERS}.png`, { frameWidth: 24, frameHeight: 24 });
@@ -194,7 +205,19 @@ export class TitleScene extends Phaser.Scene {
   private build(): void {
     const json = (k: string): unknown =>
       this.cache.json.exists(titleJsonKey(k)) ? this.cache.json.get(titleJsonKey(k)) : null;
-    this.spec = readTitleSpec(json('title'), json('title_fx_embers'), json('title_fx_fog'), json('title_menu_frame'));
+    const spec = readTitleSpec(json('title'), json('title_fx_embers'), json('title_fx_fog'), json('title_menu_frame'));
+    // P21: title.json 에 새 층이 있으면 그 그림을 더 읽은 뒤 (못 읽은 층은 TitleArt 가 건너뛴다)
+    const missing = spec.extras.filter((e) => !this.textures.exists(titleKey(e.image)));
+    if (!missing.length) return this.buildWith(spec);
+    for (const e of missing) this.load.image(titleKey(e.image), `${TITLE_URL}${e.image}.png`);
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+      if (this.alive) this.buildWith(spec);
+    });
+    this.load.start();
+  }
+
+  private buildWith(spec: TitleSpec): void {
+    this.spec = spec;
     this.art = new TitleArt(this, this.spec);
     this.art.reduced = this.reduced;
     if (!this.art.hasLogo()) {
@@ -227,7 +250,7 @@ export class TitleScene extends Phaser.Scene {
     this.menu = new TitleMenu(this, this.spec, this.items, defaultIndex(this.items), (it) => this.onChoose(it));
     // '아무 키나 누른다' — 로고 가운데 아래, 들판 위
     const sp = this.spec;
-    this.prompt = new GlowText(this, 0, 0, uiText('title', 'pressAny', '아무 키나 누른다'), 'title_prompt', {
+    this.prompt = new GlowText(this, 0, 0, uiText('title', 'pressPrompt', p21Text('pressPrompt')), 'title_prompt', {
       font: 'title',
     }).setDepth(TITLE_UI.depth.menu + 3);
     this.prompt
@@ -370,7 +393,7 @@ export class TitleScene extends Phaser.Scene {
   // 입력
 
   private onKey = (e: KeyboardEvent): void => {
-    if (this.settings || this.memoryView) return; // 설정·기억 장이 받는다 (Esc 는 아래)
+    if (this.settings || this.memoryView || this.goreNotice) return; // 설정·기억 장·안내 카드가 받는다 (Esc 는 아래)
     if (this.phase === 'load' || this.phase === 'dive' || this.phase === 'gone') return;
     if (this.phase === 'intro' || this.phase === 'prompt') {
       if (!isWakeKey(e.key) || e.repeat || keyTaken(e)) return;
@@ -383,7 +406,7 @@ export class TitleScene extends Phaser.Scene {
 
   private onPointerDown = (p: Phaser.Input.Pointer): void => {
     this.trackPointer(p);
-    if (this.settings || this.memoryView) return;
+    if (this.settings || this.memoryView || this.goreNotice) return;
     if (this.phase === 'intro' || this.phase === 'prompt') this.wake();
   };
 
@@ -405,7 +428,20 @@ export class TitleScene extends Phaser.Scene {
     this.logoComplete = true;
     this.introT = Math.max(this.introT, logoDoneMs(this.spec?.logoReveal?.ms));
     this.updateRevealVeil(1);
-    this.showMenu();
+    // P21 (dark-brutal §1): 처음 한 번은 잔혹 묘사 안내를 먼저 — 덮으면 메뉴
+    if (goreNoticeSeen(safeStorage())) this.showMenu();
+    else this.openGoreNotice();
+  }
+
+  private openGoreNotice(): void {
+    if (this.goreNotice) return;
+    this.phase = 'notice';
+    this.prompt?.setAlpha(0);
+    this.goreNotice = new GoreNotice(this, TITLE_UI.depth.veil - 2, () => {
+      this.goreNotice = undefined;
+      this.showMenu();
+    });
+    this.expose();
   }
 
   private showMenu(): void {
@@ -561,7 +597,11 @@ export class TitleScene extends Phaser.Scene {
         const cx = gate.x;
         const cy = gate.y;
         for (let r = 5; r >= 1; r--) {
-          g.fillStyle(hexToNum(TITLE_UI.dive.lightHex), 0.12 * k).fillCircle(cx, cy, r * 9 * (0.6 + 0.4 * k));
+          g.fillStyle(hexToNum(TITLE_UI.dive.lightHex), TITLE_UI.dive.lightAlpha * k).fillCircle(
+            cx,
+            cy,
+            r * 9 * (0.6 + 0.4 * k),
+          );
         }
       }
     }
@@ -605,6 +645,7 @@ export class TitleScene extends Phaser.Scene {
       rows: this.menu?.rowCenters() ?? [],
       art: this.art?.stats() ?? null,
       settingsOpen: Boolean(this.settings),
+      goreNotice: Boolean(this.goreNotice),
     });
   }
 }

@@ -1,6 +1,7 @@
 import type { MapPathSpec } from './routeView';
 import { WEAPON_HUE } from './themeWeapon';
 import { TELL } from './themeP19';
+import { DARK } from './themeP21';
 
 /**
  * UI 테마 (41라운드, 계약 `contracts/ui-art-kit.md` v0.4).
@@ -105,22 +106,26 @@ export const TEXT_STYLES = {
   },
   /** 흐린 글·안내 (할로·그늘 없음) */
   page_faint: { body: SEPIA[5], bodyAlpha: 0.55 },
-  /** 잉크 HUD 본문·자막·층 제목 */
+  /** 잉크 HUD 본문·자막·층 제목 — P21: 뼈빛 + 검붉은 할로 + 먹 그늘 (옛 G14 + 호박 할로) */
   ink_body: {
-    body: GRAY[14],
+    body: DARK.bone,
     bodyAlpha: 1,
-    halo: { color: { accentSlot: 20 }, alpha: 0.5 },
-    shade: { color: GRAY[0], alpha: 1 },
+    halo: { color: DARK.bloodDeep, alpha: 0.5 },
+    shade: { color: DARK.ink, alpha: 1 },
   },
-  /** HUD 흐림 (개성 수치·조작 안내·M) */
-  ink_faint: { body: GRAY[11], bodyAlpha: 1, shade: { color: GRAY[0], alpha: 1 } },
-  /** 공지·보스 이름 */
+  /** HUD 흐림 (개성 수치·조작 안내·M) — P21: 흐린 뼈빛 */
+  ink_faint: { body: DARK.boneDim, bodyAlpha: 1, shade: { color: DARK.ink, alpha: 1 } },
+  /** 공지·보스 이름 — P21: 밝은 뼈빛 + 피 할로 (옛 호박 글) */
   ink_accent: {
-    body: { accentSlot: 22 },
+    body: DARK.boneHi,
     bodyAlpha: 1,
-    halo: { color: { accentSlot: 20 }, alpha: 0.5 },
-    shade: { color: GRAY[0], alpha: 1 },
+    halo: { color: DARK.blood, alpha: 0.5 },
+    shade: { color: DARK.ink, alpha: 1 },
   },
+  /** P21 저HP 숫자·피 글 */
+  ink_blood: { body: DARK.bloodLit, bodyAlpha: 1, shade: { color: DARK.ink, alpha: 1 } },
+  /** P21 반응 팝·연속 숫자: 뼈빛 + 먹 그늘 (할로 없음 — 튀지 않게) */
+  ink_bone: { body: DARK.bone, bodyAlpha: 1, shade: { color: DARK.ink, alpha: 1 } },
   /** P19 예고 색 언어 (계약 free-combat §2) 글자 — 경고 호박 · 위험 적 · 기회 금. 할로 없이 먹 그늘 */
   tell_warn: { body: TELL.warn, bodyAlpha: 1, shade: { color: GRAY[0], alpha: 1 } },
   tell_danger: { body: TELL.danger, bodyAlpha: 1, shade: { color: GRAY[0], alpha: 1 } },
@@ -158,29 +163,29 @@ export const TEXT_STYLES = {
     halo: { color: WEAPON_HUE.bow.main, alpha: 0.5 },
     shade: { color: GRAY[0], alpha: 1 },
   },
-  /** 62 타이틀 메뉴 (아트 §29 글자색): 기본 S5 + 1px S4 */
-  title_item: { body: SEPIA[5], bodyAlpha: 1, shade: { color: SEPIA[4], alpha: 1 } },
-  /** 62 타이틀 선택 줄: #faeec0(램프 27) + 할로 #d67a11(램프 21) α0.5 + 그늘 S2 */
+  /** 타이틀 메뉴 — P21: 흐린 뼈빛 + 먹 테 (옛 세피아 S5 — 금빛·밝은 색 뺌) */
+  title_item: { body: DARK.boneDim, bodyAlpha: 1, shade: { color: DARK.ink, alpha: 1 } },
+  /** 타이틀 선택 줄 — P21: 뼈빛 + 검붉은 할로 α0.5 + 먹 그늘 (옛 #faeec0 + 호박 할로) */
   title_selected: {
-    body: { accentSlot: 27 },
+    body: DARK.bone,
     bodyAlpha: 1,
-    halo: { color: { accentSlot: 21 }, alpha: 0.5 },
-    shade: { color: SEPIA[2], alpha: 1 },
+    halo: { color: DARK.blood, alpha: 0.5 },
+    shade: { color: DARK.ink, alpha: 1 },
   },
-  /** 62 타이틀 못 고르는 줄: S4 */
-  title_disabled: { body: SEPIA[4], bodyAlpha: 1 },
-  /** 62 타이틀 틀 밖 글(안내 한 줄): G13 + 1px 먹 테 */
-  title_scene: { body: GRAY[13], bodyAlpha: 1, shade: { color: GRAY[0], alpha: 1 } },
-  /** 62 타이틀 거부 사유 등 잠깐 알림: 등불 #e8b858(램프 24) + 1px 먹 테 */
-  title_notice: { body: { accentSlot: 24 }, bodyAlpha: 1, shade: { color: GRAY[0], alpha: 1 } },
-  /** 62 타이틀 버전·귀퉁이 메모: G09 + 1px 먹 테 */
-  title_version: { body: GRAY[9], bodyAlpha: 1, shade: { color: GRAY[0], alpha: 1 } },
-  /** 62 타이틀 '아무 키나 누른다': 빛 글씨 #faeec0 + 호박 할로 α0.5 + 먹 그늘 */
+  /** 타이틀 못 고르는 줄 — P21: 꺼진 뼈빛 */
+  title_disabled: { body: DARK.boneDead, bodyAlpha: 1 },
+  /** 타이틀 틀 밖 글(안내 한 줄) — P21: 흐린 뼈빛 + 먹 테 */
+  title_scene: { body: DARK.boneDim, bodyAlpha: 1, shade: { color: DARK.ink, alpha: 1 } },
+  /** 타이틀 거부 사유 등 잠깐 알림 — P21: 피 글 + 먹 테 (옛 등불 금빛) */
+  title_notice: { body: DARK.bloodLit, bodyAlpha: 1, shade: { color: DARK.ink, alpha: 1 } },
+  /** 타이틀 버전·귀퉁이 메모: G07 + 1px 먹 테 (P21: 한 단 어둡게) */
+  title_version: { body: GRAY[7], bodyAlpha: 1, shade: { color: DARK.ink, alpha: 1 } },
+  /** 타이틀 '아무 키나 누른다' — P21: 뼈빛 + 마른 피 할로 α0.5 + 먹 그늘 */
   title_prompt: {
-    body: { accentSlot: 27 },
+    body: DARK.bone,
     bodyAlpha: 1,
-    halo: { color: { accentSlot: 21 }, alpha: 0.5 },
-    shade: { color: GRAY[0], alpha: 1 },
+    halo: { color: DARK.bloodDeep, alpha: 0.5 },
+    shade: { color: DARK.ink, alpha: 1 },
   },
 } as const satisfies Record<string, GlowStyle>;
 export type TextStyleName = keyof typeof TEXT_STYLES;

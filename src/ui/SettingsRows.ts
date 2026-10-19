@@ -3,10 +3,17 @@ import { GlowText } from './glow';
 import { keyLabel, type KeyActionId } from './keyBindView';
 import { rule } from './kit';
 import { swatch } from './StructureHud';
-import { fill, r61Text, r62Text } from './text';
+import { fill, p21Text, r61Text, r62Text } from './text';
 import { SEPIA, hexToNum } from './theme';
 import { SETTINGS_UI as U } from './themeR61';
-import { SLIDER_STEPS, percentText, sliderCells, type SettingRow, type SettingsTab } from './settingsView';
+import {
+  SLIDER_STEPS,
+  percentText,
+  sliderCells,
+  type GoreLevel,
+  type SettingRow,
+  type SettingsTab,
+} from './settingsView';
 
 /** 줄마다 그린 것 (쪽 원점 기준 좌표) */
 export interface RowView {
@@ -15,8 +22,8 @@ export interface RowView {
   h: number;
   label: GlowText;
   pct?: GlowText;
-  /** 두 갈래 (켬·끔 / 보통·크게) — 왼쪽이 [0] */
-  opts?: [GlowText, GlowText];
+  /** 갈래 (켬·끔 / 보통·크게 / P21 고어 전체·줄임·끔) — 왼쪽이 [0] */
+  opts?: GlowText[];
   /** 키 칸 */
   key?: GlowText;
 }
@@ -47,7 +54,7 @@ export function rowLabel(row: SettingRow, potionName: string): string {
     case 'local':
       return r62Text(row.id === 'fullscreen' ? 'fullscreen' : 'muted');
     case 'choice':
-      return r62Text('textSize');
+      return row.id === 'gore' ? p21Text('gore') : r62Text('textSize');
     case 'toggle':
       return row.id === 'hitstop' ? r62Text('hitstop') : r61Text(row.id);
     case 'slider':
@@ -63,9 +70,16 @@ export function tabLabel(t: SettingsTab): string {
   );
 }
 
-/** 두 갈래 글 (왼쪽 · 오른쪽) */
-export function optionTexts(row: SettingRow): [string, string] {
+/** 갈래 글 (왼쪽부터) */
+export function optionTexts(row: SettingRow): string[] {
+  if (row.kind === 'choice' && row.id === 'gore')
+    return [p21Text('goreFull'), p21Text('goreReduced'), p21Text('goreOff')];
   return row.kind === 'choice' ? [r62Text('textNormal'), r62Text('textLarge')] : [r61Text('on'), r61Text('off')];
+}
+
+/** P21 고어 단계 설명 한 줄 (설정 아래 알림 · 첫 실행 안내 카드) */
+export function goreDesc(g: GoreLevel): string {
+  return p21Text(g === 2 ? 'goreFullDesc' : g === 1 ? 'goreReducedDesc' : 'goreOffDesc');
 }
 
 /** 줄 높이 */
@@ -124,13 +138,13 @@ export function buildRows(
       view.pct = new GlowText(scene, x0 + PCT_X, ty, '', 'page_body', { stageIndex: si });
       box.add(view.pct);
     } else if (row.kind === 'toggle' || row.kind === 'local' || row.kind === 'choice') {
-      const [a, b] = optionTexts(row);
-      const left = new GlowText(scene, x0 + TRACK_X, ty, a, 'page_faint', { stageIndex: si });
-      const right = new GlowText(scene, left.x + left.displayWidth + U.toggleGap, ty, b, 'page_faint', {
-        stageIndex: si,
+      let ox = x0 + TRACK_X;
+      view.opts = optionTexts(row).map((t) => {
+        const o = new GlowText(scene, ox, ty, t, 'page_faint', { stageIndex: si });
+        ox += o.displayWidth + U.toggleGap;
+        return o;
       });
-      view.opts = [left, right];
-      box.add([left, right]);
+      box.add(view.opts);
     } else if (row.kind === 'key') {
       view.key = new GlowText(scene, x0 + U.ctrlX + U.keyPadX, ty, '', 'page_body', { stageIndex: si });
       box.add(view.key);
@@ -147,8 +161,8 @@ export function buildRows(
 /** 그릴 때 줄마다 필요한 값 */
 export interface RowState {
   slider?: number;
-  /** 두 갈래: 고른 쪽 0(왼쪽) · 1(오른쪽) · null(쓸 수 없음) */
-  option?: 0 | 1 | null;
+  /** 갈래: 고른 쪽 번호(0 = 왼쪽) · null(쓸 수 없음) */
+  option?: number | null;
   key?: string;
   /** 키 기다리는 중 */
   waiting?: boolean;
@@ -190,8 +204,8 @@ export function drawRows(
     } else if (v.opts) {
       const o = st.option ?? null;
       v.opts.forEach((t) => t.setGlowStyle('page_faint'));
-      if (o !== null) {
-        const chosen = v.opts[o];
+      const chosen = o === null ? undefined : v.opts[o];
+      if (chosen) {
         chosen.setGlowStyle(sel ? 'page_selected' : 'page_body');
         g.fillStyle(lit(sel), 1).fillRect(
           chosen.x + 2,

@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 /**
  * 62 타이틀 로고 쓰기 (art §30 `title_logo_reveal` + title.json `logoReveal`): 진행도 p(0..1)에서 마스크 값 ≤ p·255 인 로고 화소만 보인다.
  * 마스크 값이 획 순서(L→O→P→A→D → 부제 → 무기 불씨)라 붓으로 써 내려가는 것처럼 드러난다. 문턱 바로 아래(softBand) 화소는
- * 붓 머리 빛(#faeec0 쪽으로 60%)으로 한 단 밝게 — 먹이 막 닿는 빛. 끝나면(p = 1) 이 그림은 치우고 원래 로고 그림을 쓴다.
+ * 붓 머리(P21: 밝은 #faeec0 빛 대신 검붉은 잉걸 #962a16(title.json colors.accent.ember) 쪽으로 55% — 피가 막 번지는 자리). 끝나면(p = 1) 이 그림은 치우고 원래 로고 그림을 쓴다.
  * 화소는 값별 묶음(0~254)으로 한 번만 나눠 두고, p 가 오를 때 새로 넘은 묶음만 옮겨 쓴다(매 프레임 전체를 다시 훑지 않는다).
  */
 export class LogoReveal {
@@ -60,9 +60,9 @@ export class LogoReveal {
     const put = (i: number, glow: boolean): void => {
       const o = i * 4;
       if (glow) {
-        d[o] = s[o] + (0xfa - s[o]) * 0.6;
-        d[o + 1] = s[o + 1] + (0xee - s[o + 1]) * 0.6;
-        d[o + 2] = s[o + 2] + (0xc0 - s[o + 2]) * 0.6;
+        d[o] = s[o] + (0x96 - s[o]) * 0.55;
+        d[o + 1] = s[o + 1] + (0x2a - s[o + 1]) * 0.55;
+        d[o + 2] = s[o + 2] + (0x16 - s[o + 2]) * 0.55;
       } else {
         d[o] = s[o];
         d[o + 1] = s[o + 1];

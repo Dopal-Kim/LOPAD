@@ -14,9 +14,11 @@ import {
   type OffscreenMark,
   type PopKind,
 } from './p19View';
-import { r62Text, storyText } from './text';
+import { streakKey } from './p21View';
+import { p21Text, storyText } from './text';
 import { GRAY, LAYOUT, hexToNum } from './theme';
 import { COMBO, INTRO_CORNER as IC, OFFSCREEN, POP } from './themeP19';
+import { DARK } from './themeP21';
 import { TimedCard } from './timedCard';
 
 type On = <T>(event: string, handler: (p: T) => void) => void;
@@ -51,8 +53,9 @@ export class HudP19 {
   ) {
     this.marks = scene.add.graphics().setDepth(OFFSCREEN.depth);
     const si = deps.stageIndex();
-    this.comboTag = new GlowText(scene, 0, 0, r62Text('comboTag'), 'ink_faint', { stageIndex: si });
-    this.comboNum = new GlowText(scene, 0, 0, '', 'ink_body', { scale: 2, stageIndex: si });
+    this.comboTag = new GlowText(scene, 0, 0, '', 'ink_faint', { stageIndex: si });
+    // P21: 뼈빛 14px (옛 11px 2배 흰 글) — 튀지 않게
+    this.comboNum = new GlowText(scene, 0, 0, '', 'ink_bone', { font: 'title', stageIndex: si });
     this.combo = scene.add.container(0, 0, [this.comboTag, this.comboNum]).setDepth(COMBO.depth).setVisible(false);
   }
 
@@ -109,7 +112,7 @@ export class HudP19 {
     const parts: Phaser.GameObjects.GameObject[] = [g];
     let w = POP.glyph;
     if (v.num) {
-      const t = new GlowText(sc, 0, 0, v.num, 'ink_body', { scale: 2, stageIndex: this.deps.stageIndex() });
+      const t = new GlowText(sc, 0, 0, v.num, 'ink_bone', { font: 'title', stageIndex: this.deps.stageIndex() });
       t.setPosition(POP.glyph + POP.gap, Math.round(POP.glyph / 2 - t.displayHeight / 2));
       w += POP.gap + t.displayWidth;
       parts.push(t);
@@ -137,6 +140,8 @@ export class HudP19 {
     debugExpose('combo', text);
     if (!text) return;
     this.comboNum.setText(text);
+    // P21: 위 낱말은 66 팩 단계(고인다·차오른다·넘친다)
+    this.comboTag.setText(p21Text(streakKey(Number(o.count))));
     const right = UI_SCREEN.WIDTH - COMBO.right;
     const y = Math.round(UI_SCREEN.HEIGHT * COMBO.yRatio);
     this.comboNum.placeRight(right, y);
@@ -264,6 +269,7 @@ function drawGlyph(g: Phaser.GameObjects.Graphics, kind: PopKind, x: number, y: 
     [0, 1],
   ])
     shape(dx, dy);
-  g.fillStyle(hexToNum(GRAY[15]), 1);
+  // P21: 흰 몸 → 뼈빛 (먹 테는 그대로)
+  g.fillStyle(hexToNum(DARK.bone), 1);
   shape(0, 0);
 }

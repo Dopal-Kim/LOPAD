@@ -15,6 +15,8 @@ import {
   TRACK_X,
   buildRows,
   drawRows,
+  goreDesc,
+  optionTexts,
   rowLabel,
   rowsHeight,
   tabLabel,
@@ -23,6 +25,8 @@ import {
 } from './SettingsRows';
 import {
   END_ROWS,
+  GORE_DEFAULT,
+  GORE_LEVELS,
   SETTINGS_TABS,
   changeSetting,
   cycleTab,
@@ -316,11 +320,18 @@ export class SettingsPanel {
         this.dragTo(p);
       }
     } else if (v.opts) {
-      const [a, b] = v.opts;
-      const mid = b.x - U.pad - U.toggleGap / 2;
-      const ax = a.x - U.pad;
-      if (lx >= ax - 2 && lx < mid) this.setOption(row, 0);
-      else if (lx >= mid && lx <= b.x - U.pad + b.displayWidth + 2) this.setOption(row, 1);
+      // 갈래 사이 틈의 가운데에서 나눈다 (첫 갈래 왼쪽 2px · 끝 갈래 오른쪽 2px 까지)
+      const opts = v.opts;
+      const left = (k: number): number => (k === 0 ? opts[0].x - U.pad - 2 : opts[k].x - U.pad - U.toggleGap / 2);
+      const last = opts[opts.length - 1];
+      const end = last.x - U.pad + last.displayWidth + 2;
+      let hit = -1;
+      for (let k = opts.length - 1; k >= 0; k--)
+        if (lx >= left(k) && lx <= end) {
+          hit = k;
+          break;
+        }
+      if (hit >= 0) this.setOption(row, hit);
       else this.activate(i);
     } else this.activate(i);
   }
@@ -352,7 +363,11 @@ export class SettingsPanel {
     if (!v) return;
     const row = v.row;
     if (row.kind === 'slider' || row.kind === 'toggle') this.apply(changeSetting(this.values, row.id, dir));
-    else if (row.kind === 'local' || row.kind === 'choice') this.setOption(row, dir < 0 ? 0 : 1);
+    else if (row.kind === 'local' || row.kind === 'choice') {
+      const n = optionTexts(row).length;
+      const cur = this.optionOf(row);
+      this.setOption(row, cur === null ? (dir < 0 ? 0 : n - 1) : Math.max(0, Math.min(n - 1, cur + dir)));
+    }
   }
 
   /** Enter·스페이스·클릭 */
@@ -363,7 +378,7 @@ export class SettingsPanel {
     if (row.kind === 'toggle') this.apply(toggleSetting(this.values, row.id));
     else if (row.kind === 'local' || row.kind === 'choice') {
       const cur = this.optionOf(row);
-      this.setOption(row, cur === 0 ? 1 : 0);
+      this.setOption(row, cur === null ? 0 : (cur + 1) % optionTexts(row).length);
     } else if (row.kind === 'key') this.startWaiting(row.id);
     else if (row.id === 'resetKeys') this.apply(setKeys(this.values, { ...DEFAULT_KEYS }));
     else if (row.id === 'reset') {
@@ -372,14 +387,19 @@ export class SettingsPanel {
     } else if (row.id === 'close') this.close();
   }
 
-  /** 두 갈래 줄: 0 = 왼쪽(켬·보통) · 1 = 오른쪽(끔·크게) */
-  private setOption(row: SettingRow, o: 0 | 1): void {
+  /** 갈래 줄: 0 = 왼쪽(켬·보통·고어 전체) … (고어: 1 줄임 · 2 끔) */
+  private setOption(row: SettingRow, o: number): void {
     if (row.kind === 'toggle') {
       this.apply({ ...this.values, [row.id]: o === 0 });
       return;
     }
     if (this.optionOf(row) === o) return;
-    if (row.kind === 'choice') {
+    if (row.kind === 'choice' && row.id === 'gore') {
+      // P21 (dark-brutal §1): 바꾸면 곧바로 시스템으로 + 아래 한 줄 설명
+      this.apply({ ...this.values, gore: GORE_LEVELS[o] ?? GORE_DEFAULT });
+      this.showNotice(goreDesc(this.values.gore));
+      return;
+    } else if (row.kind === 'choice') {
       const size = o === 1 ? 'large' : 'normal';
       setTextSize(size);
       // 시스템 월드 글자(피해 숫자 등)도 따라오게 설정에 싣는다 (계약 D textScale)
@@ -399,11 +419,12 @@ export class SettingsPanel {
     this.refresh();
   }
 
-  private optionOf(row: SettingRow): 0 | 1 | null {
+  private optionOf(row: SettingRow): number | null {
     switch (row.kind) {
       case 'toggle':
         return this.values[row.id] ? 0 : 1;
       case 'choice':
+        if (row.id === 'gore') return GORE_LEVELS.indexOf(this.values.gore);
         return textSize() === 'large' ? 1 : 0;
       case 'local':
         if (row.id === 'muted') return this.muted ? 0 : 1;
@@ -489,7 +510,8 @@ export class SettingsPanel {
     this.cursorIdx = i;
     if (byKey) playUiSound(this.scene, 'move');
     const row = this.rows[i - 1]?.row;
-    if (row?.kind === 'choice') this.showPreview();
+    if (row?.kind === 'choice' && row.id === 'gore') this.showNotice(goreDesc(this.values.gore));
+    else if (row?.kind === 'choice') this.showPreview();
     else if (this.preview) this.showNotice('');
     this.refresh();
   }
@@ -602,7 +624,13 @@ export class SettingsPanel {
             ...(v.row.kind === 'slider'
               ? { trackX: ox + TRACK_X, trackW: TRACK_W, leftX: ox + ARROW_L + 2, rightX: ox + ARROW_R + 2 }
               : {}),
-            ...(v.opts ? { onX: this.content.x + v.opts[0].x + 6, offX: this.content.x + v.opts[1].x + 6 } : {}),
+            ...(v.opts
+              ? {
+                  onX: this.content.x + v.opts[0].x + 6,
+                  offX: this.content.x + v.opts[1].x + 6,
+                  optX: v.opts.map((o) => this.content.x + o.x + 6),
+                }
+              : {}),
             ...(v.key ? { keyX: ox + U.ctrlX + 10 } : {}),
           },
         ]),

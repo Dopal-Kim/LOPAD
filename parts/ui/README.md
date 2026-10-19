@@ -1,5 +1,41 @@
 # 게임 UI 파트 — 작업 기록
 
+## P21 (2026-10-19) · UI 1차 — 어두운 타이틀 · 잔혹 묘사 안내·고어 설정 · 저HP 피 비네트 · 상흔 균열 · 처형 표식 · HUD 톤 (전권 위임)
+근거: `decisions/2026-10-19-P21-dark-brutal.md` §2·§4 UI, 계약 `contracts/dark-brutal.md` §1·§2. 계약 형식은 바꾸지 않았다. 인터뷰 없이 진행(62라운드 전권 위임) — 아래 세부는 UI 판단 1차, 2차 측정 뒤 조정.
+
+### 타이틀 (`TitleArt`·`TitleScene`·`TitleMenu`·`themeTitle`·새 `TitleWeather.ts`)
+- 글자색(theme `title_*`): 금빛·세피아 → 흐린 뼈빛 #9d9587 / 선택 뼈빛 #d8cfc0 + 검붉은 할로 #8e1b14 α0.5 + 먹 그늘 #0a0807 / 거부 알림 피 글 #b8382b. 선택 띠 호박 → 마른 피 #5a110c. '아무 키' 뼈빛 + 마른 피 할로.
+- 느린 등장(`TITLE_UI.intro`): 검은 화면 150 → 600ms, 붓 걷힘 1.4 → 2.8초, 로고 0.85 → 1.6초, 메뉴 1.9 → 3.6초(5초 안 — 키·클릭이면 바로). 파고들기 0.9 → 1.1초.
+- 밝은 섬광 제거: 로고 쓰기 붓 머리 빛 #faeec0 60% → 검붉은 잉걸 #962a16 55%, 성문 빛 금 #e8b858 α0.12 → #741d12 α0.1, 무기 불씨 점등 반짝 0.6 → 0.15. 검붉은 색은 title.json `colors.accent`(blood #3a0f0c · bloodLight #741d12 · ember #962a16)에 맞춤. 뼈빛은 지시대로 따뜻한 #d8cfc0(아트 bone #b2b4b8 은 로고 그림 몫).
+- 메뉴 족자·`colors.uiText` 는 아트가 안 바꿨다(조정관 안내) — UI 결정: 글자는 위 뼈빛·검붉은 스타일로, 족자 그림은 먹 한 겹 α0.45 로 눌러 둔다.
+- 불씨 일렁임(`titleView.emberFlicker` — 느린 두 사인 + 5.3초마다 꺼질 듯 잦아듦): 주인공 발광·무기 목소리·로고 불씨 4개·메뉴 커서 불씨. 모션 줄이기면 고정.
+- 안개 흐름 ×0.45, 불티 속도 ×0.6. 가장자리 먹 비네트(발목 안개 앞·로고 뒤, α0.82 — `vignette.ts`). 메뉴 족자 위 먹 한 겹 α0.45(족자 그림이 아직 밝은 세피아 — 아트가 다시 그리면 0).
+- 로고 떨림은 넣지 않았다: title.json `logo.idle` '글자 흔들림 금지'(아트 규칙). '떨림'은 불씨 일렁임으로.
+- title.json 새 층(아트 A P21): `rain`(두 겹 반복 그림, 오른쪽 아래로 흐름, 모션 줄이기면 먼 비만 멈춰 α0.25) · `crows`(7~15초마다 1~3마리, 로고 글자 상자를 피한 높이 `crowFlightY`, 몸 배율 0.75 기준 먼/가까운 층, 4.5초 뒤부터, 모션 줄이기면 끔) · `ash`(젖은 재 — 불티 방출기 재사용, 모션 줄이기면 초당 1). 그림은 `title_fx_rain/crow/ash.png` 를 그림으로 읽어 JSON 크기로 프레임을 나눈다(`sliceSheet`). 깊이는 `layers[]` 의 `title_fx_rain#far` 등.
+- 그 밖의 새 층(아는 파일이 아닌 `layers[].image`)은 일반 그림 층으로 읽어 표시(`readExtraLayers` — x·y·depth·parallax·blendMode·alpha·speedPxPerSec·flicker). JSON 을 읽은 뒤 그 그림만 더 읽는다. 없으면 기존대로.
+
+### 첫 실행 잔혹 묘사 안내 · 고어 설정 (계약 §1)
+- 새 `GoreNotice.ts`: 타이틀 첫 입력 뒤, 메뉴 앞에 한 번(`localStorage 'lopad.goreNotice' = '1'`, try/catch — 막히면 이번 페이지만 기억 `p21View.goreNoticeSeen`). 66 팩 그대로: 제목 · 본문 세 줄 · 버튼 셋 '그대로 본다(2)·줄인다(1)·끈다(0)'(Container → Graphics → GlowText)이 곧 고르기 — 고르면 `setSettings` 하고 덮는다. 포커스한 단계 설명 한 줄(66 goreSetting desc). ←→·A/D 옮기기 · Enter 고른다 · 1~3 · 마우스.
+- 설정 화면 '화면' 탭에 '잔혹 묘사' 줄(전체·줄임·끔 — 갈래 줄을 2갈래 → n갈래로 일반화). 줄에 오르거나 바꾸면 아래 한 줄 설명. '처음 값으로'는 전체(2).
+- `settingsView`: `gore: 0|1|2`(기본 2, 모르는 값 2) — 정리·비교·기본값에 넣음.
+- 문구는 한곳 `textP21.ts`(`p21Text` — 팩 `hud.<키>` 가 있으면 그 문구). 기본값을 스토리 66 팩(`text-pack-66-dark.json` goreNotice·goreSetting·title.pressPrompt·reactPops.streak) 문구로 채웠다. '아무 키' 는 `title.pressPrompt`('아무 키나 누르면 일어난다'). 연속 처치 위 낱말 '연속' → 66 단계 '고인다(2)·차오른다(4)·넘친다(7)'(`p21View.streakKey`, R62 `comboTag` 삭제). UI 에는 65 팩 팝 낱말이 없다(팝은 그림 문자 + 숫자). 화면 문자열에 금지어(고어·피니시·피니셔) 없음.
+
+### 전투 HUD (새 `HudP21.ts`·`p21View.ts`·`themeP21.ts`)
+- 저HP 피 비네트(`ui:low-hp`): HUD 맨 아래 층 검붉은 #4a0c08 가장자리, 심장 박동 '쿵·쿵'(1.1Hz, 둘째 박동 0.22 위상) α0.22 ~ 0.5, 설정 섬광 끄면 α0.34 고정. 켜짐 0.5초·꺼짐 0.9초.
+- 상흔(`ui:player-wounded` · `snapshot.player.wound`): 체력 막대 위 먹 균열 1·3·5 줄(같은 모양 — 단계가 오르면 더해짐), 단계 2 부터 균열 끝에 불씨 점, 하트 위 박힌 화살 획(최대 5).
+- 처형 가능 표식: 자리는 스냅샷 `executable {uid, screen}`(적 발밑), 발밑에 눕힌 짧은 낫(예고 색 '기회' #ffe08a + 먹 테, 0.9초 숨쉬기). `ui:enemy-executable` on:false 면 바로 거둠.
+- 처형(`ui:player-execute`): 동작 시간(ms) 동안 표식을 숨기고, 화면 가장자리 검붉게 1.18배 → 1배로 좁혀 들어왔다 풀림(50·90·320ms, α0.62 — 섬광 끄면 α0.3·좁힘 없음).
+- 톤: `ink_body` G14 + 호박 할로 → 뼈빛 + 마른 피 할로 + 먹 그늘, `ink_faint` → 흐린 뼈빛, `ink_accent` 호박 → 밝은 뼈빛 + 피 할로. 새 `ink_blood`(저HP 숫자 — 깜빡임 0.55 → 0.7 로 얕게), `ink_bone`(팝·연속 숫자).
+- 반응 팝: 흰 문자 → 뼈빛, 숫자 11px 2배 → 14px(Galmuri14) 뼈빛, 문자 12 → 10, 들어옴 60 → 120ms, 뜸 10 → 4px. 연속 처치 숫자도 14px 뼈빛, 튐 3 → 1px. 팝 문구는 그대로(스토리 66 팩).
+- 피해 숫자(월드 글)는 시스템 몫이라 UI 는 건드리지 않았다.
+
+### 계약 확인
+- 처음엔 계약 코드에 P21 이 없어 느슨하게 읽게 썼고(`eventsR61.P21_EVENTS` — 키가 생기면 그 값), 작업 중 시스템이 넣은 것과 맞췄다: `UiSettings.gore?` · `UI_EVENTS.ENEMY_EXECUTABLE/PLAYER_EXECUTE/PLAYER_WOUNDED/LOW_HP` · `UiSnapshot.player.wound` · `UiSnapshot.executable {uid, screen}`. 처형 이벤트의 `id`·`target` 은 적 종류 id 라 짝 맞추기는 `uid`(스냅샷)로 한다.
+
+### 검증
+- `npx tsc --noEmit`(UI 오류 0 — 남은 오류는 시스템 진행 중 파일), `npx eslint .` 0, prettier(src/ui), `npx vitest run src/ui` 40 파일 통과(새 `p21View.test.ts`, titleView·settingsView 테스트 추가), `npx vite build` 통과.
+- 헤드리스 Playwright 1920×1080(Canvas, `vite preview`, `?uidebug=1`): 타이틀 등장 → 첫 입력 → 안내 카드(줄임 고름) → 메뉴, localStorage 기록, 비·까마귀·재 표시, 페이지 오류 0. 무기 시험장 HUD 에 가짜 값(`patch`·`emitRaw`)으로 저HP 비네트·균열·화살 획·낫 표식·처형 가장자리·팝·연속 확인. 스크립트·캡처 `scratchpad/p21u/`.
+
 ## P19 (2026-10-14) · 1-U 카메라·가독성 — 화면 밖 적 표식 · 예고 색 · 가운데 띠 1장 · HUD 축소 · 반응 팝 · 연속 처치
 근거: `decisions/2026-10-14-P19-free-combat.md` ④G·⑤·⑦ 1-U, 계약 `contracts/free-combat.md` §1·§2·§4. 계약 형식은 바꾸지 않았다(새 필드는 시스템 S1~S3 가 넣는 중 — UI 는 느슨하게 읽는다).
 

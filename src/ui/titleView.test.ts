@@ -6,6 +6,8 @@ import {
   diveOrigin,
   diveZoom,
   emberAlpha,
+  emberFlicker,
+  crowFlightY,
   hotkeyIndex,
   introState,
   isWakeKey,
@@ -154,11 +156,11 @@ describe('움직임', () => {
 });
 
 describe('등장', () => {
-  it('3초 안에 메뉴까지', () => {
+  it('P21 느린 등장: 5초 안에 메뉴까지 (키·클릭이면 바로)', () => {
     const I = TITLE_UI.intro;
-    expect(I.menuAt + I.menuMs).toBeLessThanOrEqual(3000);
-    expect(I.blackMs + I.revealMs).toBeLessThanOrEqual(3000);
-    expect(I.dotsAt + 3 * I.dotGapMs + I.dotMs).toBeLessThanOrEqual(3000);
+    expect(I.menuAt + I.menuMs).toBeLessThanOrEqual(5000);
+    expect(I.blackMs + I.revealMs).toBeLessThanOrEqual(5000);
+    expect(I.dotsAt + 3 * I.dotGapMs + I.dotMs).toBeLessThanOrEqual(5000);
     const s0 = introState(0, false);
     expect(s0).toMatchObject({ reveal: 0, logo: 0, menu: 0, done: false });
     const end = introState(I.endMs, false);
@@ -178,7 +180,7 @@ describe('등장', () => {
 
 describe('로고 쓰기 진행 (62 루프 3 UI H · P0-N1)', () => {
   const MS = 2600;
-  it('메뉴가 열리는 시각(1.9초)에 멈추지 않고 끝까지 간다', () => {
+  it('메뉴가 열리는 시각에 멈추지 않고 끝까지 간다', () => {
     const atMenu = logoProgress(TITLE_UI.intro.menuAt, { complete: false, revealMs: MS });
     expect(atMenu.revealP).toBeLessThan(1);
     const done = logoProgress(logoDoneMs(MS), { complete: false, revealMs: MS });
@@ -190,7 +192,7 @@ describe('로고 쓰기 진행 (62 루프 3 UI H · P0-N1)', () => {
     const p = logoProgress(0, { complete: true, revealMs: MS });
     expect(p).toEqual({ revealP: 1, logo: 1, sub: 1, dots: [1, 1, 1, 1] });
   });
-  it('넘김 키가 미는 시각은 쓰기 끝(850+2600) 이후', () => {
+  it('넘김 키가 미는 시각은 쓰기 끝(logoAt+쓰기) 이후', () => {
     expect(logoDoneMs(MS)).toBeGreaterThanOrEqual(TITLE_UI.intro.logoAt + MS);
     expect(logoDoneMs()).toBe(TITLE_UI.intro.endMs);
   });
@@ -275,5 +277,86 @@ describe('영혼 메뉴 건너뛰기', () => {
     expect(metaAutoEnter({ id: 'meta', lines: [] })).toBe(true);
     expect(metaAutoEnter({ id: 'meta', lines: [{ key: 'm:a', enabled: true }] })).toBe(false);
     expect(metaAutoEnter({ id: 'reward', lines: [] })).toBe(false);
+  });
+});
+
+describe('P21 어두운 연출', () => {
+  const F = TITLE_UI.dark.flicker;
+  it('불씨 일렁임은 1 − amp … 1 사이, 잦아듦 구간에서는 더 낮다', () => {
+    for (let t = 0; t < 12000; t += 37) {
+      const k = emberFlicker(t, 2, F);
+      expect(k).toBeGreaterThanOrEqual(0);
+      expect(k).toBeLessThanOrEqual(1);
+    }
+    // seed 0 · 잦아듦 한가운데
+    const dip = emberFlicker(F.dipMs / 2, 0, F);
+    expect(dip).toBeLessThanOrEqual(F.dip + 1e-9);
+  });
+  it('까마귀 높이는 로고 글자 상자를 피한다', () => {
+    const box: [number, number, number, number] = [242, 64, 1118, 304];
+    expect(crowFlightY(0.5, [160, 520], null, 30, 48)).toBe(340);
+    const y = crowFlightY(0, [160, 520], box, 30, 48)!;
+    expect(y - 30 - 24).toBeGreaterThan(304);
+    expect(crowFlightY(1, [160, 520], box, 30, 48)).toBe(520);
+    expect(crowFlightY(0.5, [160, 300], box, 30, 48)).toBeNull();
+  });
+  it('title.json 날씨: 비 두 겹 · 까마귀 · 젖은 재', () => {
+    const spec = readTitleSpec(
+      {
+        layers: [{ key: 'title_fx_rain#near', image: 'title_fx_rain.png', depth: 9.7, ref: 'rain' }],
+        rain: {
+          instances: [
+            { name: 'rain_far', scale: 0.67, alpha: 0.35, speedPxPerSec: { x: 40, y: 520 } },
+            { name: 'rain_near', alpha: 0.55, speedPxPerSec: { x: 90, y: 980 } },
+          ],
+        },
+        crows: { frameWidth: 72, frameHeight: 48, flights: { path: 'y 160~520 사이, ±30px 사인 (주기 1.4s)' } },
+        ash: {
+          rows: ['ash_s', 'ash_l'],
+          emitters: [
+            {
+              name: 'ash_fall',
+              rows: ['ash_s', 'ash_l'],
+              weights: [3, 1],
+              area: { x: -100, y: -40, w: 2120, h: 20 },
+              rate: '초당 4~6',
+              alpha: '0 → 0.8 (0.6s) → 0 (마지막 1.5s)',
+              scale: [0.67, 1],
+            },
+          ],
+        },
+      },
+      null,
+      null,
+      null,
+    );
+    expect(spec.extras).toEqual([]);
+    expect(spec.rain).toEqual([
+      { layer: 'far', depth: 2.3, scale: 0.67, alpha: 0.35, vx: 40, vy: 520 },
+      { layer: 'near', depth: 9.7, scale: 1, alpha: 0.55, vx: 90, vy: 980 },
+    ]);
+    expect(spec.crows).toMatchObject({ y: [160, 520], swayPx: 30, swayMs: 1400, pivot: [36, 24] });
+    expect(spec.ash?.emitters[0]).toMatchObject({ rows: [0, 1], weights: [3, 1], rate: [4, 6], alphaMax: 0.8 });
+    expect(spec.ash).toMatchObject({ inMs: 600, outMs: 1500, scale: [0.67, 1], depth: 9.3 });
+  });
+  it('title.json 새 층: 아는 파일은 빼고, 값이 빠지면 기본, 깊이 순', () => {
+    const spec = readTitleSpec(
+      {
+        layers: [
+          { key: 'title_bg_far', image: 'title_bg_far.png', depth: 0 },
+          { key: 'title_fx_fog#far', image: 'title_fx_fog.png', depth: 1 },
+          { key: 'mist', image: 'title_fx_mist.png', depth: 10.2, blendMode: 'add', speedPxPerSec: -30, alpha: 0.4 },
+          { key: 'crows', image: 'title_crows.png', depth: 2.5, x: 300, y: 120, flicker: true },
+          { key: 'bad', image: '../x.png', depth: 3 },
+        ],
+      },
+      null,
+      null,
+      null,
+    );
+    expect(spec.extras.map((e) => e.image)).toEqual(['title_crows', 'title_fx_mist']);
+    expect(spec.extras[0]).toMatchObject({ x: 300, y: 120, parallax: 1, blend: 'NORMAL', speed: 0, flicker: true });
+    expect(spec.extras[1]).toMatchObject({ blend: 'ADD', speed: -30, alpha: 0.4 });
+    expect(readTitleSpec(null, null, null, null).extras).toEqual([]);
   });
 });
