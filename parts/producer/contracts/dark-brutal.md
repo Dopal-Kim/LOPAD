@@ -60,3 +60,4 @@
 - `parts/story/text-pack-66-dark.{md,json}`: 반응 팝 문구 교체안(free-combat 반응 8종 + 연속 처치), 적 대사 톤 교체, 타이틀 문구, 잔혹 묘사 안내문, 고어 설정 이름·설명, 처형 이름 4종, 저HP 문구(쓴다면). 용어집 갱신.
 
 ## 조정 기록
+- §2 (시스템 1차): 이벤트의 `id`·`target` 은 적 **종류** id. 개체 짝 맞추기는 `UiSnapshot.executable[{uid, screen}]`(처형 가능 적의 개체 uid·화면 좌표)로 한다 — UI 표식 위치는 스냅샷, `ui:enemy-executable{on:false}` 는 즉시 숨김용.
