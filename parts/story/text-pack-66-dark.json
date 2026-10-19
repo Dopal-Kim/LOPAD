@@ -1,0 +1,115 @@
+{
+  "_note": "P21 스토리 팩 66 (어두운 성인 톤, 인터뷰 없음 — 62라운드 전권 위임). 설명·판단 이유는 parts/story/text-pack-66-dark.md. 65 팩과 같은 키 체계 — enemies.<id>.barks·reactPops 는 65 팩 같은 키를 그대로 교체한다. 새 블록(title·goreNotice·goreSetting·executions·lowHp)은 새 키. revisions = 기존 문구 고침표(path·old·new). '_' 키는 화면에 안 나간다. 화면 문구에 아라비아 숫자를 쓰지 않는다. barks 는 kind speech(말투 검사 제외). 스토리 라인(사건·인물·세계관)은 바꾸지 않았다 — 말투·문구 톤만.",
+  "enemies": {
+    "drummer": {
+      "_replaces": "text-pack-65-p19.json enemies.drummer.barks (name·intro·codex·killerLine 은 65 그대로)",
+      "barks": {
+        "beat": [
+          "쳐, 계속 쳐… 북이 멎으면 다 죽어.",
+          "한 잔에 한 걸음… 한 걸음에 하나씩 묻혀.",
+          "장단 놓치지 마. 놓치면 장부에 오른다."
+        ],
+        "flee": [
+          "난 북만 쳤어. 북만… 아무도 안 죽였어.",
+          "이 북 빌린 거야… 돌려줘야 돼, 돌려줘야…"
+        ]
+      }
+    },
+    "bomber": {
+      "_replaces": "text-pack-65-p19.json enemies.bomber.barks (name·intro·codex·killerLine 은 65 그대로)",
+      "barks": {
+        "charge": [
+          "이걸로 외상 다 갚는다… 다 갚는다고!",
+          "같이 가자. 혼자 터지긴 싫어."
+        ],
+        "fuse": [
+          "탄다… 탄다, 아직 다 못 갚았는데…"
+        ],
+        "launched": [
+          "안 돼, 저긴 우리— 우리 쪽이—!"
+        ]
+      }
+    }
+  },
+  "reactPops": {
+    "_note": "65 팩 reactPops 같은 키 교체. 짧고 건조하게(공백 포함 네 글자 이하). 느낌표·물음표 없음. 숫자 없음. _old = 65 팩 낱말, _glyph = UI·아트 그림 문자 모티프 제안(어두운 톤으로 바꿈)",
+    "wallSlam": { "word": "으스러짐", "_old": "벽 맛", "_alt": ["짓이김", "뭉개짐"], "_event": "ENEMY_WALL_SLAM", "_glyph": "금 간 벽에 번진 검붉은 얼룩" },
+    "bowled": { "word": "뒤엉킴", "_old": "합석", "_alt": ["포개짐"], "_event": "ENEMY_BOWLED", "_glyph": "엉킨 두 몸 실루엣" },
+    "fell": {
+      "water": "가라앉음",
+      "drop": "추락",
+      "fire": "타들어감",
+      "_old": { "water": "풍덩", "drop": "아래로", "fire": "화르륵" },
+      "_alt": { "water": ["잠김"], "drop": ["떨어짐"], "fire": ["그을림"] },
+      "_event": "ENEMY_FELL (zone 별)",
+      "_glyph": "water = 가라앉는 손, drop = 아래로 끊긴 선, fire = 꺼져 가는 불씨"
+    },
+    "exploded": {
+      "first": "파열",
+      "chain": "줄초상",
+      "_old": { "first": "펑", "chain": "돌림잔" },
+      "_alt": { "first": ["터짐"] },
+      "_event": "HAZARD_EXPLODED — chain 0 = first, chain ≥ 1 = chain",
+      "_glyph": "first = 쪼개진 통, chain = 이어 붙은 깨진 잔(연쇄마다 하나씩 더)"
+    },
+    "streak": {
+      "tiers": [
+        { "min": 2, "word": "고인다", "_old": "연거푸" },
+        { "min": 4, "word": "차오른다", "_old": "부어라" },
+        { "min": 7, "word": "넘친다", "_old": "마셔라" }
+      ],
+      "_event": "COMBO_STREAK.count — min 은 65 제안값 그대로(시스템·UI 조정)",
+      "_glyph": "잔에 차오르는 검붉은 물(단계마다 수위가 오른다)"
+    }
+  },
+  "title": {
+    "_note": "타이틀 화면. subtitle·subtitleAlt 는 data/story.json ui.title.subtitle·subtitleAlt 교체(revisions 참고). tagline·pressPrompt 는 새 키. newRun·continue 등 메뉴 말은 그대로",
+    "subtitle": "시체 더미 위에서, 또 눈을 뜬다.",
+    "subtitleAlt": "죽은 자들의 빚은 아직 남았다.",
+    "tagline": "원한이 남아 있는 한, 죽어도 끝나지 않는다.",
+    "pressPrompt": "아무 키나 누르면 일어난다",
+    "_pressPromptAlt": ["키를 누르면 눈을 뜬다"]
+  },
+  "goreNotice": {
+    "_note": "첫 실행 잔혹 묘사 안내 카드(dark-brutal §1, localStorage 'lopad.goreNotice' 한 번). body = 세 줄(줄마다 한 문장). buttons 는 고르면 settings.gore 로 바로 들어간다: full = 2, reduced = 1, off = 0. 기본 포커스 full",
+    "title": "잔혹한 장면이 있다",
+    "body": [
+      "이 일기장에는 피와 잘린 몸, 불에 탄 시체가 적혀 있다.",
+      "싸움은 실제처럼 아프고, 그 흔적은 오래 남는다.",
+      "견디기 힘들면 줄이거나 끌 수 있다. 설정에서 언제든 다시 바꾼다."
+    ],
+    "buttons": { "full": "그대로 본다", "reduced": "줄인다", "off": "끈다" }
+  },
+  "goreSetting": {
+    "_note": "설정 화면 항목(dark-brutal §1). label = 항목 이름, options.<n>.name = 선택지, desc = 고른 선택지 아래 한 줄. 키 2·1·0 = settings.gore 값",
+    "label": "잔혹 묘사",
+    "options": {
+      "2": { "name": "전체", "desc": "베인 곳은 갈라지고 잘린 것은 떨어진다. 피와 시체는 그곳을 떠날 때까지 남는다." },
+      "1": { "name": "줄임", "desc": "몸이 잘리지 않는다. 피는 적고 어둡게 남는다." },
+      "0": { "name": "끔", "desc": "피 대신 먹과 재가 흩어진다. 바닥에 자국이 남지 않는다." }
+    }
+  },
+  "executions": {
+    "_note": "처형(dark-brutal §4) 이름. 무기 키 = PLAYER_EXECUTE.weapon. name = 처형 순간 팝·도감·조작 안내에 쓰는 이름. goreOffName = gore 0(일반 강타 모양)일 때 네 무기 공통 이름. term = 개념 이름(조작 안내 '[좌클릭] 처형')",
+    "term": "처형",
+    "katana": { "name": "목 거두기", "_variant": "behead", "_alt": ["참수 (斬首)"] },
+    "greatsword": { "name": "두 동강", "_variant": "bisect", "_alt": ["양단 (兩斷)"] },
+    "dagger": { "name": "멱 따기", "_variant": "collapse + 큰 분출", "_alt": ["등 뒤 찌르기"] },
+    "bow": { "name": "못 박기", "_variant": "pinned", "_alt": ["꿰어 눕히기"] },
+    "goreOffName": "마무리"
+  },
+  "lowHp": {
+    "_note": "저체력(LOW_HP on, 체력 ≤ 25%) 진입 때 한 번 띄우는 짧은 지문(선택 — UI 가 쓴다면). 둘 중 하나를 시드로. 같은 곳에서 다시 들어가면 띄우지 않기를 제안",
+    "lines": [
+      "몸이 갈라진다.",
+      "불씨가 샌다."
+    ]
+  },
+  "revisions": [
+    { "path": "data/story.json ui.title.subtitle", "old": "다시 태어난다. 기록만 남는다.", "new": "시체 더미 위에서, 또 눈을 뜬다." },
+    { "path": "data/story.json ui.title.subtitleAlt", "old": "누군가 쓰려다 만 일기장.", "new": "죽은 자들의 빚은 아직 남았다." },
+    { "path": "deathSummary.killerLines.creature[3] (63 팩)", "old": "{killer}에게 졌다. 이번 생은 여기까지다.", "new": "{killer} 앞에서 마지막 불씨가 꺼졌다." },
+    { "path": "deathSummary.killerLines.byEnemy.dummy (63 팩)", "old": "창 쓰는 법을 오늘 배운 자에게 쓰러졌다.", "new": "창 쓰는 법을 오늘 배운 자에게 쓰러졌다. 그에게도 내일은 없다." },
+    { "path": "elitePrefixes.list[0].death (57 팩 · 고주망태 처치 한 줄)", "old": "쓰러진 자리에 술이 고였다.", "new": "쓰러진 자리에 술과 피가 함께 고였다." }
+  ]
+}
