@@ -1,0 +1,80 @@
+{
+ "waste_birth": {
+  "region": "waste",
+  "ambientRatio": 0.751,
+  "before": {
+   "luma": 0.1316,
+   "sat": 0.452,
+   "chroma": 0.0762
+  },
+  "after": {
+   "luma": 0.0887,
+   "sat": 0.2793,
+   "chroma": 0.0305
+  },
+  "lumaChange": -0.326,
+  "satChange": -0.382,
+  "bodyBefore": {},
+  "bodyAfter": {}
+ },
+ "boss_katana": {
+  "region": "hall",
+  "ambientRatio": 0.737,
+  "before": {
+   "luma": 0.2855,
+   "sat": 0.1311,
+   "chroma": 0.042
+  },
+  "after": {
+   "luma": 0.2013,
+   "sat": 0.0856,
+   "chroma": 0.0169
+  },
+  "lumaChange": -0.295,
+  "satChange": -0.347,
+  "bodyBefore": {
+   "boss": {
+    "body": 0.3357,
+    "floor": 0.2925,
+    "delta": 0.0432
+   }
+  },
+  "bodyAfter": {
+   "boss": {
+    "body": 0.3443,
+    "floor": 0.2443,
+    "delta": 0.1
+   }
+  }
+ },
+ "boss_dagger": {
+  "region": "hall",
+  "ambientRatio": 0.737,
+  "before": {
+   "luma": 0.2883,
+   "sat": 0.1304,
+   "chroma": 0.042
+  },
+  "after": {
+   "luma": 0.2028,
+   "sat": 0.0841,
+   "chroma": 0.0168
+  },
+  "lumaChange": -0.297,
+  "satChange": -0.355,
+  "bodyBefore": {
+   "boss": {
+    "body": 0.3339,
+    "floor": 0.2883,
+    "delta": 0.0456
+   }
+  },
+  "bodyAfter": {
+   "boss": {
+    "body": 0.3405,
+    "floor": 0.2386,
+    "delta": 0.1018
+   }
+  }
+ }
+}

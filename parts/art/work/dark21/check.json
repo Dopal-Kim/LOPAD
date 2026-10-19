@@ -1,0 +1,198 @@
+{
+ "title_bg_far.png": {
+  "size": [
+   1920,
+   1080
+  ],
+  "mode": "RGB",
+  "bytes": 19882,
+  "gridBreaks": 0,
+  "colors": 16
+ },
+ "title_bg_mid.png": {
+  "size": [
+   1920,
+   1080
+  ],
+  "mode": "RGBA",
+  "bytes": 17616,
+  "alphaMinMax": [
+   0,
+   255
+  ],
+  "gridBreaks": 0,
+  "colors": 10
+ },
+ "title_bg_near.png": {
+  "size": [
+   1920,
+   1080
+  ],
+  "mode": "RGBA",
+  "bytes": 26983,
+  "alphaMinMax": [
+   0,
+   255
+  ],
+  "gridBreaks": 0,
+  "colors": 34
+ },
+ "title_hero.png": {
+  "size": [
+   237,
+   567
+  ],
+  "mode": "RGBA",
+  "bytes": 5975,
+  "alphaMinMax": [
+   0,
+   255
+  ]
+ },
+ "title_logo.png": {
+  "size": [
+   1200,
+   399
+  ],
+  "mode": "RGBA",
+  "bytes": 72054,
+  "alphaMinMax": [
+   0,
+   255
+  ]
+ },
+ "title_menu_frame.png": {
+  "size": [
+   144,
+   144
+  ],
+  "mode": "RGBA",
+  "bytes": 840,
+  "alphaMinMax": [
+   0,
+   255
+  ]
+ },
+ "title_fx_embers.png": {
+  "size": [
+   192,
+   168
+  ],
+  "mode": "RGBA",
+  "bytes": 1561,
+  "alphaMinMax": [
+   0,
+   255
+  ]
+ },
+ "title_fx_fog.png": {
+  "size": [
+   1920,
+   321
+  ],
+  "mode": "RGBA",
+  "bytes": 6113,
+  "alphaMinMax": [
+   0,
+   92
+  ],
+  "seamMeanAlphaDiff": 0.0
+ },
+ "title_fx_glow_hero.png": {
+  "size": [
+   235,
+   274
+  ],
+  "mode": "RGBA",
+  "bytes": 12198,
+  "alphaMinMax": [
+   0,
+   255
+  ]
+ },
+ "title_fx_voice_katana.png": {
+  "size": [
+   157,
+   393
+  ],
+  "mode": "RGBA",
+  "bytes": 16804,
+  "alphaMinMax": [
+   0,
+   45
+  ]
+ },
+ "title_fx_voice_greatsword.png": {
+  "size": [
+   132,
+   424
+  ],
+  "mode": "RGBA",
+  "bytes": 13752,
+  "alphaMinMax": [
+   0,
+   46
+  ]
+ },
+ "title_fx_voice_dagger.png": {
+  "size": [
+   124,
+   250
+  ],
+  "mode": "RGBA",
+  "bytes": 11132,
+  "alphaMinMax": [
+   0,
+   43
+  ]
+ },
+ "title_fx_voice_bow.png": {
+  "size": [
+   152,
+   414
+  ],
+  "mode": "RGBA",
+  "bytes": 15899,
+  "alphaMinMax": [
+   0,
+   45
+  ]
+ },
+ "title_fx_rain.png": {
+  "size": [
+   480,
+   540
+  ],
+  "mode": "RGBA",
+  "bytes": 3322,
+  "alphaMinMax": [
+   0,
+   100
+  ]
+ },
+ "title_fx_crow.png": {
+  "size": [
+   432,
+   48
+  ],
+  "mode": "RGBA",
+  "bytes": 586,
+  "alphaMinMax": [
+   0,
+   255
+  ]
+ },
+ "title_fx_ash.png": {
+  "size": [
+   144,
+   36
+  ],
+  "mode": "RGBA",
+  "bytes": 260,
+  "alphaMinMax": [
+   0,
+   230
+  ]
+ },
+ "errors": []
+}

@@ -1,0 +1,102 @@
+{
+ "_note": "P21 아트 A 조명 제안 — data/lighting.json 은 시스템 소유라 값만 제안(같은 키). 주변광을 내리고 따뜻한 빛 웅덩이는 작고 깊게, 대신 주인공·적 몸에 차가운 림 빛을 더해 바닥보다 몸이 +0.08 밝게 읽히게 한다. 위험물 빛(still·fire_pool)·예고(telegraph)·무기 fx·혼불은 그대로(판독 — 계약 §7).",
+ "_current": {
+  "default.ambient": "#6b6b75",
+  "outer.ambient": "#6b6b75",
+  "waste.ambient": "#787882",
+  "player": "#b0611a r58 i0.72",
+  "mob": "#d6d2c8 r24 i0.34 offsetY 9",
+  "vignette": "alpha 0.5 inner 0.5"
+ },
+ "default": {
+  "ambient": "#4e5260",
+  "note": "0.42 → 약 0.33 (평균 −23%), 살짝 차갑게(B +6%)"
+ },
+ "regions": {
+  "outer": {
+   "ambient": "#4e5260"
+  },
+  "waste": {
+   "ambient": "#565a66",
+   "note": "황무지는 광원이 적어 다른 지역보다 한 단 밝게 유지(62 의 +12% 보정 유지)"
+  },
+  "hall": {
+   "ambient": "#4a4e5c",
+   "note": "대리석 바닥이 밝아 기본보다 반 단 어둡게 — 촛대가 살린다"
+  }
+ },
+ "player": {
+  "color": "#b8582a",
+  "radius": 50,
+  "intensity": 0.62,
+  "flicker": 0.04,
+  "note": "발밑 빛 웅덩이를 조금 줄이고 불씨 쪽(붉게)으로. 몸 판독은 아래 playerRim 이 맡는다"
+ },
+ "playerRim": {
+  "_new": true,
+  "color": "#a9b4c8",
+  "radius": 20,
+  "intensity": 0.5,
+  "flicker": 0,
+  "offsetY": -34,
+  "note": "새 키(선택): 가슴 높이 작은 차가운 빛 — 몸 윤곽만 밝힌다. 없으면 player.intensity 0.72 유지"
+ },
+ "mob": {
+  "color": "#aab2c4",
+  "radius": 26,
+  "intensity": 0.5,
+  "flicker": 0,
+  "offsetY": 9,
+  "note": "0.34 → 0.5, 중립 → 차가운 회청: 어두운 바닥 위 적 윤곽(림)"
+ },
+ "vignette": {
+  "alpha": 0,
+  "inner": 0.5,
+  "note": "grade.json vignette 로 옮김(이중 비네트 방지). grade 비네트를 못 쓰는 Canvas 경로면 alpha 0.55 inner 0.45"
+ },
+ "fallback": {
+  "bonfire": {
+   "color": "#e06a28",
+   "radius": 104,
+   "intensity": 0.85,
+   "flicker": 0.3,
+   "offsetY": 6
+  },
+  "set_outer_lamppost": {
+   "color": "#c98a3c",
+   "radius": 62,
+   "intensity": 0.8,
+   "flicker": 0.08,
+   "offsetY": 30
+  },
+  "set_outer_stall": {
+   "color": "#d8904a",
+   "radius": 58,
+   "intensity": 0.45,
+   "flicker": 0.08,
+   "offsetY": 14
+  },
+  "set_outer_plaza": {
+   "color": "#e06a28",
+   "radius": 104,
+   "intensity": 0.8,
+   "flicker": 0.3,
+   "offsetY": 4
+  },
+  "set_waste_fire_ring": {
+   "color": "#e06a28",
+   "radius": 104,
+   "intensity": 0.8,
+   "flicker": 0.3,
+   "offsetY": 4
+  },
+  "set_gate_brazier": {
+   "color": "#e07030",
+   "radius": 88,
+   "intensity": 0.75,
+   "flicker": 0.26,
+   "offsetY": 16
+  },
+  "_unchanged": "still · fire_pool · soul_wisp — 위험물/혼불 판독용이라 그대로. weaponFx · telegraph 그대로"
+ }
+}

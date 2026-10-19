@@ -1,0 +1,17 @@
+{
+ "before_62_full": {
+  "luma": 0.1895,
+  "sat": 0.2255,
+  "warmPct": 26.29
+ },
+ "after_full": {
+  "luma": 0.1123,
+  "sat": 0.1456,
+  "warmPct": 6.41
+ },
+ "after_scene_only": {
+  "luma": 0.0831,
+  "sat": 0.0904,
+  "warmPct": 0.69
+ }
+}

@@ -5,7 +5,7 @@
   321
  ],
  "tileX": true,
- "note": "가로 반복 이음 없음. TileSprite 로 흘린다. 색은 달빛 회색(필요하면 setTint 0xE8C890 로 도시 쪽을 데움). 알파 계단 5단(26·48·70·92/255).",
+ "note": "가로 반복 이음 없음. TileSprite 로 흘린다. P21: 색 = 검은 연기·젖은 재(G02~G04) — 데우는 틴트 쓰지 말 것. 알파 계단 5단(26·48·70·92/255).",
  "instances": [
   {
    "name": "fog_far",
@@ -37,5 +37,5 @@
    "note": "발목 높이 안개 — 메뉴 글자를 가리지 않게 낮은 알파"
   }
  ],
- "source": "parts/art/work/title62/build.py (62라운드 — 타이틀 화면 전면 교체, Claude 직접 디자인)"
+ "source": "parts/art/work/dark21/build.py (P21 아트 A — 타이틀 다크화, 62 구도 유지)"
 }
